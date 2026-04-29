@@ -237,7 +237,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
         </div>
         <div class="pay-btns">
           <button class="pay-cash-btn" onclick="openPayment('cash')">💴 現金</button>
-          <button class="pay-card-btn" style="flex:1;padding:16px 6px;" onclick="openPayment('card_other')">💳 カード・電子</button>
+          <button class="pay-card-btn" style="flex:1;padding:16px 6px;" onclick="openPayment('card')">💳 カード</button>
+          <button class="pay-card-btn" style="flex:1;padding:16px 6px;background:#6c5ce7;" onclick="openPayment('other')">📱 電子</button>
         </div>
         <div class="cart-bottom-btns">
           <button class="hold-btn" onclick="holdCart()">⏸ 保留</button>
@@ -1225,8 +1226,11 @@ function getDiscountedPrice(item){
   if(activeDiscount==='sou'){
     if(SOU_FREE_IDS.includes(item.id)) return 0;
   }
-  if(activeDiscount==='rakuten'||activeDiscount==='jalan'){
+  if(activeDiscount==='rakuten'){
     if(isStayItem(item)) return 0;
+  }
+  if(activeDiscount==='jalan'){
+    if(item.id==='i_walk1day') return 0;
   }
   if(activeDiscount==='stay_guest' || isStayInCart()){
     if(STAY_GUEST_DISC_IDS.includes(item.id)) return item.price - STAY_GUEST_DISC;
@@ -1241,7 +1245,8 @@ function getPaidBadge(item){
   const d = discountItems.find(d=>d.key===activeDiscount);
   if(!d || d.type!=='paid') return null;
   if(activeDiscount==='sou' && SOU_FREE_IDS.includes(item.id)) return paidDisplaySettings.label;
-  if((activeDiscount==='rakuten'||activeDiscount==='jalan') && isStayItem(item)) return paidDisplaySettings.label;
+  if(activeDiscount==='rakuten' && isStayItem(item)) return paidDisplaySettings.label;
+  if(activeDiscount==='jalan' && item.id==='i_walk1day') return paidDisplaySettings.label;
   return null;
 }
 
@@ -1350,7 +1355,9 @@ function recalcCartPrices(){
       else{ cartItem.price=Math.floor(cartItem.origPrice/2); cartItem.discounted=true; cartItem.paidLabel=''; }
     } else if(activeDiscount==='sou' && SOU_FREE_IDS.includes(cartItem.id)){
       cartItem.price=0; cartItem.discounted=true; cartItem.paidLabel=paidDisplaySettings.label;
-    } else if((activeDiscount==='rakuten'||activeDiscount==='jalan') && cartItem.isStay){
+    } else if(activeDiscount==='rakuten' && cartItem.isStay){
+      cartItem.price=0; cartItem.discounted=true; cartItem.paidLabel=paidDisplaySettings.label;
+    } else if(activeDiscount==='jalan' && cartItem.id==='i_walk1day'){
       cartItem.price=0; cartItem.discounted=true; cartItem.paidLabel=paidDisplaySettings.label;
     } else if((activeDiscount==='stay_guest'||stayInCart) && STAY_GUEST_DISC_IDS.includes(cartItem.id)){
       cartItem.price = cartItem.origPrice - STAY_GUEST_DISC;
@@ -1597,17 +1604,8 @@ function openPayment(method){
   if(!cart.length){showToast('⚠ カートが空です','#c00');return;}
   currentPayMethod=method;
   const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
-  if(method==='card_other'){
-    currentPayMethod='card_other';
-    const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
-    document.getElementById('payment-modal-title').textContent='カード・電子決済';
-    document.getElementById('payment-modal-amount').textContent='¥'+total.toLocaleString();
-    document.getElementById('cash-change-section').style.display='none';
-    document.getElementById('payment-modal').classList.add('open');
-    return;
-  }
-  const labels={cash:'現金',card:'クレジットカード',other:'その他（電子決済）'};
-  document.getElementById('payment-modal-title').textContent=labels[method]+' で決済';
+  const labels={cash:'現金で決済',card:'カードで決済',other:'電子決済'};
+  document.getElementById('payment-modal-title').textContent=labels[method]||method;
   document.getElementById('payment-modal-amount').textContent='¥'+total.toLocaleString();
   const cs=document.getElementById('cash-change-section');
   cs.style.display=method==='cash'?'':'none';
@@ -1642,14 +1640,12 @@ function confirmPayment(){
     const received=parseInt(document.getElementById('cash-received').value)||0;
     if(received<total){showToast('⚠ 受取金額が不足しています','#c00');return;}
   }
-  if(currentPayMethod==='card_other'){
-    currentPayMethod='card';
-  }
   const isPaid = discountItems.find(d=>d.key===activeDiscount)?.type==='paid';
   const record={
     id:'s_'+Date.now(),datetime:new Date().toISOString(),
     items:cart.map(i=>({...i})),total,method:currentPayMethod,
     attrs:{...selectedAttrs},discount:activeDiscount,paid:isPaid,
+    memo: currentPayMethod==='other' ? '電子決済、伝票2枚だからレジ締め注意' : '',
     device:localStorage.getItem('pos_device_id')||'',
     device_name:localStorage.getItem('pos_device_name')||'',
   };
@@ -2113,8 +2109,10 @@ function deleteSaleFromDetail(){
   const methodLabel={cash:'現金',card:'カード',other:'電子'}[r.method]||r.method;
   const itemStr = r.items.slice(0,3).map(i=>i.name+(i.qty>1?'×'+i.qty:'')).join('、')+(r.items.length>3?'…':'');
   if(!confirm('この売上を削除しますか？\n\n' + dtToDisplay(r.datetime) + '\n' + itemStr + '\n¥' + r.total.toLocaleString() + '（' + methodLabel + '）\n\n※この操作は取り消せません')) return;
-  sales=sales.filter(s=>s.id!==currentDetailSaleId);
+  const deletedId=currentDetailSaleId;
+  sales=sales.filter(s=>s.id!==deletedId);
   sv(KEYS.sales,sales);
+  autoDeleteSale(deletedId);
   document.getElementById('sale-detail-modal').classList.remove('open');
   renderSales();
   showToast('✓ 削除しました');
@@ -2325,6 +2323,19 @@ async function autoSyncUpdatedSale(sale){
       await fetch(url,{method:'POST',mode:'no-cors',redirect:'follow',body:body});
     }
   }catch(e){/* 失敗しても無視 */}
+}
+
+async function autoDeleteSale(saleId){
+  const url=(ld(KEYS.gas)||DEFAULT_GAS_URL)||'';
+  if(!url) return;
+  try{
+    var body=JSON.stringify({type:'delete_rows',sale_id:saleId});
+    try{
+      await fetch(url,{method:'POST',redirect:'follow',body:body});
+    }catch(e){
+      await fetch(url,{method:'POST',mode:'no-cors',redirect:'follow',body:body});
+    }
+  }catch(e){}
 }
 
 // GAS接続テスト
