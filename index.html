@@ -2302,12 +2302,8 @@ async function autoSyncSale(sale){
   if(!url) return;
   try{
     const rows=saleToRows(sale);
-    try{
-      await fetch(url,{method:'POST',redirect:'follow',body:JSON.stringify({type:'add_rows',rows:rows})});
-    }catch(e){
-      await fetch(url,{method:'POST',mode:'no-cors',redirect:'follow',body:JSON.stringify({type:'add_rows',rows:rows})});
-    }
-  }catch(e){/* 失敗しても無視 */}
+    await fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'add_rows',rows:rows})});
+  }catch(e){}
 }
 
 // ポップアップで変更した売上を再送（replace）
@@ -2316,25 +2312,15 @@ async function autoSyncUpdatedSale(sale){
   if(!url) return;
   try{
     const rows=saleToRows(sale);
-    var body=JSON.stringify({type:'replace_rows',sale_id:sale.id,rows:rows});
-    try{
-      await fetch(url,{method:'POST',redirect:'follow',body:body});
-    }catch(e){
-      await fetch(url,{method:'POST',mode:'no-cors',redirect:'follow',body:body});
-    }
-  }catch(e){/* 失敗しても無視 */}
+    await fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'replace_rows',sale_id:sale.id,rows:rows})});
+  }catch(e){}
 }
 
 async function autoDeleteSale(saleId){
   const url=(ld(KEYS.gas)||DEFAULT_GAS_URL)||'';
   if(!url) return;
   try{
-    var body=JSON.stringify({type:'delete_rows',sale_id:saleId});
-    try{
-      await fetch(url,{method:'POST',redirect:'follow',body:body});
-    }catch(e){
-      await fetch(url,{method:'POST',mode:'no-cors',redirect:'follow',body:body});
-    }
+    await fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'delete_rows',sale_id:saleId})});
   }catch(e){}
 }
 
