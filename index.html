@@ -2279,18 +2279,8 @@ async function syncSalesData(data, label){
   try{
     const rows=data.reduce(function(acc,s){return acc.concat(saleToRows(s));}, []);
     var type=label==='全件'?'sync_all':'add_rows';
-    var body=JSON.stringify({type:type,rows:rows});
-    let json=null;
-    try{
-      const res=await fetch(url,{method:'POST',redirect:'follow',body:body});
-      json=await res.json();
-    }catch(e){
-      await fetch(url,{method:'POST',mode:'no-cors',redirect:'follow',body:body});
-      showToast('✓ '+label+'を送信しました（'+rows.length+'行）',null,4000);
-      return;
-    }
-    if(json&&json.status==='ok')showToast('✓ '+label+'を同期しました（'+rows.length+'行）',null,4000);
-    else showToast('⚠ エラー: '+(json&&json.message||'不明'),'#c00');
+    await fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:type,rows:rows})});
+    showToast('✓ '+label+'を送信しました（'+rows.length+'行）',null,4000);
   }catch(e){showToast('⚠ 通信エラー: '+e.message,'#c00');}
 }
 // 旧関数名を維持（後方互換）
