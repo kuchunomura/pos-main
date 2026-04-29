@@ -2270,17 +2270,28 @@ function doSync(mode){
   syncSalesData(data, mode==='all'?'全件':mode==='today'?'今日':mode==='yesterday'?'昨日':'絞込');
 }
 
+// GETでデータ送信（POSTリダイレクト問題を回避）
+async function gasGet(url, data){
+  var qs='?d='+encodeURIComponent(JSON.stringify(data));
+  await fetch(url+qs,{method:'GET'});
+}
+
 // 実際の同期処理
 async function syncSalesData(data, label){
   const url=(ld(KEYS.gas)||DEFAULT_GAS_URL)||'';
   if(!url){showToast('⚠ GAS URLを設定してください','#c00');switchTab('settings-pos');return;}
   if(!data.length){showToast('⚠ 対象データがありません','#c00');return;}
-  showToast(label+'を同期中...',null,5000);
+  showToast(label+'を同期中...',null,15000);
   try{
-    const rows=data.reduce(function(acc,s){return acc.concat(saleToRows(s));}, []);
-    var type=label==='全件'?'sync_all':'add_rows';
-    await fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:type,rows:rows})});
-    showToast('✓ '+label+'を送信しました（'+rows.length+'行）',null,4000);
+    var isAll=label==='全件';
+    if(isAll){
+      await gasGet(url,{type:'clear_sheets'});
+    }
+    for(var i=0;i<data.length;i++){
+      var rows=saleToRows(data[i]);
+      await gasGet(url,{type:'add_rows',rows:rows});
+    }
+    showToast('✓ '+label+'を同期しました（'+data.length+'件）',null,4000);
   }catch(e){showToast('⚠ 通信エラー: '+e.message,'#c00');}
 }
 // 旧関数名を維持（後方互換）
@@ -2291,8 +2302,7 @@ async function autoSyncSale(sale){
   const url=(ld(KEYS.gas)||DEFAULT_GAS_URL)||'';
   if(!url) return;
   try{
-    const rows=saleToRows(sale);
-    await fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'add_rows',rows:rows})});
+    await gasGet(url,{type:'add_rows',rows:saleToRows(sale)});
   }catch(e){}
 }
 
@@ -2301,8 +2311,7 @@ async function autoSyncUpdatedSale(sale){
   const url=(ld(KEYS.gas)||DEFAULT_GAS_URL)||'';
   if(!url) return;
   try{
-    const rows=saleToRows(sale);
-    await fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'replace_rows',sale_id:sale.id,rows:rows})});
+    await gasGet(url,{type:'replace_rows',sale_id:sale.id,rows:saleToRows(sale)});
   }catch(e){}
 }
 
@@ -2310,7 +2319,7 @@ async function autoDeleteSale(saleId){
   const url=(ld(KEYS.gas)||DEFAULT_GAS_URL)||'';
   if(!url) return;
   try{
-    await fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'delete_rows',sale_id:saleId})});
+    await gasGet(url,{type:'delete_rows',sale_id:saleId});
   }catch(e){}
 }
 
