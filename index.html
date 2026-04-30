@@ -3024,7 +3024,7 @@ function toggleSaleFlag(){
 function saveSaleChanges(){
   const r=sales.find(s=>s.id===currentDetailSaleId);if(!r)return;
   r.memo=document.getElementById('sale-detail-memo').value;
-  sv(KEYS.sales,sales);renderSales();showToast('✓ 保存しました');
+  sv(KEYS.sales,sales);autoSyncUpdatedSale(r);renderSales();showToast('✓ 保存しました');
 }
 function deleteSaleFromDetail(){
   if(!currentDetailSaleId)return;
@@ -3032,8 +3032,9 @@ function deleteSaleFromDetail(){
   const ml={cash:'現金',card:'カード',other:'電子'}[r.method]||r.method;
   const is=r.items.slice(0,3).map(i=>i.name+(i.qty>1?'×'+i.qty:'')).join('、')+(r.items.length>3?'…':'');
   if(!confirm('この売上を削除しますか？\n\n'+dtToDisplay(r.datetime)+'\n'+is+'\n¥'+r.total.toLocaleString()+'（'+ml+'）\n\n※取り消せません'))return;
-  sales=sales.filter(s=>s.id!==currentDetailSaleId);
-  sv(KEYS.sales,sales);
+  const deletedId=currentDetailSaleId;
+  sales=sales.filter(s=>s.id!==deletedId);
+  sv(KEYS.sales,sales);autoDeleteSale(deletedId);
   document.getElementById('sale-detail-modal').classList.remove('open');
   renderSales();showToast('✓ 削除しました');
 }
