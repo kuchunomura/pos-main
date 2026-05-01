@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>POS 繝ｬ繧ｸ</title>
+<title>POS レジ</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 :root{
@@ -21,11 +21,11 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 .tab-content{display:none;height:calc(100dvh - 44px);overflow:hidden;}
 .tab-content.active{display:flex;}
 
-/* ===== POS繧ｿ繝・===== */
+/* ===== POSタブ ===== */
 #tab-pos{flex-direction:column;}
 .pos-wrapper{display:flex;flex:1;overflow:hidden;}
 
-/* 蟾ｦ・壼膚蜩√お繝ｪ繧｢ */
+/* 左：商品エリア */
 .pos-left{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);}
 .pos-top-bar{display:flex;gap:6px;padding:6px 8px;background:var(--surface);border-bottom:1px solid var(--border);align-items:center;flex-shrink:0;}
 .cat-filter-tabs{display:flex;gap:4px;overflow-x:auto;flex:1;}
@@ -56,21 +56,21 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 
 .attr-rows{display:flex;flex-direction:column;gap:3px;}
 
-/* 蜑ｲ蠑輔・莠育ｴ・し繧､繝医ヨ繧ｰ繝ｫ */
+/* 割引・予約サイトトグル */
 .discount-bar{background:var(--surface);border-top:1px solid var(--border);padding:5px 8px;flex-shrink:0;display:flex;gap:4px;flex-wrap:wrap;}
 .disc-btn{padding:6px 12px;border:1px solid var(--border);border-radius:12px;font-size:12px;cursor:pointer;background:#fff;color:var(--text2);font-family:inherit;transition:all 0.12s;white-space:nowrap;}
 .disc-btn.active{background:#7a1030;color:#fff;border-color:#7a1030;}
 .disc-btn.paid-active{background:var(--blue);color:#fff;border-color:var(--blue);}
 
-/* 譛ｪ逋ｻ骭ｲ蝠・刀繝舌・ */
+/* 未登録商品バー */
 .custom-price-bar{padding:6px 8px;background:var(--surface);border-top:1px solid var(--border);display:flex;gap:6px;align-items:center;flex-shrink:0;}
 .custom-price-bar input{flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;}
 .custom-price-bar button{padding:7px 14px;background:var(--accent2);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
 
-/* 蜿ｳ・壹き繝ｼ繝茨ｼ倶ｿ晉蕗 */
+/* 右：カート＋保留 */
 .pos-right{width:clamp(220px,28vw,300px);display:flex;flex-direction:column;background:var(--surface);border-left:1px solid var(--border);flex-shrink:0;}
 
-/* 菫晉蕗繧ｿ繝・*/
+/* 保留タブ */
 .hold-tabs{display:flex;flex-direction:column;border-bottom:1px solid var(--border);background:#f9f9f9;}
 .hold-tabs-row{display:flex;}
 .hold-tab{flex:1;padding:4px 2px;border:none;background:none;font-size:9px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text2);border-bottom:2px solid transparent;text-align:center;position:relative;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -78,7 +78,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 .hold-tab.active{color:var(--accent);border-bottom:2px solid var(--accent);}
 .hold-tab .hold-dot{width:5px;height:5px;background:var(--accent2);border-radius:50%;position:absolute;top:3px;right:3px;}
 
-/* 繧ｫ繝ｼ繝・*/
+/* カート */
 .cart-header{padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .cart-header h3{font-size:13px;font-weight:700;}
 .cart-list{flex:1;overflow-y:auto;padding:6px;}
@@ -91,7 +91,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 .cart-item-del{color:#ccc;font-size:16px;cursor:pointer;padding:0 3px;flex-shrink:0;}
 .cart-discount-note{font-size:10px;color:var(--red);padding:2px 4px;}
 
-/* 蜷郁ｨ医・豎ｺ貂・*/
+/* 合計・決済 */
 .cart-footer{padding:8px 12px;border-top:1px solid var(--border);}
 .total-row{display:flex;justify-content:center;align-items:center;flex-direction:column;margin-bottom:6px;}
 .total-label{font-size:12px;color:var(--text2);}
@@ -106,7 +106,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 .hold-btn{flex:1;padding:7px;border:1px solid var(--accent3);border-radius:8px;background:#fff;color:var(--accent2);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;}
 .clear-btn{flex:1;padding:7px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text2);font-size:11px;cursor:pointer;font-family:inherit;}
 
-/* ===== 螢ｲ荳翫ち繝・===== */
+/* ===== 売上タブ ===== */
 #tab-sales{flex-direction:column;overflow:hidden;}
 .sales-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
 .sales-header h2{font-size:16px;font-weight:700;flex:1;}
@@ -125,7 +125,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 .sales-table td{padding:7px 8px;border-bottom:1px solid #f5f5f5;}
 .edit-sale-btn{padding:3px 8px;border:1px solid var(--border);border-radius:5px;background:#fff;font-size:10px;cursor:pointer;font-family:inherit;}
 
-/* ===== 險ｭ螳壹ち繝・===== */
+/* ===== 設定タブ ===== */
 #tab-settings-pos{flex-direction:column;overflow-y:auto;padding:14px;}
 .settings-section{background:var(--surface);border-radius:10px;padding:14px;margin-bottom:14px;box-shadow:var(--shadow);}
 .settings-section h3{font-size:13px;font-weight:700;margin-bottom:10px;color:var(--accent);}
@@ -144,7 +144,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 .cat-mgmt-row .cname{flex:1;font-size:12px;font-weight:500;}
 .color-swatch{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:middle;border:1px solid rgba(0,0,0,0.15);}
 
-/* 繝｢繝ｼ繝繝ｫ */
+/* モーダル */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;align-items:center;justify-content:center;}
 .modal-overlay.open{display:flex;}
 .modal{background:#fff;border-radius:16px;padding:18px;width:92%;max-width:400px;max-height:88vh;overflow-y:auto;}
@@ -153,7 +153,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 .modal-btns button{padding:9px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
 .modal-btns .confirm{background:var(--accent);color:#fff;border-color:var(--accent);}
 
-/* 豎ｺ貂亥ｮ御ｺ・*/
+/* 決済完了 */
 .payment-done{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center;}
 .payment-done.open{display:flex;}
 .payment-done-inner{background:#fff;border-radius:20px;padding:28px;text-align:center;width:90%;max-width:340px;}
@@ -178,53 +178,53 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <body>
 
 <div class="tabbar">
-  <button class="active" onclick="switchTab('pos')">將繝ｬ繧ｸ</button>
-  <button onclick="switchTab('timer')">竢ｱ譎る俣</button>
-  <button onclick="switchTab('sales')">投螢ｲ荳・/button>
-  <button onclick="switchTab('settings-pos')">笞呻ｸ剰ｨｭ螳・/button>
+  <button class="active" onclick="switchTab('pos')">🛒レジ</button>
+  <button onclick="switchTab('timer')">⏱時間</button>
+  <button onclick="switchTab('sales')">📊売上</button>
+  <button onclick="switchTab('settings-pos')">⚙️設定</button>
 </div>
 
-<!-- ===== POS繧ｿ繝・===== -->
+<!-- ===== POSタブ ===== -->
 <div class="tab-content active" id="tab-pos">
   <div class="pos-wrapper">
-    <!-- 蟾ｦ・壼膚蜩・-->
+    <!-- 左：商品 -->
     <div class="pos-left">
       <div class="pos-top-bar">
         <div class="cat-filter-tabs" id="cat-filter-tabs"></div>
-        <button class="edit-btn" id="edit-btn" onclick="toggleEditMode()">笨擾ｸ・邱ｨ髮・/button>
+        <button class="edit-btn" id="edit-btn" onclick="toggleEditMode()">✏️ 編集</button>
       </div>
       <div class="pos-items-area" id="pos-items-area"></div>
       <div id="discount-bar-wrap" style="background:var(--surface);border-top:1px solid var(--border);padding:4px 8px;flex-shrink:0;">
         <div onclick="toggleDiscount()" style="display:flex;align-items:center;gap:4px;margin-bottom:3px;cursor:pointer;">
-          <span style="font-size:13px;color:var(--text2);font-weight:600;flex:1;">蜑ｲ蠑輔・莠育ｴ・し繧､繝・/span>
-          <span id="toggle-disc-btn" style="font-size:14px;color:#aaa;padding:4px 8px;line-height:1;">笆ｼ</span>
+          <span style="font-size:13px;color:var(--text2);font-weight:600;flex:1;">割引・予約サイト</span>
+          <span id="toggle-disc-btn" style="font-size:14px;color:#aaa;padding:4px 8px;line-height:1;">▼</span>
         </div>
         <div class="discount-bar" id="discount-bar" style="border:none;padding:0;background:none;"></div>
       </div>
       <div id="attr-bar-wrap" style="background:var(--surface);border-top:1px solid var(--border);padding:4px 8px;flex-shrink:0;">
         <div onclick="toggleAttr()" style="display:flex;align-items:center;gap:4px;margin-bottom:3px;cursor:pointer;">
-          <span style="font-size:18px;flex:1;line-height:1;">側</span>
-          <span id="toggle-attr-btn" style="font-size:14px;color:#aaa;padding:4px 8px;line-height:1;">笆ｲ</span>
+          <span style="font-size:18px;flex:1;line-height:1;">👤</span>
+          <span id="toggle-attr-btn" style="font-size:14px;color:#aaa;padding:4px 8px;line-height:1;">▲</span>
         </div>
         <div id="attr-rows-inner" class="attr-rows" style="display:none;"></div>
       </div>
       <div class="custom-price-bar">
-        <input type="number" id="custom-price" placeholder="譛ｪ逋ｻ骭ｲ蝠・刀縺ｮ驥鷹｡・ min="0">
-        <button onclick="addCustomItem()">霑ｽ蜉</button>
+        <input type="number" id="custom-price" placeholder="未登録商品の金額" min="0">
+        <button onclick="addCustomItem()">追加</button>
       </div>
     </div>
 
-    <!-- 蜿ｳ・壹き繝ｼ繝・-->
+    <!-- 右：カート -->
     <div class="pos-right">
-      <!-- 迴ｾ蝨ｨ譎ょ綾 -->
+      <!-- 現在時刻 -->
       <div style="display:flex;align-items:center;background:#f9f9f9;border-bottom:1px solid var(--border);">
         <div style="flex:1;text-align:center;padding:4px 8px;font-size:18px;font-weight:700;font-family:monospace;color:var(--accent);letter-spacing:2px;" id="clock-display">00:00:00</div>
-        <div onclick="openWeatherPicker()" id="weather-display" style="padding:4px 8px;font-size:16px;cursor:pointer;min-width:32px;text-align:center;" title="螟ｩ豌励ｒ驕ｸ謚・>研</div>
+        <div onclick="openWeatherPicker()" id="weather-display" style="padding:4px 8px;font-size:16px;cursor:pointer;min-width:32px;text-align:center;" title="天気を選択">🌤</div>
       </div>
-      <!-- 菫晉蕗繧ｿ繝・-->
+      <!-- 保留タブ -->
       <div class="hold-tabs" id="hold-tabs"></div>
       <div class="cart-header">
-        <h3>將 繧ｫ繝ｼ繝・/h3>
+        <h3>🛒 カート</h3>
         <span id="cart-count" style="font-size:11px;color:var(--text2)"></span>
       </div>
       <div class="cart-list" id="cart-list"></div>
@@ -232,52 +232,52 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
         <div id="orig-amount-row" class="orig-amount" style="display:none"></div>
 
         <div class="total-row">
-          <span class="total-label">蜷郁ｨ・/span>
-          <span class="total-amount" id="total-amount">ﾂ･0</span>
+          <span class="total-label">合計</span>
+          <span class="total-amount" id="total-amount">¥0</span>
         </div>
         <div class="pay-btns">
-          <button class="pay-cash-btn" onclick="openPayment('cash')">超 迴ｾ驥・/button>
-          <button class="pay-card-btn" style="flex:1;padding:16px 6px;" onclick="openPayment('card')">諜 繧ｫ繝ｼ繝・/button>
-          <button class="pay-card-btn" style="flex:1;padding:16px 6px;background:#6c5ce7;" onclick="openPayment('other')">導 髮ｻ蟄・/button>
+          <button class="pay-cash-btn" onclick="openPayment('cash')">💴 現金</button>
+          <button class="pay-card-btn" style="flex:1;padding:16px 6px;" onclick="openPayment('card')">💳 カード</button>
+          <button class="pay-card-btn" style="flex:1;padding:16px 6px;background:#6c5ce7;" onclick="openPayment('other')">📱 電子</button>
         </div>
         <div class="cart-bottom-btns">
-          <button class="hold-btn" onclick="holdCart()">竢ｸ 菫晉蕗</button>
-          <button class="clear-btn" onclick="clearCart()">卵 繧ｯ繝ｪ繧｢</button>
+          <button class="hold-btn" onclick="holdCart()">⏸ 保留</button>
+          <button class="clear-btn" onclick="clearCart()">🗑 クリア</button>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ===== 譎る俣險育ｮ励ち繝・===== -->
+<!-- ===== 時間計算タブ ===== -->
 <div class="tab-content" id="tab-timer">
   <div style="flex:1;overflow-y:auto;padding:16px;background:var(--bg);">
-    <h2 style="font-size:16px;font-weight:700;margin-bottom:16px;">竢ｱ 譎る俣險育ｮ・/h2>
+    <h2 style="font-size:16px;font-weight:700;margin-bottom:16px;">⏱ 時間計算</h2>
 
-    <!-- 迴ｾ蝨ｨ譎ょ綾 -->
+    <!-- 現在時刻 -->
     <div style="background:var(--surface);border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow);text-align:center;">
-      <div style="font-size:12px;color:var(--text2);margin-bottom:4px;">迴ｾ蝨ｨ譎ょ綾</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:4px;">現在時刻</div>
       <div style="font-size:42px;font-weight:700;font-family:monospace;color:var(--accent);letter-spacing:3px;" id="timer-clock">00:00:00</div>
     </div>
 
-    <!-- 險育ｮ励ヵ繧ｩ繝ｼ繝 -->
+    <!-- 計算フォーム -->
     <div style="background:var(--surface);border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow);">
       <div style="margin-bottom:12px;">
-        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;">譁ｽ險ｭ</label>
+        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;">施設</label>
         <div style="display:flex;gap:6px;flex-wrap:wrap;" id="timer-fac-btns"></div>
       </div>
       <div style="margin-bottom:12px;">
-        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;">繧ｳ繝ｼ繧ｹ</label>
+        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;">コース</label>
         <div style="display:flex;gap:6px;flex-wrap:wrap;" id="timer-course-btns"></div>
       </div>
       <div style="margin-bottom:12px;">
-        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;">髢句ｧ区凾髢・/label>
+        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;">開始時間</label>
         <div style="display:flex;gap:8px;align-items:center;">
           <input type="time" id="timer-start" oninput="calcTimer()" onchange="calcTimer()" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:16px;font-family:inherit;">
-          <button onclick="setTimerNow()" style="padding:10px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;">莉翫☆縺・/button>
+          <button onclick="setTimerNow()" style="padding:10px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;">今すぐ</button>
         </div>
       </div>
-      <!-- 蜊倅ｽ鍋ｵ先棡 -->
+      <!-- 単体結果 -->
       <div id="timer-result" style="display:none;background:#f9f9f9;border-radius:8px;padding:14px;text-align:center;">
         <div style="font-size:12px;color:var(--text2);margin-bottom:4px;" id="timer-result-label"></div>
         <div style="font-size:44px;font-weight:700;font-family:monospace;letter-spacing:2px;" id="timer-result-end"></div>
@@ -286,29 +286,29 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
       </div>
     </div>
     <div style="background:var(--surface);border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow);">
-      <div style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:10px;">楳 荳｡譁ｹ蛻ｩ逕ｨ</div>
+      <div style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:10px;">🔀 両方利用</div>
       <div style="margin-bottom:10px;">
-        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;">鬆・分</label>
+        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;">順番</label>
         <div style="display:flex;gap:6px;">
-          <button id="combo-order-aw" onclick="setComboOrder('walk_tree')" style="flex:1;padding:8px;border:2px solid var(--border);border-radius:8px;background:#fff;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text2);">遨ｺ荳ｭ繧ｦ繧ｩ繝ｼ繧ｯ竊偵ヤ繝ｪ繝ｼ繝上え繧ｹ</button>
-          <button id="combo-order-tw" onclick="setComboOrder('tree_walk')" style="flex:1;padding:8px;border:2px solid var(--border);border-radius:8px;background:#fff;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text2);">繝・Μ繝ｼ繝上え繧ｹ竊堤ｩｺ荳ｭ繧ｦ繧ｩ繝ｼ繧ｯ</button>
+          <button id="combo-order-aw" onclick="setComboOrder('walk_tree')" style="flex:1;padding:8px;border:2px solid var(--border);border-radius:8px;background:#fff;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text2);">空中ウォーク→ツリーハウス</button>
+          <button id="combo-order-tw" onclick="setComboOrder('tree_walk')" style="flex:1;padding:8px;border:2px solid var(--border);border-radius:8px;background:#fff;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text2);">ツリーハウス→空中ウォーク</button>
         </div>
       </div>
       <div style="display:flex;gap:8px;margin-bottom:10px;">
         <div style="flex:1;">
-          <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px;">遨ｺ荳ｭ繧ｦ繧ｩ繝ｼ繧ｯ</label>
+          <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px;">空中ウォーク</label>
           <div style="display:flex;gap:4px;" id="combo-walk-btns"></div>
         </div>
         <div style="flex:1;">
-          <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px;">繝・Μ繝ｼ繝上え繧ｹ譏ｼ</label>
+          <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px;">ツリーハウス昼</label>
           <div style="display:flex;gap:4px;" id="combo-tree-btns"></div>
         </div>
       </div>
       <div style="margin-bottom:10px;">
-        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;">髢句ｧ区凾髢・/label>
+        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;">開始時間</label>
         <div style="display:flex;gap:8px;align-items:center;">
           <input type="time" id="combo-start" oninput="calcCombo()" onchange="calcCombo()" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:16px;font-family:inherit;">
-          <button onclick="setComboNow()" style="padding:10px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;">莉翫☆縺・/button>
+          <button onclick="setComboNow()" style="padding:10px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;">今すぐ</button>
         </div>
       </div>
       <div id="combo-result" style="display:none;"></div>
@@ -316,83 +316,83 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
   </div>
 </div>
 
-<!-- ===== 螢ｲ荳翫ち繝・===== -->
+<!-- ===== 売上タブ ===== -->
 <div class="tab-content" id="tab-sales">
   <div class="sales-header">
-    <h2>投 螢ｲ荳顔ｮ｡逅・/h2>
-    <button class="btn-sm2" onclick="exportCSV()">踏 CSV</button>
+    <h2>📊 売上管理</h2>
+    <button class="btn-sm2" onclick="exportCSV()">📥 CSV</button>
     <div style="position:relative;display:inline-block;">
-      <button class="btn-sm2 primary" onclick="toggleSyncMenu(event)">投 蜷梧悄 笆ｾ</button>
+      <button class="btn-sm2 primary" onclick="toggleSyncMenu(event)">📊 同期 ▾</button>
       <div id="sync-menu" style="display:none;position:absolute;right:0;top:32px;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);z-index:300;min-width:110px;padding:4px 0;">
-        <button onclick="doSync('today')" style="display:block;width:100%;padding:8px 14px;border:none;background:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;">莉頑律蛻・/button>
-        <button onclick="doSync('yesterday')" style="display:block;width:100%;padding:8px 14px;border:none;background:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;">譏ｨ譌･蛻・/button>
-        <button onclick="doSync('filter')" style="display:block;width:100%;padding:8px 14px;border:none;background:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;">邨櫁ｾｼ蛻・/button>
-        <button onclick="doSync('all')" style="display:block;width:100%;padding:8px 14px;border:none;background:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;">蜈ｨ莉ｶ</button>
+        <button onclick="doSync('today')" style="display:block;width:100%;padding:8px 14px;border:none;background:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;">今日分</button>
+        <button onclick="doSync('yesterday')" style="display:block;width:100%;padding:8px 14px;border:none;background:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;">昨日分</button>
+        <button onclick="doSync('filter')" style="display:block;width:100%;padding:8px 14px;border:none;background:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;">絞込分</button>
+        <button onclick="doSync('all')" style="display:block;width:100%;padding:8px 14px;border:none;background:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;">全件</button>
       </div>
     </div>
   </div>
-  <!-- 螢ｲ荳翫し繝悶ち繝・-->
+  <!-- 売上サブタブ -->
   <div style="display:flex;border-bottom:1px solid var(--border);background:#fff;flex-shrink:0;">
-    <button id="stab-detail" onclick="switchSalesTab('detail')" style="flex:1;padding:8px;border:none;background:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text2);border-bottom:2px solid transparent;">搭 譏守ｴｰ</button>
-    <button id="stab-summary" onclick="switchSalesTab('summary')" style="flex:1;padding:8px;border:none;background:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text2);border-bottom:2px solid transparent;">投 髮・ｨ・/button>
+    <button id="stab-detail" onclick="switchSalesTab('detail')" style="flex:1;padding:8px;border:none;background:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text2);border-bottom:2px solid transparent;">📋 明細</button>
+    <button id="stab-summary" onclick="switchSalesTab('summary')" style="flex:1;padding:8px;border:none;background:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text2);border-bottom:2px solid transparent;">📊 集計</button>
   </div>
 
-  <!-- 髮・ｨ医ン繝･繝ｼ -->
+  <!-- 集計ビュー -->
   <div id="sales-view-summary" style="display:none;flex:1;overflow-y:auto;padding:10px;">
-    <!-- 譛滄俣驕ｸ謚・-->
+    <!-- 期間選択 -->
     <div style="display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap;">
-      <button class="btn-sm2 active-period" id="period-today" onclick="setPeriod('today')">套 莉頑律</button>
-      <button class="btn-sm2" id="period-week" onclick="setPeriod('week')">莉企ｱ</button>
-      <button class="btn-sm2" id="period-month" onclick="setPeriod('month')">莉頑怦</button>
-      <button class="btn-sm2" id="period-custom" onclick="setPeriod('custom')">繧ｫ繧ｹ繧ｿ繝</button>
+      <button class="btn-sm2 active-period" id="period-today" onclick="setPeriod('today')">📅 今日</button>
+      <button class="btn-sm2" id="period-week" onclick="setPeriod('week')">今週</button>
+      <button class="btn-sm2" id="period-month" onclick="setPeriod('month')">今月</button>
+      <button class="btn-sm2" id="period-custom" onclick="setPeriod('custom')">カスタム</button>
     </div>
     <div id="period-custom-inputs" style="display:none;gap:6px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
       <input type="date" id="summary-from" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;">
-      <span style="font-size:12px">縲・/span>
+      <span style="font-size:12px">〜</span>
       <input type="date" id="summary-to" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;">
-      <button class="btn-sm2 primary" onclick="renderSummary()">驕ｩ逕ｨ</button>
+      <button class="btn-sm2 primary" onclick="renderSummary()">適用</button>
     </div>
-    <!-- 繧ｵ繝槭Μ繝ｼ繧ｫ繝ｼ繝・-->
+    <!-- サマリーカード -->
     <div class="summary-cards" style="margin-bottom:10px;">
-      <div class="summary-card"><div class="sc-label">螢ｲ荳雁粋險・/div><div class="sc-value" id="sum-total">ﾂ･0</div></div>
-      <div class="summary-card"><div class="sc-label">莉ｶ謨ｰ</div><div class="sc-value" id="sum-count">0莉ｶ</div></div>
-      <div class="summary-card"><div class="sc-label">莠ｺ謨ｰ</div><div class="sc-value" id="sum-people">0莠ｺ</div></div>
-      <div class="summary-card"><div class="sc-label">螳｢蜊倅ｾ｡</div><div class="sc-value" id="sum-avg">ﾂ･0</div></div>
+      <div class="summary-card"><div class="sc-label">売上合計</div><div class="sc-value" id="sum-total">¥0</div></div>
+      <div class="summary-card"><div class="sc-label">件数</div><div class="sc-value" id="sum-count">0件</div></div>
+      <div class="summary-card"><div class="sc-label">人数</div><div class="sc-value" id="sum-people">0人</div></div>
+      <div class="summary-card"><div class="sc-label">客単価</div><div class="sc-value" id="sum-avg">¥0</div></div>
     </div>
-    <!-- 繧ｰ繝ｩ繝募・譖ｿ -->
+    <!-- グラフ切替 -->
     <div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap;">
-      <button class="btn-sm2" onclick="renderChart('daily')">譌･蛻･</button>
-      <button class="btn-sm2" onclick="renderChart('hourly')">譎る俣蟶ｯ蛻･</button>
-      <button class="btn-sm2" onclick="renderChart('weekday')">譖懈律蛻･</button>
-      <button class="btn-sm2" onclick="renderChart('item')">蝠・刀蛻･</button>
-      <button class="btn-sm2" onclick="renderChart('attr')">螻樊ｧ蛻･</button>
-      <button class="btn-sm2" onclick="renderChart('discount')">蜑ｲ蠑募挨</button>
+      <button class="btn-sm2" onclick="renderChart('daily')">日別</button>
+      <button class="btn-sm2" onclick="renderChart('hourly')">時間帯別</button>
+      <button class="btn-sm2" onclick="renderChart('weekday')">曜日別</button>
+      <button class="btn-sm2" onclick="renderChart('item')">商品別</button>
+      <button class="btn-sm2" onclick="renderChart('attr')">属性別</button>
+      <button class="btn-sm2" onclick="renderChart('discount')">割引別</button>
     </div>
     <div id="chart-title" style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:6px;"></div>
     <div id="chart-area" style="background:#fff;border-radius:10px;padding:12px;box-shadow:var(--shadow);margin-bottom:10px;overflow-x:auto;"></div>
     <div id="sales-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>
   </div>
 
-  <!-- 譏守ｴｰ繝薙Η繝ｼ -->
+  <!-- 明細ビュー -->
   <div id="sales-view-detail" style="flex:1;overflow-y:auto;padding:10px;">
     <div class="date-filter" style="margin-bottom:10px;">
-      <button class="btn-sm2" id="filter-btn-today" onclick="setFilterToday()">套 莉頑律</button>
-      <button class="btn-sm2" id="filter-btn-yesterday" onclick="setFilterYesterday()">譏ｨ譌･</button>
+      <button class="btn-sm2" id="filter-btn-today" onclick="setFilterToday()">📅 今日</button>
+      <button class="btn-sm2" id="filter-btn-yesterday" onclick="setFilterYesterday()">昨日</button>
       <input type="date" id="filter-from" onchange="updateFilterBtnState()">
-      <span style="font-size:12px">縲・/span>
+      <span style="font-size:12px">〜</span>
       <input type="date" id="filter-to" onchange="updateFilterBtnState()">
-      <button class="btn-sm2" onclick="updateFilterBtnState();renderSales()">邨櫁ｾｼ</button>
-      <button class="btn-sm2" onclick="clearFilter()">蜈ｨ莉ｶ</button>
+      <button class="btn-sm2" onclick="updateFilterBtnState();renderSales()">絞込</button>
+      <button class="btn-sm2" onclick="clearFilter()">全件</button>
     </div>
     <div class="summary-cards" style="margin-bottom:10px;">
-      <div class="summary-card"><div class="sc-label">螢ｲ荳雁粋險・/div><div class="sc-value" id="sc-total">ﾂ･0</div></div>
-      <div class="summary-card"><div class="sc-label">莉ｶ謨ｰ</div><div class="sc-value" id="sc-count">0莉ｶ</div></div>
-      <div class="summary-card"><div class="sc-label">莠ｺ謨ｰ</div><div class="sc-value" id="sc-people">0莠ｺ</div></div>
-      <div class="summary-card"><div class="sc-label">螳｢蜊倅ｾ｡</div><div class="sc-value" id="sc-avg">ﾂ･0</div></div>
+      <div class="summary-card"><div class="sc-label">売上合計</div><div class="sc-value" id="sc-total">¥0</div></div>
+      <div class="summary-card"><div class="sc-label">件数</div><div class="sc-value" id="sc-count">0件</div></div>
+      <div class="summary-card"><div class="sc-label">人数</div><div class="sc-value" id="sc-people">0人</div></div>
+      <div class="summary-card"><div class="sc-label">客単価</div><div class="sc-value" id="sc-avg">¥0</div></div>
     </div>
     <div class="sales-table">
       <table>
-        <thead><tr><th></th><th>譌･譎・/th><th>蜀・ｨｳ</th><th>蜑ｲ蠑・/th><th>謾ｯ謇・/th><th>驥鷹｡・/th><th></th></tr></thead>
+        <thead><tr><th></th><th>日時</th><th>内訳</th><th>割引</th><th>支払</th><th>金額</th><th></th></tr></thead>
         <tbody id="sales-tbody"></tbody>
       </table>
     </div>
@@ -400,293 +400,293 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 
   </div>
 
-<!-- ===== 險ｭ螳壹ち繝・===== -->
+<!-- ===== 設定タブ ===== -->
 <div class="tab-content" id="tab-settings-pos">
-  <!-- 繝舌・繧ｸ繝ｧ繝ｳ諠・ｱ -->
+  <!-- バージョン情報 -->
   <div class="settings-section" id="pos-version-info" style="background:#f0f4e8;padding:10px 14px;">
-    <div style="font-size:12px;color:var(--accent);font-weight:700;">POS繝ｬ繧ｸ ver.-</div>
-    <div style="font-size:11px;color:var(--text2);margin-top:2px;">遒ｺ隱堺ｸｭ... &nbsp;|&nbsp; <span style="color:var(--accent);font-weight:600;">main迚・/span></div>
+    <div style="font-size:12px;color:var(--accent);font-weight:700;">POSレジ ver.-</div>
+    <div style="font-size:11px;color:var(--text2);margin-top:2px;">確認中... &nbsp;|&nbsp; <span style="color:var(--accent);font-weight:600;">main版</span></div>
   </div>
 
-  <!-- 繧ｫ繝・ざ繝ｪ繝ｼ邂｡逅・-->
+  <!-- カテゴリー管理 -->
   <div class="settings-section">
-    <h3>捷 繧ｫ繝・ざ繝ｪ繝ｼ邂｡逅・/h3>
+    <h3>🏷 カテゴリー管理</h3>
     <div id="cat-mgmt-list"></div>
     <div style="display:flex;gap:6px;align-items:flex-end;margin-top:6px">
-      <div class="form-row" style="flex:1;margin:0"><label>繧ｫ繝・ざ繝ｪ繝ｼ蜷・/label><input type="text" id="new-cat-name" placeholder="萓具ｼ壹Λ繝ｳ繝・></div>
-      <div class="form-row" style="margin:0"><label>閭梧勹濶ｲ</label><input type="color" id="new-cat-bg" value="#dff0d8"></div>
-      <div class="form-row" style="margin:0"><label>譫濶ｲ</label><input type="color" id="new-cat-border" value="#4caf50"></div>
-      <div class="form-row" style="margin:0"><label>譁・ｭ苓牡</label><input type="color" id="new-cat-text" value="#1b5e20"></div>
-      <div class="form-row" style="margin:0"><label>驥鷹｡崎牡</label><input type="color" id="new-cat-price" value="#8b4513"></div>
-      <button class="btn-sm2 primary" onclick="addCategory()" style="height:36px;margin-bottom:0">霑ｽ蜉</button>
+      <div class="form-row" style="flex:1;margin:0"><label>カテゴリー名</label><input type="text" id="new-cat-name" placeholder="例：ランチ"></div>
+      <div class="form-row" style="margin:0"><label>背景色</label><input type="color" id="new-cat-bg" value="#dff0d8"></div>
+      <div class="form-row" style="margin:0"><label>枠色</label><input type="color" id="new-cat-border" value="#4caf50"></div>
+      <div class="form-row" style="margin:0"><label>文字色</label><input type="color" id="new-cat-text" value="#1b5e20"></div>
+      <div class="form-row" style="margin:0"><label>金額色</label><input type="color" id="new-cat-price" value="#8b4513"></div>
+      <button class="btn-sm2 primary" onclick="addCategory()" style="height:36px;margin-bottom:0">追加</button>
     </div>
-    <button class="btn-primary2" onclick="saveCatSettings()">繧ｫ繝・ざ繝ｪ繝ｼ繧剃ｿ晏ｭ・/button>
+    <button class="btn-primary2" onclick="saveCatSettings()">カテゴリーを保存</button>
   </div>
 
-  <!-- 蝠・刀逋ｻ骭ｲ -->
+  <!-- 商品登録 -->
   <div class="settings-section">
-    <h3>寫 蝠・刀逋ｻ骭ｲ</h3>
+    <h3>🛍 商品登録</h3>
     <div class="item-list" id="item-list"></div>
-    <div class="form-row"><label>蝠・刀蜷・/label><input type="text" id="new-item-name" placeholder="萓具ｼ壹さ繝ｼ繝偵・"></div>
-    <div class="form-row"><label>驥鷹｡搾ｼ亥・・・/label><input type="number" id="new-item-price" min="0" placeholder="500"></div>
-    <div class="form-row"><label>繧ｫ繝・ざ繝ｪ繝ｼ</label><select id="new-item-cat"></select></div>
-    <div class="form-row"><label>蝨ｨ蠎ｫ謨ｰ・・=髱櫁｡ｨ遉ｺ・・/label><input type="number" id="new-item-stock" min="0" value="0" placeholder="0"></div>
-    <button class="btn-primary2" onclick="addItem()">・・蝠・刀繧定ｿｽ蜉</button>
+    <div class="form-row"><label>商品名</label><input type="text" id="new-item-name" placeholder="例：コーヒー"></div>
+    <div class="form-row"><label>金額（円）</label><input type="number" id="new-item-price" min="0" placeholder="500"></div>
+    <div class="form-row"><label>カテゴリー</label><select id="new-item-cat"></select></div>
+    <div class="form-row"><label>在庫数（0=非表示）</label><input type="number" id="new-item-stock" min="0" value="0" placeholder="0"></div>
+    <button class="btn-primary2" onclick="addItem()">＋ 商品を追加</button>
   </div>
 
-  <!-- 莠育ｴ・し繧､繝亥錐 -->
+  <!-- 予約サイト名 -->
   <div class="settings-section">
-    <h3>倹 蜑ｲ蠑輔・莠育ｴ・し繧､繝郁ｨｭ螳・/h3>
+    <h3>🌐 割引・予約サイト設定</h3>
     <div id="discount-settings-list"></div>
     <div style="display:flex;gap:6px;align-items:flex-end;margin-top:8px;flex-wrap:wrap;">
-      <div class="form-row" style="flex:1;margin:0"><label>繝ｩ繝吶Ν蜷・/label><input type="text" id="new-disc-label" placeholder="萓具ｼ哂irbnb"></div>
+      <div class="form-row" style="flex:1;margin:0"><label>ラベル名</label><input type="text" id="new-disc-label" placeholder="例：Airbnb"></div>
       <div class="form-row" style="margin:0">
-        <label>遞ｮ蛻･</label>
+        <label>種別</label>
         <select id="new-disc-type">
-          <option value="paid">莠育ｴ・し繧､繝茨ｼ域髪謇墓ｸ茨ｼ・/option>
-          <option value="discount">蜑ｲ蠑・/option>
+          <option value="paid">予約サイト（支払済）</option>
+          <option value="discount">割引</option>
         </select>
       </div>
-      <button class="btn-sm2 primary" onclick="addDiscountItem()" style="height:36px;margin-bottom:0;">霑ｽ蜉</button>
+      <button class="btn-sm2 primary" onclick="addDiscountItem()" style="height:36px;margin-bottom:0;">追加</button>
     </div>
-    <button class="btn-primary2" onclick="saveDiscountSettings()">菫晏ｭ・/button>
+    <button class="btn-primary2" onclick="saveDiscountSettings()">保存</button>
   </div>
 
 
-  <!-- 螻樊ｧ險ｭ螳・-->
+  <!-- 属性設定 -->
   <div class="settings-section">
-    <h3>則 螻樊ｧ險ｭ螳・/h3>
+    <h3>👥 属性設定</h3>
     <div id="attr-settings-area"></div>
     <div style="display:flex;gap:8px;">
-      <button class="btn-primary2" onclick="sv('pos_attrs',ATTRS);showToast('笨・螻樊ｧ繧剃ｿ晏ｭ倥＠縺ｾ縺励◆');">菫晏ｭ・/button>
-      <button class="btn-primary2" style="background:#888;" onclick="resetAttrsToDefault()">繝・ヵ繧ｩ繝ｫ繝医↓謌ｻ縺・/button>
+      <button class="btn-primary2" onclick="sv('pos_attrs',ATTRS);showToast('✓ 属性を保存しました');">保存</button>
+      <button class="btn-primary2" style="background:#888;" onclick="resetAttrsToDefault()">デフォルトに戻す</button>
     </div>
   </div>
-  <!-- 譎る俣險育ｮ苓ｨｭ螳・-->
+  <!-- 時間計算設定 -->
   <div class="settings-section">
-    <h3>竢ｱ 譎る俣險育ｮ苓ｨｭ螳・/h3>
+    <h3>⏱ 時間計算設定</h3>
     <div id="timer-fac-settings"></div>
-    <button class="btn-primary2" onclick="saveTimerSettings()">菫晏ｭ・/button>
+    <button class="btn-primary2" onclick="saveTimerSettings()">保存</button>
   </div>
 
-  <!-- 陦ｨ遉ｺ繧ｵ繧､繧ｺ -->
+  <!-- 表示サイズ -->
   <div class="settings-section">
-    <h3>盗 陦ｨ遉ｺ繧ｵ繧､繧ｺ隱ｿ謨ｴ</h3>
+    <h3>📐 表示サイズ調整</h3>
     <div class="form-row">
-      <label>譁・ｭ励し繧､繧ｺ・育樟蝨ｨ: <span id="font-scale-val">100</span>%・・/label>
+      <label>文字サイズ（現在: <span id="font-scale-val">100</span>%）</label>
       <input type="range" id="font-scale" min="70" max="130" value="100" oninput="applyFontScale(this.value)">
     </div>
     <div class="form-row">
-      <label>繧ｫ繝ｼ繝亥ｹ・ｼ育樟蝨ｨ: <span id="cart-width-val">28</span>vw・・/label>
+      <label>カート幅（現在: <span id="cart-width-val">28</span>vw）</label>
       <input type="range" id="cart-width" min="20" max="45" value="28" oninput="applyCartWidth(this.value)">
     </div>
-    <button class="btn-primary2" onclick="saveDisplaySettings()">菫晏ｭ・/button>
+    <button class="btn-primary2" onclick="saveDisplaySettings()">保存</button>
   </div>
 
-  <!-- 謾ｯ謇墓ｸ医∩陦ｨ遉ｺ險ｭ螳・-->
+  <!-- 支払済み表示設定 -->
   <div class="settings-section">
-    <h3>笨・謾ｯ謇墓ｸ医∩陦ｨ遉ｺ險ｭ螳夲ｼ域･ｽ螟ｩ繝ｻ縺倥ｃ繧峨ｓ繝ｻSOU・・/h3>
+    <h3>✅ 支払済み表示設定（楽天・じゃらん・SOU）</h3>
     <div class="form-row">
-      <label>繝舌ャ繧ｸ譁・ｨ・井ｾ具ｼ壽髪謇墓ｸ医∽ｺ句燕豎ｺ貂茨ｼ・/label>
-      <input type="text" id="paid-label-input" placeholder="謾ｯ謇墓ｸ・>
+      <label>バッジ文言（例：支払済、事前決済）</label>
+      <input type="text" id="paid-label-input" placeholder="支払済">
     </div>
     <div class="form-row" style="display:flex;align-items:center;gap:10px;">
-      <label style="margin:0;">繝舌ャ繧ｸ濶ｲ</label>
+      <label style="margin:0;">バッジ色</label>
       <input type="color" id="paid-color-input" value="#c0392b">
-      <span id="paid-preview" style="font-size:11px;background:#fde8e8;border:1px solid #f5c0c0;border-radius:4px;padding:2px 8px;font-weight:600;color:#c0392b;">謾ｯ謇墓ｸ・/span>
+      <span id="paid-preview" style="font-size:11px;background:#fde8e8;border:1px solid #f5c0c0;border-radius:4px;padding:2px 8px;font-weight:600;color:#c0392b;">支払済</span>
     </div>
-    <button class="btn-primary2" onclick="savePaidDisplaySettings()">菫晏ｭ・/button>
+    <button class="btn-primary2" onclick="savePaidDisplaySettings()">保存</button>
   </div>
 
-  <!-- GAS騾｣謳ｺ -->
+  <!-- GAS連携 -->
   <div class="settings-section">
-    <h3>投 繧ｹ繝励Ξ繝・ラ繧ｷ繝ｼ繝磯｣謳ｺ</h3>
-    <div class="form-row"><label>GAS Web繧｢繝励ΜURL</label><input type="text" id="pos-gas-url" placeholder="https://script.google.com/macros/s/..."></div>
+    <h3>📊 スプレッドシート連携</h3>
+    <div class="form-row"><label>GAS WebアプリURL</label><input type="text" id="pos-gas-url" placeholder="https://script.google.com/macros/s/..."></div>
     <div class="form-row" style="margin-top:10px;">
-      <label>遶ｯ譛ｫ蜷搾ｼ医せ繝励Ξ繝・ラ繧ｷ繝ｼ繝医↓陦ｨ遉ｺ・・/label>
-      <input type="text" id="pos-device-name" placeholder="萓具ｼ壹Ξ繧ｸ1縲√き繧ｦ繝ｳ繧ｿ繝ｼ" style="width:100%;padding:10px;font-size:15px;box-sizing:border-box;margin-bottom:8px;">
-      <button class="btn-primary2" onclick="saveDeviceName()" style="width:100%;padding:10px;font-size:14px;">菫晏ｭ・/button>
+      <label>端末名（スプレッドシートに表示）</label>
+      <input type="text" id="pos-device-name" placeholder="例：レジ1、カウンター" style="width:100%;padding:10px;font-size:15px;box-sizing:border-box;margin-bottom:8px;">
+      <button class="btn-primary2" onclick="saveDeviceName()" style="width:100%;padding:10px;font-size:14px;">保存</button>
       <div id="pos-device-name-current" style="margin-top:10px;font-size:14px;font-weight:700;color:var(--accent);"></div>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-      <button class="btn-primary2" onclick="savePosGasUrl()">URL繧剃ｿ晏ｭ・/button>
-      <button class="btn-sm2" style="background:#2d5016;color:#fff;padding:8px 14px;" onclick="testGasConnection()">迫 謗･邯壹ユ繧ｹ繝・/button>
+      <button class="btn-primary2" onclick="savePosGasUrl()">URLを保存</button>
+      <button class="btn-sm2" style="background:#2d5016;color:#fff;padding:8px 14px;" onclick="testGasConnection()">🔗 接続テスト</button>
     </div>
   </div>
 
 
-  <!-- 繝・・繧ｿ 繧ｨ繧ｯ繧ｹ繝昴・繝・繧､繝ｳ繝昴・繝・-->
+  <!-- データ エクスポート/インポート -->
   <div class="settings-section" id="pos-export-import">
-    <h3>豆 繝・・繧ｿ 繝舌ャ繧ｯ繧｢繝・・繝ｻ蠑輔″邯吶℃</h3>
+    <h3>📤 データ バックアップ・引き継ぎ</h3>
     <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.7;">
-      蝠・刀繝ｻ險ｭ螳壹・螢ｲ荳翫・菫晉蕗繧・繝輔ぃ繧､繝ｫ縺ｫ縺ｾ縺ｨ繧√※繧ｨ繧ｯ繧ｹ繝昴・繝医・br>
-      蛻･繝・ヰ繧､繧ｹ縺ｫ繧､繝ｳ繝昴・繝医☆繧九→螢ｲ荳翫・菫晉蕗縺ｯ<strong>霑ｽ蜉</strong>・磯㍾隍・↑縺暦ｼ峨∬ｨｭ螳壹・荳頑嶌縺阪＆繧後∪縺吶・
+      商品・設定・売上・保留を1ファイルにまとめてエクスポート。<br>
+      別デバイスにインポートすると売上・保留は<strong>追加</strong>（重複なし）、設定は上書きされます。
     </div>
-    <button class="btn-primary2" onclick="exportSettings()" style="margin-bottom:8px;">豆 蜈ｨ繝・・繧ｿ繧偵お繧ｯ繧ｹ繝昴・繝・/button>
-    <button class="btn-primary2" style="background:#2471a3;" onclick="triggerImport()">踏 繧､繝ｳ繝昴・繝茨ｼ医ヵ繧｡繧､繝ｫ繧帝∈謚橸ｼ・/button>
+    <button class="btn-primary2" onclick="exportSettings()" style="margin-bottom:8px;">📤 全データをエクスポート</button>
+    <button class="btn-primary2" style="background:#2471a3;" onclick="triggerImport()">📥 インポート（ファイルを選択）</button>
     <input type="file" id="import-file-input" accept=".json,.txt" style="display:none;">
   </div>
 
-  <!-- 繝・・繧ｿ繝ｪ繧ｻ繝・ヨ -->
+  <!-- データリセット -->
   <div class="settings-section" style="border:2px solid #f5c0c0;">
-    <h3 style="color:var(--red);">売 繝・・繧ｿ繝ｪ繧ｻ繝・ヨ</h3>
+    <h3 style="color:var(--red);">🔄 データリセット</h3>
     <div style="background:#fff8f8;border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px;line-height:1.8;color:#555;">
-      <div style="font-weight:700;margin-bottom:4px;">東 繝ｪ繧ｻ繝・ヨ縺ｨ縺ｯ・・/div>
-      驕ｸ謚槭＠縺滄・岼繧偵い繝励Μ縺ｮ蛻晄悄險ｭ螳夲ｼ医さ繝ｼ繝峨↓譖ｸ縺九ｌ縺溘ョ繝輔か繝ｫ繝亥､・峨↓謌ｻ縺励∪縺吶・br>
-      螳ｿ豕翫き繝・ざ繝ｪ繝ｼ縺ｮ4蛻・牡繧・√ワ繝ｳ繝｢繝・け縺ｮ莠ｺ謨ｰ螟画峩縺ｪ縺ｩ縲・br>
-      譁ｰ縺励＞繝・ヵ繧ｩ繝ｫ繝郁ｨｭ螳壹ｒ蜿肴丐縺励◆縺・→縺阪↓菴ｿ縺・∪縺吶・
+      <div style="font-weight:700;margin-bottom:4px;">📌 リセットとは？</div>
+      選択した項目をアプリの初期設定（コードに書かれたデフォルト値）に戻します。<br>
+      宿泊カテゴリーの4分割や、ハンモックの人数変更など、<br>
+      新しいデフォルト設定を反映したいときに使います。
     </div>
     <div style="background:#fde8e8;border-radius:8px;padding:10px;margin-bottom:12px;font-size:12px;line-height:1.8;color:var(--red);">
-      <div style="font-weight:700;margin-bottom:4px;">笞・・豕ｨ諢・/div>
-      繝ｻ繝ｪ繧ｻ繝・ヨ縺励◆鬆・岼縺ｯ<strong>蜈・↓謌ｻ縺帙∪縺帙ｓ</strong><br>
-      繝ｻ謇句虚縺ｧ霑ｽ蜉繝ｻ螟画峩縺励◆蝠・刀繧・ｨｭ螳壹・<strong>縺吶∋縺ｦ豸医∴縺ｾ縺・/strong><br>
-      繝ｻ螢ｲ荳翫ョ繝ｼ繧ｿ繝ｻGAS URL縺ｯ繝ｪ繧ｻ繝・ヨ蟇ｾ雎｡螟悶〒縺・
+      <div style="font-weight:700;margin-bottom:4px;">⚠️ 注意</div>
+      ・リセットした項目は<strong>元に戻せません</strong><br>
+      ・手動で追加・変更した商品や設定は<strong>すべて消えます</strong><br>
+      ・売上データ・GAS URLはリセット対象外です
     </div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
       <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
         <input type="checkbox" id="reset-cats" style="width:18px;height:18px;accent-color:var(--red);">
-        繧ｫ繝・ざ繝ｪ繝ｼ・亥ｮｿ豕翫・4蛻・牡縺ｪ縺ｩ・・
+        カテゴリー（宿泊の4分割など）
       </label>
       <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
         <input type="checkbox" id="reset-items" style="width:18px;height:18px;accent-color:var(--red);">
-        蝠・刀繝ｪ繧ｹ繝茨ｼ医ワ繝ｳ繝｢繝・け螟画峩繝ｻ螳ｿ豕・蛻・牡蟇ｾ蠢懊↑縺ｩ・・
+        商品リスト（ハンモック変更・宿泊4分割対応など）
       </label>
       <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
         <input type="checkbox" id="reset-discounts" style="width:18px;height:18px;accent-color:var(--red);">
-        蜑ｲ蠑輔・莠育ｴ・し繧､繝郁ｨｭ螳・
+        割引・予約サイト設定
       </label>
       
     </div>
     <button onclick="executeReset()" style="width:100%;padding:12px;background:var(--red);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">
-      驕ｸ謚槭＠縺滄・岼繧偵Μ繧ｻ繝・ヨ縺吶ｋ
+      選択した項目をリセットする
     </button>
   </div>
 </div>
 
-<!-- 螳ｿ豕贋ｺｺ謨ｰ驕ｸ謚槭Δ繝ｼ繝繝ｫ -->
+<!-- 宿泊人数選択モーダル -->
 <div class="modal-overlay" id="stay-modal">
   <div class="modal">
-    <h3 id="stay-modal-title">莠ｺ謨ｰ繧帝∈謚・/h3>
+    <h3 id="stay-modal-title">人数を選択</h3>
     <div id="stay-modal-content"></div>
     <div class="modal-btns">
-      <button onclick="document.getElementById('stay-modal').classList.remove('open')">繧ｭ繝｣繝ｳ繧ｻ繝ｫ</button>
+      <button onclick="document.getElementById('stay-modal').classList.remove('open')">キャンセル</button>
     </div>
   </div>
 </div>
 
-<!-- 螢ｲ荳願ｩｳ邏ｰ繝｢繝ｼ繝繝ｫ -->
+<!-- 売上詳細モーダル -->
 <div class="modal-overlay" id="sale-detail-modal">
   <div class="modal">
-    <h3>螢ｲ荳願ｩｳ邏ｰ</h3>
+    <h3>売上詳細</h3>
     <div id="sale-detail-content"></div>
     <div id="sale-detail-attrs" style="margin-top:10px;"></div>
     <div style="margin-top:10px;">
-      <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px;">統 繝｡繝｢</label>
-      <textarea id="sale-detail-memo" placeholder="繝｡繝｢繧貞・蜉・.." style="width:100%;min-height:60px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
+      <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px;">📝 メモ</label>
+      <textarea id="sale-detail-memo" placeholder="メモを入力..." style="width:100%;min-height:60px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
     </div>
     <div class="modal-btns" style="flex-wrap:wrap;gap:6px;">
-      <button onclick="document.getElementById('sale-detail-modal').classList.remove('open')">髢峨§繧・/button>
-      <button onclick="saveSaleChanges()" style="background:#e8f4fd;color:var(--blue);border:1px solid #a0c8e8;">沈 螟画峩縺励※菫晏ｭ・/button>
-      <button id="sale-detail-flag-btn" onclick="toggleSaleFlag()" style="background:#fde8e8;color:var(--red);border:1px solid #f5c0c0;">閥 蜊ｰ</button>
-      <button class="confirm" style="background:var(--red);border-color:var(--red);" onclick="deleteSaleFromDetail()">蜑企勁</button>
+      <button onclick="document.getElementById('sale-detail-modal').classList.remove('open')">閉じる</button>
+      <button onclick="saveSaleChanges()" style="background:#e8f4fd;color:var(--blue);border:1px solid #a0c8e8;">💾 変更して保存</button>
+      <button id="sale-detail-flag-btn" onclick="toggleSaleFlag()" style="background:#fde8e8;color:var(--red);border:1px solid #f5c0c0;">🔴 印</button>
+      <button class="confirm" style="background:var(--red);border-color:var(--red);" onclick="deleteSaleFromDetail()">削除</button>
     </div>
   </div>
 </div>
 
-<!-- 豎ｺ貂医Δ繝ｼ繝繝ｫ -->
+<!-- 決済モーダル -->
 <div class="modal-overlay" id="payment-modal">
   <div class="modal">
-    <h3 id="payment-modal-title">豎ｺ貂育｢ｺ隱・/h3>
+    <h3 id="payment-modal-title">決済確認</h3>
     <div style="font-size:26px;font-weight:700;text-align:center;margin:12px 0;color:var(--accent2)" id="payment-modal-amount"></div>
     <div id="cash-change-section" style="display:none">
       <div style="text-align:center;margin-bottom:8px;">
-        <div style="font-size:12px;color:var(--text2);margin-bottom:4px;">蜿怜叙驥鷹｡・/div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:4px;">受取金額</div>
         <input type="number" id="cash-received" oninput="calcChange()" placeholder="0"
           style="width:100%;text-align:center;font-size:26px;font-weight:700;color:var(--blue);padding:8px 10px;border:2px solid var(--blue);border-radius:10px;font-family:inherit;">
       </div>
       <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;">
-        <button onclick="setCashExact()" style="flex:1;min-width:60px;padding:8px 4px;border:1px solid var(--green);border-radius:8px;background:#f0f7e8;color:var(--green);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">縺｡繧・≧縺ｩ</button>
-        <button onclick="addCash(10000)" style="flex:1;min-width:44px;padding:8px 2px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">1荳・/button>
-        <button onclick="addCash(5000)"  style="flex:1;min-width:44px;padding:8px 2px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">5蜊・/button>
-        <button onclick="addCash(1000)"  style="flex:1;min-width:44px;padding:8px 2px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">1蜊・/button>
+        <button onclick="setCashExact()" style="flex:1;min-width:60px;padding:8px 4px;border:1px solid var(--green);border-radius:8px;background:#f0f7e8;color:var(--green);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">ちょうど</button>
+        <button onclick="addCash(10000)" style="flex:1;min-width:44px;padding:8px 2px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">1万</button>
+        <button onclick="addCash(5000)"  style="flex:1;min-width:44px;padding:8px 2px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">5千</button>
+        <button onclick="addCash(1000)"  style="flex:1;min-width:44px;padding:8px 2px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">1千</button>
         <button onclick="addCash(500)"   style="flex:1;min-width:44px;padding:8px 2px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">500</button>
         <button onclick="addCash(100)"   style="flex:1;min-width:44px;padding:8px 2px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">100</button>
         <button onclick="addCash(50)"    style="flex:1;min-width:44px;padding:8px 2px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">50</button>
         <button onclick="document.getElementById('cash-received').value='';calcChange();" style="flex:1;min-width:44px;padding:8px 2px;border:1px solid #fcc;border-radius:8px;background:#fff;color:var(--red);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">C</button>
       </div>
       <div style="text-align:center;padding:10px;background:#f0f7e8;border-radius:8px;margin-top:8px;">
-        <div style="font-size:12px;color:var(--text2);margin-bottom:2px;">縺企・繧・/div>
-        <div style="font-size:26px;font-weight:700;color:var(--green)" id="change-amount">ﾂ･0</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:2px;">お釣り</div>
+        <div style="font-size:26px;font-weight:700;color:var(--green)" id="change-amount">¥0</div>
       </div>
     </div>
     <div class="modal-btns">
-      <button onclick="closePaymentModal()">繧ｭ繝｣繝ｳ繧ｻ繝ｫ</button>
-      <button class="confirm" onclick="confirmPayment()">豎ｺ貂亥ｮ御ｺ・/button>
+      <button onclick="closePaymentModal()">キャンセル</button>
+      <button class="confirm" onclick="confirmPayment()">決済完了</button>
     </div>
   </div>
 </div>
 
-<!-- 蝠・刀霑ｽ蜉繝ｻ邱ｨ髮・Δ繝ｼ繝繝ｫ -->
+<!-- 商品追加・編集モーダル -->
 <div class="modal-overlay" id="item-modal">
   <div class="modal">
-    <h3 id="item-modal-title">蝠・刀繧堤匳骭ｲ</h3>
-    <div class="form-row"><label>蝠・刀蜷・/label><input type="text" id="modal-item-name"></div>
-    <div class="form-row"><label>驥鷹｡搾ｼ亥・・・/label><input type="number" id="modal-item-price" min="0"></div>
-    <div class="form-row"><label>繧ｫ繝・ざ繝ｪ繝ｼ</label><select id="modal-item-cat"></select></div>
-    <div class="form-row"><label>蝨ｨ蠎ｫ謨ｰ・・=髱櫁｡ｨ遉ｺ・・/label><input type="number" id="modal-item-stock" min="0" value="0"></div>
+    <h3 id="item-modal-title">商品を登録</h3>
+    <div class="form-row"><label>商品名</label><input type="text" id="modal-item-name"></div>
+    <div class="form-row"><label>金額（円）</label><input type="number" id="modal-item-price" min="0"></div>
+    <div class="form-row"><label>カテゴリー</label><select id="modal-item-cat"></select></div>
+    <div class="form-row"><label>在庫数（0=非表示）</label><input type="number" id="modal-item-stock" min="0" value="0"></div>
     <div class="form-row">
-      <label>繝懊ち繝ｳ譁・ｭ励し繧､繧ｺ</label>
+      <label>ボタン文字サイズ</label>
       <select id="modal-item-fontsize">
-        <option value="">繝・ヵ繧ｩ繝ｫ繝・/option>
-        <option value="9px">蟆擾ｼ・px・・/option>
-        <option value="11px">荳ｭ・・1px・・/option>
-        <option value="13px">螟ｧ・・3px・・/option>
-        <option value="15px">迚ｹ螟ｧ・・5px・・/option>
+        <option value="">デフォルト</option>
+        <option value="9px">小（9px）</option>
+        <option value="11px">中（11px）</option>
+        <option value="13px">大（13px）</option>
+        <option value="15px">特大（15px）</option>
       </select>
     </div>
     <div class="modal-btns">
-      <button onclick="closeItemModal()">繧ｭ繝｣繝ｳ繧ｻ繝ｫ</button>
-      <button class="confirm" id="item-modal-save-btn" onclick="saveModalItem()">霑ｽ蜉</button>
+      <button onclick="closeItemModal()">キャンセル</button>
+      <button class="confirm" id="item-modal-save-btn" onclick="saveModalItem()">追加</button>
     </div>
   </div>
 </div>
 
-<!-- 菫晉蕗繧ｿ繧､繝医Ν繝｢繝ｼ繝繝ｫ -->
+<!-- 保留タイトルモーダル -->
 <div class="modal-overlay" id="hold-modal">
   <div class="modal">
-    <h3>菫晉蕗繧ｿ繧､繝医Ν</h3>
-    <div class="form-row"><label>繧ｿ繧､繝医Ν・育ｩｺ谺・↑繧画凾蛻ｻ・・/label><input type="text" id="hold-title-input" placeholder="萓具ｼ夂伐荳ｭ讒・></div>
+    <h3>保留タイトル</h3>
+    <div class="form-row"><label>タイトル（空欄なら時刻）</label><input type="text" id="hold-title-input" placeholder="例：田中様"></div>
     <div class="modal-btns">
-      <button onclick="document.getElementById('hold-modal').classList.remove('open')">繧ｭ繝｣繝ｳ繧ｻ繝ｫ</button>
-      <button class="confirm" onclick="confirmHold()">菫晉蕗縺吶ｋ</button>
+      <button onclick="document.getElementById('hold-modal').classList.remove('open')">キャンセル</button>
+      <button class="confirm" onclick="confirmHold()">保留する</button>
     </div>
   </div>
 </div>
 
-<!-- 豎ｺ貂亥ｮ御ｺ・-->
+<!-- 決済完了 -->
 <div class="payment-done" id="payment-done">
   <div class="payment-done-inner">
-    <div class="payment-done-icon">笨・/div>
-    <div class="payment-done-title">豎ｺ貂亥ｮ御ｺ・/div>
+    <div class="payment-done-icon">✅</div>
+    <div class="payment-done-title">決済完了</div>
     <div class="payment-done-amount" id="done-amount"></div>
     <div class="payment-done-method" id="done-method"></div>
     <div class="payment-done-btns">
-      <button class="done-next" onclick="nextCustomer()">笨・谺｡縺ｮ縺雁ｮ｢讒倥∈</button>
-      <button class="done-flag" onclick="flagAndClose()">閥 蜊ｰ繧偵▽縺代※髢峨§繧・/button>
-      <button class="done-close" onclick="editLastSale()">竊ｩ・・繧ｫ繝ｼ繝医↓謌ｻ繧・/button>
+      <button class="done-next" onclick="nextCustomer()">✅ 次のお客様へ</button>
+      <button class="done-flag" onclick="flagAndClose()">🔴 印をつけて閉じる</button>
+      <button class="done-close" onclick="editLastSale()">↩️ カートに戻る</button>
     </div>
   </div>
 </div>
 
 
-<!-- 螟ｩ豌鈴∈謚槭Δ繝ｼ繝繝ｫ -->
+<!-- 天気選択モーダル -->
 <div class="modal-overlay" id="weather-modal">
   <div class="modal" style="max-width:300px;">
-    <h3>研 螟ｩ豌励ｒ驕ｸ謚橸ｼ郁､・焚蜿ｯ・・/h3>
+    <h3>🌤 天気を選択（複数可）</h3>
     <div id="weather-options" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;"></div>
     <div class="modal-btns">
-      <button onclick="document.getElementById('weather-modal').classList.remove('open')">髢峨§繧・/button>
-      <button class="confirm" onclick="saveWeather()">菫晏ｭ・/button>
+      <button onclick="document.getElementById('weather-modal').classList.remove('open')">閉じる</button>
+      <button class="confirm" onclick="saveWeather()">保存</button>
     </div>
   </div>
 </div>
@@ -694,17 +694,17 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <div class="toast" id="toast"></div>
 
 <script>
-// ===== 繝舌・繧ｸ繝ｧ繝ｳ遞ｮ蛻･・・ain / test・・=====
+// ===== バージョン種別（main / test） =====
 const APP_VERSION_TYPE = 'main';
-// test迚・39蝗槫・繧偵が繝輔そ繝・ヨ・医％縺薙°繧峨き繧ｦ繝ｳ繝育ｶ咏ｶ夲ｼ・
+// test版139回分をオフセット（ここからカウント継続）
 const APP_VERSION_OFFSET = 138;
 
-// ===== 繧ｹ繝医Ξ繝ｼ繧ｸ =====
+// ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
 const KEYS = {items:'pos_items',sales:'pos_sales',gas:'pos_gas',cats:'pos_cats',itemOrder:'pos_item_order',catOrder:'pos_cat_order',sites:'pos_sites',discounts:'pos_discounts',attrs:'pos_attrs',holds:'pos_holds',deviceId:'pos_device_id'};
-// 繝・ヰ繧､繧ｹID閾ｪ蜍慕函謌撰ｼ亥・蝗槭・縺ｿ・・
+// デバイスID自動生成（初回のみ）
 (function(){var d=localStorage.getItem('pos_device_id');if(!d){d=Math.random().toString(36).slice(2,6).toUpperCase();localStorage.setItem('pos_device_id',d);}})();
-// ===== 繧ｹ繝医Ξ繝ｼ繧ｸ・・ndexedDB + localStorage莠碁㍾譖ｸ縺搾ｼ・=====
+// ===== ストレージ（IndexedDB + localStorage二重書き） =====
 const DB_NAME='pos_db',DB_VER=1,STORE_NAME='kv';
 let _db=null;
 function openDB(){
@@ -740,131 +740,131 @@ async function restoreFromIDB(){
   }catch(e){}
 }
 
-// ===== 繝・ヵ繧ｩ繝ｫ繝医き繝・ざ繝ｪ繝ｼ =====
+// ===== デフォルトカテゴリー =====
 const DEFAULT_CATS = [
-  {id:'cat_walk',       name:'遨ｺ荳ｭ繧ｦ繧ｩ繝ｼ繧ｯ',        bg:'#f0f6ff',border:'#a0c0e8',text:'#2a4a70',price:'#888'},
-  {id:'cat_tree_day',   name:'繝・Μ繝ｼ繝上え繧ｹ譏ｼ',      bg:'#f0fff8',border:'#80c8a0',text:'#1a4a30',price:'#888'},
+  {id:'cat_walk',       name:'空中ウォーク',        bg:'#f0f6ff',border:'#a0c0e8',text:'#2a4a70',price:'#888'},
+  {id:'cat_tree_day',   name:'ツリーハウス昼',      bg:'#f0fff8',border:'#80c8a0',text:'#1a4a30',price:'#888'},
   {id:'cat_bbq',        name:'BBQ',                 bg:'#eef4ff',border:'#7090d0',text:'#204080',price:'#888'},
-  {id:'cat_stay_tree',  name:'螳ｿ豕奇ｼ壹ヤ繝ｪ繝ｼ繝上え繧ｹ',  bg:'#fff5f0',border:'#e0b090',text:'#7a3020',price:'#888'},
-  {id:'cat_stay_dome',  name:'螳ｿ豕奇ｼ壹ラ繝ｼ繝',        bg:'#fff5f7',border:'#e0a0b0',text:'#7a3050',price:'#888'},
-  {id:'cat_stay_tent',  name:'螳ｿ豕奇ｼ夂ｩｺ荳ｭ繝・Φ繝・,    bg:'#f5f0ff',border:'#b0a0e0',text:'#402070',price:'#888'},
-  {id:'cat_stay_hm',    name:'螳ｿ豕奇ｼ壹ワ繝ｳ繝｢繝・け',    bg:'#f0fff5',border:'#90d0a0',text:'#204830',price:'#888'},
-  {id:'cat_rental',     name:'蛯吝刀繝ｬ繝ｳ繧ｿ繝ｫ',        bg:'#fffaf0',border:'#e8c878',text:'#6b4f20',price:'#888'},
-  {id:'cat_pet',        name:'繝壹ャ繝・,              bg:'#fff0f8',border:'#e8a0c0',text:'#7a2050',price:'#888'},
-  {id:'cat_goods',      name:'繧ｰ繝・ぜ',              bg:'#faf5ff',border:'#c8a0d8',text:'#4a2060',price:'#888'},
-  {id:'cat_unmanned',   name:'辟｡莠ｺ雋ｩ螢ｲ',            bg:'#f0fbfa',border:'#90c8c0',text:'#204840',price:'#888'},
-  {id:'cat_shoumouhin', name:'豸郁怜刀',              bg:'#f0f8ff',border:'#90b0d0',text:'#203050',price:'#888'},
-  {id:'cat_picnic',     name:'繝斐け繝九ャ繧ｯ鬟ｲ鬟・,      bg:'#fffff0',border:'#d0c060',text:'#504010',price:'#888'},
-  {id:'cat_uketsuke',   name:'蜿嶺ｻ倬｣ｲ鬟・,            bg:'#fff0f0',border:'#d09090',text:'#502020',price:'#888'},
-  {id:'cat_drink',      name:'鬟ｲ縺ｿ迚ｩ',              bg:'#f5fbf5',border:'#a0d0a0',text:'#2a5a2a',price:'#888'},
-  {id:'cat_food',       name:'鬟溘∋迚ｩ',              bg:'#fffef0',border:'#e0d080',text:'#5a5020',price:'#888'},
-  {id:'cat_other',      name:'縺昴・莉・,              bg:'#f8f8f8',border:'#c0c0c0',text:'#505050',price:'#888'},
+  {id:'cat_stay_tree',  name:'宿泊：ツリーハウス',  bg:'#fff5f0',border:'#e0b090',text:'#7a3020',price:'#888'},
+  {id:'cat_stay_dome',  name:'宿泊：ドーム',        bg:'#fff5f7',border:'#e0a0b0',text:'#7a3050',price:'#888'},
+  {id:'cat_stay_tent',  name:'宿泊：空中テント',    bg:'#f5f0ff',border:'#b0a0e0',text:'#402070',price:'#888'},
+  {id:'cat_stay_hm',    name:'宿泊：ハンモック',    bg:'#f0fff5',border:'#90d0a0',text:'#204830',price:'#888'},
+  {id:'cat_rental',     name:'備品レンタル',        bg:'#fffaf0',border:'#e8c878',text:'#6b4f20',price:'#888'},
+  {id:'cat_pet',        name:'ペット',              bg:'#fff0f8',border:'#e8a0c0',text:'#7a2050',price:'#888'},
+  {id:'cat_goods',      name:'グッズ',              bg:'#faf5ff',border:'#c8a0d8',text:'#4a2060',price:'#888'},
+  {id:'cat_unmanned',   name:'無人販売',            bg:'#f0fbfa',border:'#90c8c0',text:'#204840',price:'#888'},
+  {id:'cat_shoumouhin', name:'消耗品',              bg:'#f0f8ff',border:'#90b0d0',text:'#203050',price:'#888'},
+  {id:'cat_picnic',     name:'ピクニック飲食',      bg:'#fffff0',border:'#d0c060',text:'#504010',price:'#888'},
+  {id:'cat_uketsuke',   name:'受付飲食',            bg:'#fff0f0',border:'#d09090',text:'#502020',price:'#888'},
+  {id:'cat_drink',      name:'飲み物',              bg:'#f5fbf5',border:'#a0d0a0',text:'#2a5a2a',price:'#888'},
+  {id:'cat_food',       name:'食べ物',              bg:'#fffef0',border:'#e0d080',text:'#5a5020',price:'#888'},
+  {id:'cat_other',      name:'その他',              bg:'#f8f8f8',border:'#c0c0c0',text:'#505050',price:'#888'},
 ];
-// 螳ｿ豕翫き繝・ざ繝ｪ繝ｼ縺ｮID荳隕ｧ・亥牡蠑募愛螳壹↓菴ｿ逕ｨ・・
+// 宿泊カテゴリーのID一覧（割引判定に使用）
 const STAY_CAT_IDS = ['cat_stay','cat_stay_tree','cat_stay_dome','cat_stay_tent','cat_stay_hm'];
 
-// ===== 繝・ヵ繧ｩ繝ｫ繝亥膚蜩・ｼ井ｺ育ｴ・い繝励Μ縺ｮ譁ｽ險ｭ繝ｻ蛯吝刀・・=====
+// ===== デフォルト商品（予約アプリの施設・備品） =====
 const DEFAULT_ITEMS = [
-  // 譌･蟶ｰ繧・
-  {id:'i_walk55',  name:'遨ｺ荳ｭ繧ｦ繧ｩ繝ｼ繧ｯ 55蛻・,      price:2000, cat:'cat_walk', stock:0, free_mura:false},
-  {id:'i_walk115', name:'遨ｺ荳ｭ繧ｦ繧ｩ繝ｼ繧ｯ 115蛻・,      price:2500, cat:'cat_walk', stock:0, free_mura:false},
-  {id:'i_walk1day',name:'遨ｺ荳ｭ繧ｦ繧ｩ繝ｼ繧ｯ 1DAY',       price:3000, cat:'cat_walk', stock:0, free_mura:false},
-  {id:'i_tree55',  name:'繝・Μ繝ｼ繝上え繧ｹ譏ｼ 55蛻・,     price:2000, cat:'cat_tree_day', stock:0, free_mura:false},
-  {id:'i_tree115', name:'繝・Μ繝ｼ繝上え繧ｹ譏ｼ 115蛻・,    price:3000, cat:'cat_tree_day', stock:0, free_mura:false},
-  {id:'i_tree1day',name:'繝・Μ繝ｼ繝上え繧ｹ譏ｼ 1DAY',     price:4000, cat:'cat_tree_day', stock:0, free_mura:false},
-  {id:'i_bbq',     name:'BBQ繧ｹ繝壹・繧ｹ',             price:3000, cat:'cat_bbq', stock:0, free_mura:true},
-  // 螳ｿ豕奇ｼ壹ヤ繝ｪ繝ｼ繝上え繧ｹ
-  {id:'i_st_th',  name:'繝・Μ繝ｼ繝上え繧ｹ',       price:12000,cat:'cat_stay_tree',stock:1, stay_prices:{1:14000,2:12000,3:10000,4:8000,5:8000}},
-  // 螳ｿ豕奇ｼ壹ラ繝ｼ繝
-  {id:'i_st_dm',  name:'繝峨・繝・医Α繝ｩ繝ｼ・・,   price:10000,cat:'cat_stay_dome',stock:1, stay_prices:{1:12000,2:10000,3:8000,4:7000,5:7000}},
-  {id:'i_st_dt',  name:'繝峨・繝・医け繝ｪ繧｢・・,     price:10000,cat:'cat_stay_dome',stock:1, stay_prices:{1:12000,2:10000,3:8000,4:7000,5:7000}},
-  {id:'i_st_dg',  name:'繝峨・繝・医げ繝ｬ繝ｼ・・,   price:10000,cat:'cat_stay_dome',stock:1, stay_prices:{1:12000,2:10000,3:8000,4:7000,5:7000}},
-  // 螳ｿ豕奇ｼ夂ｩｺ荳ｭ繝・Φ繝・
-  {id:'i_st_t1',  name:'繝・Φ繝遺蔵繧ｪ繝ｬ繝ｳ繧ｸ',   price:7000, cat:'cat_stay_tent',stock:1, stay_prices:{1:9000,2:7000,3:7000}},
-  {id:'i_st_t2',  name:'繝・Φ繝遺贈繝帙Ρ繧､繝・,   price:7000, cat:'cat_stay_tent',stock:1, stay_prices:{1:9000,2:7000,3:7000}},
-  {id:'i_st_t3',  name:'繝・Φ繝遺造繝吶・繧ｸ繝･',   price:7000, cat:'cat_stay_tent',stock:1, stay_prices:{1:9000,2:7000,3:7000}},
-  // 螳ｿ豕奇ｼ壹ワ繝ｳ繝｢繝・け・遺則 2+3蜷肴ｧ区・縺ｫ螟画峩・・
-  {id:'i_st_h1',name:'繝上Φ繝｢繝・け竭',price:6000,cat:'cat_stay_hm',stock:1,stay_prices:{1:6000,2:5000,3:4000,4:4000,5:4000}},
-  {id:'i_st_h2',name:'繝上Φ繝｢繝・け竭｡',price:6000,cat:'cat_stay_hm',stock:1,stay_prices:{1:6000,2:5000,3:4000,4:4000,5:4000}},
-  // 蛯吝刀繝ｬ繝ｳ繧ｿ繝ｫ
-  {id:'i_pet_01', name:'繝壹ャ繝・, price:3000, cat:'cat_pet', stock:99, free_mura:false},
-  {id:'i_b01', name:'辟夂↓蜿ｰ繧ｻ繝・ヨ',        price:1500,cat:'cat_rental',stock:7, free_mura:false},
-  {id:'i_b02', name:'繧ｹ繧ｭ繝ｬ繝・ヨ・矩豪',      price:500, cat:'cat_rental',stock:6, free_mura:false},
-  {id:'i_b03', name:'繝ｭ繝ｼ繝・・繝悶Ν',        price:800, cat:'cat_rental',stock:4, free_mura:false},
-  {id:'i_b04', name:'繝吶Φ繝・,              price:500, cat:'cat_rental',stock:5, free_mura:false},
-  {id:'i_b05', name:'譛ｨ轤ｭ 2kg',            price:500, cat:'cat_rental',stock:5, free_mura:false},
-  {id:'i_b06', name:'繧ｬ繧ｹ繧ｳ繝ｳ繝ｭ・九ぎ繧ｹ',    price:1000, cat:'cat_rental',stock:3, free_mura:false},
-  {id:'i_b06b',name:'繝舌・繝翫・',            price:700,cat:'cat_rental',stock:1, free_mura:false},
-  {id:'i_b06c',name:'繝槭ャ繝・1邂ｱ',          price:200, cat:'cat_rental',stock:5, free_mura:false},
-  {id:'i_b06d',name:'繝ｩ繝ｳ繧ｿ繝ｳ',            price:500, cat:'cat_rental',stock:5, free_mura:false},
-  {id:'i_b07', name:'阮ｪ蜑ｲ繧翫そ繝・ヨ',        price:500, cat:'cat_rental',stock:1, free_mura:false},
-  {id:'i_b08', name:'繧ｳ繝ｼ繝偵・繧ｻ繝・ヨ',      price:1500,cat:'cat_rental',stock:1, free_mura:false},
-  {id:'i_b09', name:'螟ｩ菴捺悍驕髀｡',          price:1500,cat:'cat_rental',stock:2, free_mura:false},
-  {id:'i_b10', name:'繝昴・繧ｿ繝悶Ν髮ｻ貅撰ｼ亥､ｧ・・,price:1400,cat:'cat_rental',stock:3, free_mura:false},
-  {id:'i_b11', name:'繝昴・繧ｿ繝悶Ν髮ｻ貅撰ｼ亥ｰ擾ｼ・,price:900, cat:'cat_rental',stock:4, free_mura:false},
-  {id:'i_b12', name:'繧ｱ繝医Ν',              price:500, cat:'cat_rental',stock:5, free_mura:false},
-  {id:'i_b13', name:'鬟ｯ縺斐≧',              price:500, cat:'cat_rental',stock:5, free_mura:false},
-  {id:'i_b14', name:'繝帙ャ繝医し繝ｳ繝峨け繝・き繝ｼ',price:500, cat:'cat_rental',stock:2, free_mura:false},
-  {id:'i_b15', name:'繧ｫ繧､繝茨ｼ亥・・・,        price:500, cat:'cat_rental',stock:5, free_mura:false},
-  {id:'i_b16', name:'轣ｫ襍ｷ縺薙＠蝎ｨ',          price:500, cat:'cat_rental',stock:1, free_mura:false},
-  {id:'i_b17', name:'繧ｫ繝ｼ繝・,              price:500, cat:'cat_rental',stock:5, free_mura:false},
-  {id:'i_b_yutanpo', name:'貉ｯ縺溘ｓ縺ｽ', price:300, cat:'cat_rental',stock:3, free_mura:false},
-  {id:'i_g01', name:'繝昴せ繧ｫ繝ｼ繝・,           price:200,  cat:'cat_goods',    stock:0, free_mura:false},
-  {id:'i_g02', name:'縺ｲ縺ｮ縺阪・縺上ｍ',         price:300,  cat:'cat_goods',    stock:0, free_mura:false},
-  {id:'i_g03', name:'縺励♀繧・,               price:400,  cat:'cat_goods',    stock:0, free_mura:false},
-  {id:'i_g04', name:'縺ｲ縺ｮ縺阪・繝ｼ繝ｫ',         price:400,  cat:'cat_goods',    stock:0, free_mura:false},
-  {id:'i_g05', name:'縺ｲ縺ｮ縺阪く繝ｼ繝帙Ν繝繝ｼ',   price:500,  cat:'cat_goods',    stock:0, free_mura:false},
-  {id:'i_g06', name:'繧ｦ繝・ラ繧ｹ繧ｿ繝ｳ繝・,       price:500,  cat:'cat_goods',    stock:0, free_mura:false},
-  {id:'i_g07', name:'繝悶Ο繝ｼ繝・,             price:500,  cat:'cat_goods',    stock:0, free_mura:false},
-  {id:'i_g08', name:'阮ｪ繧ｭ繝ｼ繝帙Ν繝繝ｼ',       price:500,  cat:'cat_goods',    stock:0, free_mura:false},
-  {id:'i_g09', name:'縺ｩ繧薙＄繧翫う繝､繝ｪ繝ｳ繧ｰ',   price:600,  cat:'cat_goods',    stock:0, free_mura:false},
-  {id:'i_g10', name:'縺ｲ縺ｮ縺阪□縺ｾ',           price:800,  cat:'cat_goods',    stock:0, free_mura:false},
-  {id:'i_g11', name:'鮖ｿ縺ｮ隗偵い繧ｯ繧ｻ繧ｵ繝ｪ繝ｼ',   price:1000, cat:'cat_goods',    stock:0, free_mura:false},
-  {id:'i_g12', name:'鮖ｿ縺ｮ隗偵ヴ繧｢繧ｹ',         price:1000, cat:'cat_goods',    stock:0, free_mura:false},
-  {id:'i_g13', name:'邨ｵ譛ｬ',                 price:1200, cat:'cat_goods',    stock:0, free_mura:false},
-  {id:'i_g14', name:'譛画ｩ溽ｱｳ',               price:500,  cat:'cat_goods',    stock:0, free_mura:false},
-  {id:'i_g15', name:'繧｢繝ｫ繝溘・繝ｬ繝ｼ繝・,       price:500,  cat:'cat_goods',    stock:0, free_mura:false},
-  {id:'i_g16', name:'繧ｫ繝・・鮗ｺ',             price:400,  cat:'cat_goods',    stock:0, free_mura:false},
-  {id:'i_g17', name:'繝槭す繝･繝槭Ο',           price:400,  cat:'cat_goods',    stock:0, free_mura:false},
-  {id:'i_g18', name:'驥手除繝√ャ繝励せ',         price:500,  cat:'cat_goods',    stock:0, free_mura:false},
-  {id:'i_g19', name:'繧ｿ繝ｼ繝懊Λ繧､繧ｿ繝ｼ',       price:400,  cat:'cat_goods',    stock:0, free_mura:false},
-  {id:'i_g20', name:'繝槭せ繧ｯ',               price:500,  cat:'cat_goods',    stock:0, free_mura:false},
-  {id:'i_u01', name:'繧ｳ繝ｼ繝偵・',             price:100,  cat:'cat_unmanned', stock:0, free_mura:false},
-  {id:'i_u02', name:'縺ｲ縺ｮ縺咲捩轣ｫ蜑､',         price:100,  cat:'cat_unmanned', stock:0, free_mura:false},
-  {id:'i_u03', name:'豌ｴ 2L',                price:200,  cat:'cat_unmanned', stock:0, free_mura:false},
-  {id:'i_u04', name:'繝槭す繝･繝槭Ο',           price:400,  cat:'cat_unmanned', stock:0, free_mura:false},
-  {id:'i_u05', name:'繧ｫ繝・・鮗ｺ',             price:400,  cat:'cat_unmanned', stock:0, free_mura:false},
-  {id:'i_u06', name:'阮ｪ・磯㍼繧雁｣ｲ繧奇ｼ・kg',    price:400,  cat:'cat_unmanned', stock:0, free_mura:false},
-  {id:'i_u07', name:'蜊∵ｴ･蟾晞譫・阮ｪ・亥､ｧ・・,  price:400,  cat:'cat_unmanned', stock:0, free_mura:false},
-  {id:'i_u08', name:'蜊∵ｴ･蟾晞譫・阮ｪ・亥ｰ擾ｼ・,  price:300,  cat:'cat_unmanned', stock:0, free_mura:false},
-  {id:'i_u09', name:'繝偵ヮ繧ｭ轤ｭ',             price:600,  cat:'cat_unmanned', stock:0, free_mura:false},
-  {id:'i_u10', name:'繧ｹ繧ｦ繧ｧ繝ｼ繝・Φ繝医・繝・,   price:1000, cat:'cat_unmanned', stock:0, free_mura:false},
-  {id:'i_s01', name:'繝槭ャ繝・,               price:100,  cat:'cat_shoumouhin',stock:0, free_mura:false},
-  {id:'i_s02', name:'豁ｯ繝悶Λ繧ｷ',             price:200,  cat:'cat_shoumouhin',stock:0, free_mura:false},
-  {id:'i_s03', name:'繝ｩ繧､繧ｿ繝ｼ',             price:400,  cat:'cat_shoumouhin',stock:0, free_mura:false},
-  {id:'i_s04', name:'繝舌せ繧ｿ繧ｪ繝ｫ',           price:500,  cat:'cat_shoumouhin',stock:0, free_mura:false},
-  {id:'i_p01', name:'繝√Ι繧ｳ繝√ャ繝励け繝・く繝ｼ',  price:300,  cat:'cat_picnic',   stock:0, free_mura:false},
-  {id:'i_p01b', name:'繝帙Ρ繧､繝医メ繝ｧ繧ｳ繝槭き繝繝溘い繧ｯ繝・く繝ｼ', price:300, cat:'cat_picnic', stock:0, free_mura:false},
-  {id:'i_p02', name:'繧ｭ繝・す繝･',             price:400,  cat:'cat_picnic',   stock:0, free_mura:false},
-  {id:'i_p03', name:'豢九リ繧ｷ繧ｿ繝ｫ繝・,         price:500,  cat:'cat_picnic',   stock:0, free_mura:false},
-  {id:'i_p04', name:'邏吶ヱ繝・け鬟ｲ譁・,         price:200,  cat:'cat_picnic',   stock:0, free_mura:false},
-  {id:'i_p05', name:'繝溘ャ繧ｯ繧ｹ繝翫ャ繝・,        price:300,  cat:'cat_picnic',   stock:0, free_mura:false},
-  {id:'i_p06', name:'繝ｬ繝ｼ繧ｺ繝ｳ',             price:300,  cat:'cat_picnic',   stock:0, free_mura:false},
-  {id:'i_p07', name:'繝薙せ繧ｳ繝・ユ繧｣',         price:400,  cat:'cat_picnic',   stock:0, free_mura:false},
-  {id:'i_r01', name:'繝峨Μ繝・・繧ｳ繝ｼ繝偵・',     price:400,  cat:'cat_uketsuke', stock:0, free_mura:false},
-  {id:'i_r02', name:'繝ｫ繧､繝懊せ繝・ぅ繝ｼ',       price:400,  cat:'cat_uketsuke', stock:0, free_mura:false},
-  {id:'i_r03', name:'繧｢繝ｼ繝ｫ繧ｰ繝ｬ繧､',         price:400,  cat:'cat_uketsuke', stock:0, free_mura:false},
-  {id:'i_r04', name:'邏吶ヱ繝・け鬟ｲ譁・,         price:200,  cat:'cat_uketsuke', stock:0, free_mura:false},
-  {id:'i_r05', name:'繧｢繧､繧ｹ繧ｯ繝ｪ繝ｼ繝',       price:400,  cat:'cat_uketsuke', stock:0, free_mura:false},
-  {id:'i_b18', name:'BBQ辟ｼ縺咲ｶｲ',           price:70,  cat:'cat_rental',stock:5, free_mura:false},
-  {id:'i_b19', name:'蟇晁｢具ｼ亥､冗畑・・,        price:1000,cat:'cat_rental',stock:10,free_mura:false},
-  {id:'i_b20', name:'蟇晁｢具ｼ亥・逕ｨ・・,        price:1000,cat:'cat_rental',stock:2, free_mura:false},
+  // 日帰り
+  {id:'i_walk55',  name:'空中ウォーク 55分',      price:2000, cat:'cat_walk', stock:0, free_mura:false},
+  {id:'i_walk115', name:'空中ウォーク 115分',      price:2500, cat:'cat_walk', stock:0, free_mura:false},
+  {id:'i_walk1day',name:'空中ウォーク 1DAY',       price:3000, cat:'cat_walk', stock:0, free_mura:false},
+  {id:'i_tree55',  name:'ツリーハウス昼 55分',     price:2000, cat:'cat_tree_day', stock:0, free_mura:false},
+  {id:'i_tree115', name:'ツリーハウス昼 115分',    price:3000, cat:'cat_tree_day', stock:0, free_mura:false},
+  {id:'i_tree1day',name:'ツリーハウス昼 1DAY',     price:4000, cat:'cat_tree_day', stock:0, free_mura:false},
+  {id:'i_bbq',     name:'BBQスペース',             price:3000, cat:'cat_bbq', stock:0, free_mura:true},
+  // 宿泊：ツリーハウス
+  {id:'i_st_th',  name:'ツリーハウス',       price:12000,cat:'cat_stay_tree',stock:1, stay_prices:{1:14000,2:12000,3:10000,4:8000,5:8000}},
+  // 宿泊：ドーム
+  {id:'i_st_dm',  name:'ドーム（ミラー）',   price:10000,cat:'cat_stay_dome',stock:1, stay_prices:{1:12000,2:10000,3:8000,4:7000,5:7000}},
+  {id:'i_st_dt',  name:'ドーム（クリア）',     price:10000,cat:'cat_stay_dome',stock:1, stay_prices:{1:12000,2:10000,3:8000,4:7000,5:7000}},
+  {id:'i_st_dg',  name:'ドーム（グレー）',   price:10000,cat:'cat_stay_dome',stock:1, stay_prices:{1:12000,2:10000,3:8000,4:7000,5:7000}},
+  // 宿泊：空中テント
+  {id:'i_st_t1',  name:'テント①オレンジ',   price:7000, cat:'cat_stay_tent',stock:1, stay_prices:{1:9000,2:7000,3:7000}},
+  {id:'i_st_t2',  name:'テント②ホワイト',   price:7000, cat:'cat_stay_tent',stock:1, stay_prices:{1:9000,2:7000,3:7000}},
+  {id:'i_st_t3',  name:'テント③ベージュ',   price:7000, cat:'cat_stay_tent',stock:1, stay_prices:{1:9000,2:7000,3:7000}},
+  // 宿泊：ハンモック（⑥ 2+3名構成に変更）
+  {id:'i_st_h1',name:'ハンモック①',price:6000,cat:'cat_stay_hm',stock:1,stay_prices:{1:6000,2:5000,3:4000,4:4000,5:4000}},
+  {id:'i_st_h2',name:'ハンモック②',price:6000,cat:'cat_stay_hm',stock:1,stay_prices:{1:6000,2:5000,3:4000,4:4000,5:4000}},
+  // 備品レンタル
+  {id:'i_pet_01', name:'ペット', price:3000, cat:'cat_pet', stock:99, free_mura:false},
+  {id:'i_b01', name:'焚火台セット',        price:1500,cat:'cat_rental',stock:7, free_mura:false},
+  {id:'i_b02', name:'スキレット＋鍋',      price:500, cat:'cat_rental',stock:6, free_mura:false},
+  {id:'i_b03', name:'ローテーブル',        price:800, cat:'cat_rental',stock:4, free_mura:false},
+  {id:'i_b04', name:'ベンチ',              price:500, cat:'cat_rental',stock:5, free_mura:false},
+  {id:'i_b05', name:'木炭 2kg',            price:500, cat:'cat_rental',stock:5, free_mura:false},
+  {id:'i_b06', name:'ガスコンロ＋ガス',    price:1000, cat:'cat_rental',stock:3, free_mura:false},
+  {id:'i_b06b',name:'バーナー',            price:700,cat:'cat_rental',stock:1, free_mura:false},
+  {id:'i_b06c',name:'マッチ 1箱',          price:200, cat:'cat_rental',stock:5, free_mura:false},
+  {id:'i_b06d',name:'ランタン',            price:500, cat:'cat_rental',stock:5, free_mura:false},
+  {id:'i_b07', name:'薪割りセット',        price:500, cat:'cat_rental',stock:1, free_mura:false},
+  {id:'i_b08', name:'コーヒーセット',      price:1500,cat:'cat_rental',stock:1, free_mura:false},
+  {id:'i_b09', name:'天体望遠鏡',          price:1500,cat:'cat_rental',stock:2, free_mura:false},
+  {id:'i_b10', name:'ポータブル電源（大）',price:1400,cat:'cat_rental',stock:3, free_mura:false},
+  {id:'i_b11', name:'ポータブル電源（小）',price:900, cat:'cat_rental',stock:4, free_mura:false},
+  {id:'i_b12', name:'ケトル',              price:500, cat:'cat_rental',stock:5, free_mura:false},
+  {id:'i_b13', name:'飯ごう',              price:500, cat:'cat_rental',stock:5, free_mura:false},
+  {id:'i_b14', name:'ホットサンドクッカー',price:500, cat:'cat_rental',stock:2, free_mura:false},
+  {id:'i_b15', name:'カイト（凧）',        price:500, cat:'cat_rental',stock:5, free_mura:false},
+  {id:'i_b16', name:'火起こし器',          price:500, cat:'cat_rental',stock:1, free_mura:false},
+  {id:'i_b17', name:'カート',              price:500, cat:'cat_rental',stock:5, free_mura:false},
+  {id:'i_b_yutanpo', name:'湯たんぽ', price:300, cat:'cat_rental',stock:3, free_mura:false},
+  {id:'i_g01', name:'ポスカード',           price:200,  cat:'cat_goods',    stock:0, free_mura:false},
+  {id:'i_g02', name:'ひのきぶくろ',         price:300,  cat:'cat_goods',    stock:0, free_mura:false},
+  {id:'i_g03', name:'しおり',               price:400,  cat:'cat_goods',    stock:0, free_mura:false},
+  {id:'i_g04', name:'ひのきボール',         price:400,  cat:'cat_goods',    stock:0, free_mura:false},
+  {id:'i_g05', name:'ひのきキーホルダー',   price:500,  cat:'cat_goods',    stock:0, free_mura:false},
+  {id:'i_g06', name:'ウッドスタンド',       price:500,  cat:'cat_goods',    stock:0, free_mura:false},
+  {id:'i_g07', name:'ブローチ',             price:500,  cat:'cat_goods',    stock:0, free_mura:false},
+  {id:'i_g08', name:'薪キーホルダー',       price:500,  cat:'cat_goods',    stock:0, free_mura:false},
+  {id:'i_g09', name:'どんぐりイヤリング',   price:600,  cat:'cat_goods',    stock:0, free_mura:false},
+  {id:'i_g10', name:'ひのきだま',           price:800,  cat:'cat_goods',    stock:0, free_mura:false},
+  {id:'i_g11', name:'鹿の角アクセサリー',   price:1000, cat:'cat_goods',    stock:0, free_mura:false},
+  {id:'i_g12', name:'鹿の角ピアス',         price:1000, cat:'cat_goods',    stock:0, free_mura:false},
+  {id:'i_g13', name:'絵本',                 price:1200, cat:'cat_goods',    stock:0, free_mura:false},
+  {id:'i_g14', name:'有機米',               price:500,  cat:'cat_goods',    stock:0, free_mura:false},
+  {id:'i_g15', name:'アルミプレート',       price:500,  cat:'cat_goods',    stock:0, free_mura:false},
+  {id:'i_g16', name:'カップ麺',             price:400,  cat:'cat_goods',    stock:0, free_mura:false},
+  {id:'i_g17', name:'マシュマロ',           price:400,  cat:'cat_goods',    stock:0, free_mura:false},
+  {id:'i_g18', name:'野菜チップス',         price:500,  cat:'cat_goods',    stock:0, free_mura:false},
+  {id:'i_g19', name:'ターボライター',       price:400,  cat:'cat_goods',    stock:0, free_mura:false},
+  {id:'i_g20', name:'マスク',               price:500,  cat:'cat_goods',    stock:0, free_mura:false},
+  {id:'i_u01', name:'コーヒー',             price:100,  cat:'cat_unmanned', stock:0, free_mura:false},
+  {id:'i_u02', name:'ひのき着火剤',         price:100,  cat:'cat_unmanned', stock:0, free_mura:false},
+  {id:'i_u03', name:'水 2L',                price:200,  cat:'cat_unmanned', stock:0, free_mura:false},
+  {id:'i_u04', name:'マシュマロ',           price:400,  cat:'cat_unmanned', stock:0, free_mura:false},
+  {id:'i_u05', name:'カップ麺',             price:400,  cat:'cat_unmanned', stock:0, free_mura:false},
+  {id:'i_u06', name:'薪（量り売り）2kg',    price:400,  cat:'cat_unmanned', stock:0, free_mura:false},
+  {id:'i_u07', name:'十津川造林 薪（大）',  price:400,  cat:'cat_unmanned', stock:0, free_mura:false},
+  {id:'i_u08', name:'十津川造林 薪（小）',  price:300,  cat:'cat_unmanned', stock:0, free_mura:false},
+  {id:'i_u09', name:'ヒノキ炭',             price:600,  cat:'cat_unmanned', stock:0, free_mura:false},
+  {id:'i_u10', name:'スウェーデントーチ',   price:1000, cat:'cat_unmanned', stock:0, free_mura:false},
+  {id:'i_s01', name:'マッチ',               price:100,  cat:'cat_shoumouhin',stock:0, free_mura:false},
+  {id:'i_s02', name:'歯ブラシ',             price:200,  cat:'cat_shoumouhin',stock:0, free_mura:false},
+  {id:'i_s03', name:'ライター',             price:400,  cat:'cat_shoumouhin',stock:0, free_mura:false},
+  {id:'i_s04', name:'バスタオル',           price:500,  cat:'cat_shoumouhin',stock:0, free_mura:false},
+  {id:'i_p01', name:'チョコチップクッキー',  price:300,  cat:'cat_picnic',   stock:0, free_mura:false},
+  {id:'i_p01b', name:'ホワイトチョコマカダミアクッキー', price:300, cat:'cat_picnic', stock:0, free_mura:false},
+  {id:'i_p02', name:'キッシュ',             price:400,  cat:'cat_picnic',   stock:0, free_mura:false},
+  {id:'i_p03', name:'洋ナシタルト',         price:500,  cat:'cat_picnic',   stock:0, free_mura:false},
+  {id:'i_p04', name:'紙パック飲料',         price:200,  cat:'cat_picnic',   stock:0, free_mura:false},
+  {id:'i_p05', name:'ミックスナッツ',        price:300,  cat:'cat_picnic',   stock:0, free_mura:false},
+  {id:'i_p06', name:'レーズン',             price:300,  cat:'cat_picnic',   stock:0, free_mura:false},
+  {id:'i_p07', name:'ビスコッティ',         price:400,  cat:'cat_picnic',   stock:0, free_mura:false},
+  {id:'i_r01', name:'ドリップコーヒー',     price:400,  cat:'cat_uketsuke', stock:0, free_mura:false},
+  {id:'i_r02', name:'ルイボスティー',       price:400,  cat:'cat_uketsuke', stock:0, free_mura:false},
+  {id:'i_r03', name:'アールグレイ',         price:400,  cat:'cat_uketsuke', stock:0, free_mura:false},
+  {id:'i_r04', name:'紙パック飲料',         price:200,  cat:'cat_uketsuke', stock:0, free_mura:false},
+  {id:'i_r05', name:'アイスクリーム',       price:400,  cat:'cat_uketsuke', stock:0, free_mura:false},
+  {id:'i_b18', name:'BBQ焼き網',           price:70,  cat:'cat_rental',stock:5, free_mura:false},
+  {id:'i_b19', name:'寝袋（夏用）',        price:1000,cat:'cat_rental',stock:10,free_mura:false},
+  {id:'i_b20', name:'寝袋（冬用）',        price:1000,cat:'cat_rental',stock:2, free_mura:false},
 ];
 
 let cats = ld(KEYS.cats) || DEFAULT_CATS;
 let items = ld(KEYS.items) || DEFAULT_ITEMS;
 let sales = ld(KEYS.sales) || [];
-// 譌｢蟄伜｣ｲ荳翫ョ繝ｼ繧ｿ縺ｫ繝・ヰ繧､繧ｹID繧定｣懷ｮ鯉ｼ亥・蝗槭・縺ｿ・・
+// 既存売上データにデバイスIDを補完（初回のみ）
 (function(){
   var did=localStorage.getItem('pos_device_id');
   if(!did) return;
@@ -874,15 +874,15 @@ let sales = ld(KEYS.sales) || [];
 })();
 let siteNames = ld(KEYS.sites) || {s1:'',s2:'',s3:''};
 
-// 蜑ｲ蠑輔・莠育ｴ・し繧､繝郁ｨｭ螳・
+// 割引・予約サイト設定
 const DEFAULT_DISCOUNTS = [
-  {key:'mura',    label:'譚大・・亥濠鬘搾ｼ・, type:'discount', fixed:true},
-  {key:'stay_guest',label:'螳ｿ豕願・,   type:'discount', fixed:true},
-  {key:'rakuten', label:'讌ｽ螟ｩ',        type:'paid',     fixed:false},
-  {key:'jalan',   label:'縺倥ｃ繧峨ｓ',   type:'paid',     fixed:false},
+  {key:'mura',    label:'村内（半額）', type:'discount', fixed:true},
+  {key:'stay_guest',label:'宿泊者',   type:'discount', fixed:true},
+  {key:'rakuten', label:'楽天',        type:'paid',     fixed:false},
+  {key:'jalan',   label:'じゃらん',   type:'paid',     fixed:false},
   {key:'sou',     label:'SOU',         type:'paid',     fixed:false},
-  {key:'pass_day',label:'蟷ｴ髢薙ヱ繧ｹ・域仂・・,type:'paid',   fixed:false},
-  {key:'pass_night',label:'蟷ｴ髢薙ヱ繧ｹ・亥､懶ｼ・,type:'paid', fixed:false},
+  {key:'pass_day',label:'年間パス（昼）',type:'paid',   fixed:false},
+  {key:'pass_night',label:'年間パス（夜）',type:'paid', fixed:false},
 ];
 let discountItems = ld(KEYS.discounts) || DEFAULT_DISCOUNTS;
 let cart = [];
@@ -895,35 +895,35 @@ let dragSrcItemId = null, dragSrcCatId = null;
 let itemOrder = ld(KEYS.itemOrder) || null;
 let catOrder = ld(KEYS.catOrder) || null;
 let lastSaleId = null;
-let editingSaleId = null; // 繧ｫ繝ｼ繝医〒菫ｮ豁｣荳ｭ縺ｮ蜈・｣ｲ荳蟹D
+let editingSaleId = null; // カートで修正中の元売上ID
 const WEATHER_OPTIONS = [
-  {key:'sunny', icon:'笘・・, label:'譎ｴ繧・},
-  {key:'cloudy', icon:'笘・ｸ・, label:'譖・ｊ'},
-  {key:'cloudy_rain', icon:'絹', label:'譖・ｊ/髮ｨ'},
-  {key:'rain', icon:'県', label:'髮ｨ'},
-  {key:'heavy_rain', icon:'笵・, label:'螟ｧ髮ｨ'},
-  {key:'typhoon', icon:'劇', label:'蜿ｰ鬚ｨ'},
-  {key:'hell', icon:'櫨', label:'蝨ｰ迯・},
-  {key:'oni', icon:'損', label:'鬯ｼ'},
+  {key:'sunny', icon:'☀️', label:'晴れ'},
+  {key:'cloudy', icon:'☁️', label:'曇り'},
+  {key:'cloudy_rain', icon:'🌦', label:'曇り/雨'},
+  {key:'rain', icon:'🌧', label:'雨'},
+  {key:'heavy_rain', icon:'⛈', label:'大雨'},
+  {key:'typhoon', icon:'🌀', label:'台風'},
+  {key:'hell', icon:'🔥', label:'地獄'},
+  {key:'oni', icon:'👹', label:'鬼'},
 ];
 let todayWeather = ld('pos_weather') || [];
 
 
-// 譎る俣險育ｮ礼畑螟画焚・・etInterval繧医ｊ蜑阪↓螳｣險縺悟ｿ・ｦ・ｼ・
+// 時間計算用変数（setIntervalより前に宣言が必要）
 let TIMER_FACS = [
-  {id:'walk', label:'遨ｺ荳ｭ繧ｦ繧ｩ繝ｼ繧ｯ', close:'17:00', lastOrder:'16:00', courses:[{min:55,actual:60,label:'55蛻・},{min:115,actual:120,label:'115蛻・},{min:0,actual:0,label:'1DAY',end:'17:00'}]},
-  {id:'tree', label:'繝・Μ繝ｼ繝上え繧ｹ譏ｼ', close:'16:00', lastOrder:'15:00', courses:[{min:55,actual:55,label:'55蛻・},{min:115,actual:115,label:'115蛻・},{min:0,actual:0,label:'1DAY',end:'16:00'}]},
+  {id:'walk', label:'空中ウォーク', close:'17:00', lastOrder:'16:00', courses:[{min:55,actual:60,label:'55分'},{min:115,actual:120,label:'115分'},{min:0,actual:0,label:'1DAY',end:'17:00'}]},
+  {id:'tree', label:'ツリーハウス昼', close:'16:00', lastOrder:'15:00', courses:[{min:55,actual:55,label:'55分'},{min:115,actual:115,label:'115分'},{min:0,actual:0,label:'1DAY',end:'16:00'}]},
 ];
 let timerFacId = 'walk';
 let timerCourse = 55;
 let timerResults = [];
-// 菫晉蕗繝・・繧ｿ・域怙螟ｧ4・・
+// 保留データ（最大4）
 let holds = ld('pos_holds') || [null,null,null,null,null,null,null,null,null,null];
-let activeHoldIdx = 0; // 迴ｾ蝨ｨ陦ｨ遉ｺ荳ｭ縺ｮ菫晉蕗繧ｹ繝ｭ繝・ヨ
+let activeHoldIdx = 0; // 現在表示中の保留スロット
 
-// ===== 繧ｿ繝門・譖ｿ =====
+// ===== タブ切替 =====
 function switchTab(t) {
-  // POS繧ｿ繝悶°繧蛾屬繧後ｋ髫帙∽ｿｮ豁｣荳ｭ繝輔Λ繧ｰ繧偵け繝ｪ繧｢・亥・螢ｲ荳翫・sales縺ｫ谿九ｋ・・
+  // POSタブから離れる際、修正中フラグをクリア（元売上はsalesに残る）
   if(t!=='pos') editingSaleId=null;
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.tabbar button').forEach((el,i) => {
@@ -946,22 +946,22 @@ function switchTab(t) {
   if (t==='timer') initTimer();
 }
 
-// ===== 繧ｫ繝・ざ繝ｪ繝ｼ =====
+// ===== カテゴリー =====
 function getCatTimeInfo(catId){
   const m={
-    cat_walk:       '9:00・・7:00 蜿嶺ｻ・6:00',
-    cat_tree_day:   '10:00・・6:00 蜿嶺ｻ・5:00',
-    cat_bbq:        '10:00・・5:00 蜿嶺ｻ・4:00',
-    cat_stay_tree:  'CI 16:30・・8:00 CO 9:30',
-    cat_stay_dome:  'CI 14:00・・6:00 CO 10:00',
-    cat_stay_tent:  'CI 14:00・・6:00 CO 10:00',
-    cat_stay_hm:    'CI 14:00・・6:00 CO 10:00',
+    cat_walk:       '9:00～17:00 受付16:00',
+    cat_tree_day:   '10:00～16:00 受付15:00',
+    cat_bbq:        '10:00～15:00 受付14:00',
+    cat_stay_tree:  'CI 16:30～18:00 CO 9:30',
+    cat_stay_dome:  'CI 14:00～16:00 CO 10:00',
+    cat_stay_tent:  'CI 14:00～16:00 CO 10:00',
+    cat_stay_hm:    'CI 14:00～16:00 CO 10:00',
   };
   return m[catId]||'';
 }
 
 
-// 繧ｫ繝・ざ繝ｪ繝ｼ繧ｰ繝ｫ繝ｼ繝暦ｼ域ｨｪ荳ｦ縺ｳ陦ｨ遉ｺ・・
+// カテゴリーグループ（横並び表示）
 const CAT_GROUPS = [
   ['cat_tree_day','cat_bbq'],
   ['cat_stay_tree','cat_stay_dome'],
@@ -995,12 +995,12 @@ function getOrderedItems(catId){
   });
 }
 
-// ===== 繧ｫ繝・ざ繝ｪ繝ｼ繝輔ぅ繝ｫ繧ｿ繝ｼ繧ｿ繝・=====
+// ===== カテゴリーフィルタータブ =====
 function renderCatFilterTabs(){
   const c=document.getElementById('cat-filter-tabs');c.innerHTML='';
   const allBtn=document.createElement('button');
   allBtn.className='cat-ftab'+(filterCatId==='all'?' active':'');
-  allBtn.textContent='縺吶∋縺ｦ';allBtn.onclick=()=>{filterCatId='all';renderCatFilterTabs();renderPOS();};
+  allBtn.textContent='すべて';allBtn.onclick=()=>{filterCatId='all';renderCatFilterTabs();renderPOS();};
   c.appendChild(allBtn);
   getOrderedCats().forEach(cat=>{
     if(!items.some(i=>i.cat===cat.id)&&!editMode)return;
@@ -1015,7 +1015,7 @@ function renderCatFilterTabs(){
   });
 }
 
-// ===== 蜑ｲ蠑輔・莠育ｴ・し繧､繝医ヰ繝ｼ =====
+// ===== 割引・予約サイトバー =====
 function renderDiscountBar(){
   const c=document.getElementById('discount-bar');if(!c)return;c.innerHTML='';
   discountItems.forEach(d=>{
@@ -1023,7 +1023,7 @@ function renderDiscountBar(){
     const isActive=activeDiscount===d.key;
     const isPaid=d.type==='paid';
     b.className='disc-btn'+(isActive?(isPaid?' paid-active':' active'):'');
-    b.textContent=d.label+(isPaid&&isActive?' 笨捺髪謇墓ｸ・:'');
+    b.textContent=d.label+(isPaid&&isActive?' ✓支払済':'');
     b.onclick=()=>{
       activeDiscount=isActive?'':d.key;
       recalcCartPrices();
@@ -1033,7 +1033,7 @@ function renderDiscountBar(){
   });
 }
 
-// ===== POS謠冗判 =====
+// ===== POS描画 =====
 function renderPOS(){
   const area=document.getElementById('pos-items-area');
   area.className='pos-items-area'+(editMode?' edit-mode':'');
@@ -1041,10 +1041,10 @@ function renderPOS(){
   const orderedCats=getOrderedCats();
   const visibleCats=filterCatId==='all'?orderedCats:orderedCats.filter(c=>c.id===filterCatId);
 
-  // 繧ｫ繝・ざ繝ｪ繝ｼ繝輔ぅ繝ｫ繧ｿ繝ｼ縺檎音螳壹き繝・ざ繝ｪ繝ｼ縺ｮ蝣ｴ蜷医・蠕捺擂縺ｮ繧ｻ繧ｯ繧ｷ繝ｧ繝ｳ陦ｨ遉ｺ
-  // 縲後☆縺ｹ縺ｦ縲阪・蝣ｴ蜷医・繧ｫ繝・ざ繝ｪ繝ｼ蠅・阜繧偵・繝・ム繝ｼ縺ｧ蛹ｺ蛻・ｊ縺､縺､蜷御ｸ繧ｰ繝ｪ繝・ラ縺ｫ荳ｦ縺ｹ繧・
+  // カテゴリーフィルターが特定カテゴリーの場合は従来のセクション表示
+  // 「すべて」の場合はカテゴリー境界をヘッダーで区切りつつ同一グリッドに並べる
   if(filterCatId !== 'all' || editMode){
-    // 蜊倅ｸ繧ｫ繝・ざ繝ｪ繝ｼ or 邱ｨ髮・Δ繝ｼ繝会ｼ壼ｾ捺擂縺ｩ縺翫ｊ繧ｻ繧ｯ繧ｷ繝ｧ繝ｳ縺斐→縺ｫ陦ｨ遉ｺ
+    // 単一カテゴリー or 編集モード：従来どおりセクションごとに表示
     visibleCats.forEach(cat=>{
       const catItems=getOrderedItems(cat.id);
       if(!editMode&&catItems.length===0)return;
@@ -1054,7 +1054,7 @@ function renderPOS(){
       const header=document.createElement('div');
       header.className='cat-header';
       const catTimeInfo=getCatTimeInfo(cat.id);
-      header.innerHTML='<span class="cat-drag-handle">笄ｿ笄ｿ</span><span class="cat-header-title" style="color:'+cat.text+'">'+cat.name+'</span>'+
+      header.innerHTML='<span class="cat-drag-handle">⠿⠿</span><span class="cat-header-title" style="color:'+cat.text+'">'+cat.name+'</span>'+
         (catTimeInfo?'<span style="font-size:11px;color:#555;margin-left:3em;font-weight:500;">'+catTimeInfo+'</span>':'');
       header.style.borderBottomColor=cat.border;
       const grid=document.createElement('div');grid.className='cat-items';
@@ -1063,7 +1063,7 @@ function renderPOS(){
       });
       if(editMode){
         const addBtn=document.createElement('button');addBtn.className='add-item-btn';
-        addBtn.innerHTML='<span style="font-size:18px">・・/span><span>霑ｽ蜉</span>';
+        addBtn.innerHTML='<span style="font-size:18px">＋</span><span>追加</span>';
         addBtn.onclick=()=>openItemModal(cat.id);grid.appendChild(addBtn);
       }
       section.appendChild(header);section.appendChild(grid);
@@ -1097,7 +1097,7 @@ function renderPOS(){
       }
     });
   } else {
-    // 縲後☆縺ｹ縺ｦ縲崎｡ｨ遉ｺ・壹き繝・ざ繝ｪ繝ｼ繧ｻ繧ｯ繧ｷ繝ｧ繝ｳ繧堤ｸｦ縺ｫ荳ｦ縺ｹ繧具ｼ医げ繝ｫ繝ｼ繝励・讓ｪ荳ｦ縺ｳ・・
+    // 「すべて」表示：カテゴリーセクションを縦に並べる（グループは横並び）
     let hasAny=false;
     visibleCats.forEach(cat=>{
       const catItems=getOrderedItems(cat.id);
@@ -1143,7 +1143,7 @@ function renderPOS(){
 }
 
 function shadeColor(col, pct){
-  // hex濶ｲ繧貞ｰ代＠證励￥縺吶ｋ
+  // hex色を少し暗くする
   try{
     let n=parseInt(col.replace('#',''),16);
     const amt=Math.round(2.55*pct);
@@ -1157,7 +1157,7 @@ function shadeColor(col, pct){
 function makeItemBtn(item, cat, grid){
   const btn=document.createElement('button');
   btn.className='item-btn';btn.dataset.itemId=item.id;
-  // CSS繧ｯ繝ｩ繧ｹ繧堤ｶｭ謖√＠縺､縺､濶ｲ縺縺台ｸ頑嶌縺・
+  // CSSクラスを維持しつつ色だけ上書き
   const inCartQty=cart.filter(ci=>ci.id===item.id||ci.id.startsWith(item.id+'_')).reduce((s,ci)=>s+ci.qty,0);
   btn.style.background=inCartQty>0 ? shadeColor(cat.bg,-6) : cat.bg;
   btn.style.borderColor=cat.border;
@@ -1169,22 +1169,22 @@ function makeItemBtn(item, cat, grid){
   let priceHtml;
   if(isStayItem2){
     if(paidBadge){
-      priceHtml='<div class="item-price"><span style="font-size:10px;color:#aaa;text-decoration:line-through;">莠ｺ謨ｰ縺ｧ螟牙虚</span><br><span style="color:'+paidDisplaySettings.color+';font-weight:700;font-size:12px;">'+paidBadge+'</span></div>';
+      priceHtml='<div class="item-price"><span style="font-size:10px;color:#aaa;text-decoration:line-through;">人数で変動</span><br><span style="color:'+paidDisplaySettings.color+';font-weight:700;font-size:12px;">'+paidBadge+'</span></div>';
     } else {
-      priceHtml='<div class="item-price" style="color:'+cat.price+'">莠ｺ謨ｰ縺ｧ螟牙虚</div>';
+      priceHtml='<div class="item-price" style="color:'+cat.price+'">人数で変動</div>';
     }
   } else if(paidBadge){
-    priceHtml='<div class="item-price"><span style="font-size:10px;color:#aaa;text-decoration:line-through;">ﾂ･'+item.price.toLocaleString()+'</span><br><span style="color:'+paidDisplaySettings.color+';font-weight:700;font-size:12px;">'+paidBadge+'</span></div>';
+    priceHtml='<div class="item-price"><span style="font-size:10px;color:#aaa;text-decoration:line-through;">¥'+item.price.toLocaleString()+'</span><br><span style="color:'+paidDisplaySettings.color+';font-weight:700;font-size:12px;">'+paidBadge+'</span></div>';
   } else if(dispPrice < item.price){
-    priceHtml='<div class="item-price"><span style="font-size:10px;color:#aaa;text-decoration:line-through;">ﾂ･'+item.price.toLocaleString()+'</span><br><span style="color:var(--red);font-weight:700;font-size:14px;">ﾂ･'+dispPrice.toLocaleString()+'</span></div>';
+    priceHtml='<div class="item-price"><span style="font-size:10px;color:#aaa;text-decoration:line-through;">¥'+item.price.toLocaleString()+'</span><br><span style="color:var(--red);font-weight:700;font-size:14px;">¥'+dispPrice.toLocaleString()+'</span></div>';
   } else {
-    priceHtml='<div class="item-price" style="color:'+cat.price+'">ﾂ･'+dispPrice.toLocaleString()+'</div>';
+    priceHtml='<div class="item-price" style="color:'+cat.price+'">¥'+dispPrice.toLocaleString()+'</div>';
   }
   btn.innerHTML=
-    '<div class="item-drag-handle">笄ｿ</div>'+
+    '<div class="item-drag-handle">⠿</div>'+
     '<div class="item-name" style="color:'+cat.text+';'+(item.fontSize||cat.fontSize?'font-size:'+(item.fontSize||cat.fontSize)+';':'')+'">'+item.name+'</div>'+
     priceHtml+
-    (item.stock>0?'<div class="item-stock">蝨ｨ蠎ｫ:'+item.stock+'</div>':'');
+    (item.stock>0?'<div class="item-stock">在庫:'+item.stock+'</div>':'');
   if(!editMode){
     btn.onclick=()=>addToCart(item,cat);
   } else {
@@ -1193,15 +1193,15 @@ function makeItemBtn(item, cat, grid){
   return btn;
 }
 
-// 螳ｿ豕願・牡蠑募ｯｾ雎｡繧｢繧､繝・ΒID
+// 宿泊者割引対象アイテムID
 const STAY_GUEST_DISC_IDS = ['i_walk115','i_walk1day'];
 const STAY_GUEST_DISC = 500;
-// 螳ｿ豕願・┌譁吝ｯｾ雎｡・亥ｮｿ豕翫′繧ｫ繝ｼ繝医↓蜈･縺｣縺溘ｉ繧ｼ繝ｭ蜀・ｼ・
+// 宿泊者無料対象（宿泊がカートに入ったらゼロ円）
 const STAY_FREE_IDS = ['i_bbq'];
-// SOU辟｡譁吝ｯｾ雎｡
+// SOU無料対象
 const SOU_FREE_IDS = ['i_tree115','i_walk115'];
-// 讌ｽ螟ｩ繝ｻ縺倥ｃ繧峨ｓ繝ｻSOU・壽髪謇墓ｸ医∩陦ｨ遉ｺ險ｭ螳夲ｼ郁ｨｭ螳壹〒螟画峩蜿ｯ閭ｽ・・
-let paidDisplaySettings = ld('pos_paid_display') || {label:'謾ｯ謇墓ｸ・, color:'#c0392b'};
+// 楽天・じゃらん・SOU：支払済み表示設定（設定で変更可能）
+let paidDisplaySettings = ld('pos_paid_display') || {label:'支払済', color:'#c0392b'};
 
 function isStayInCart(){
   return cart.some(c => {
@@ -1238,12 +1238,12 @@ function getDiscountedPrice(item){
   if(activeDiscount==='stay_guest' || isStayInCart()){
     if(STAY_GUEST_DISC_IDS.includes(item.id)) return item.price - STAY_GUEST_DISC;
   }
-  // 螳ｿ豕翫′繧ｫ繝ｼ繝医↓蜈･縺｣縺ｦ縺・ｌ縺ｰBBQ遲峨ｒ辟｡譁吶↓
+  // 宿泊がカートに入っていればBBQ等を無料に
   if(isStayInCart() && STAY_FREE_IDS.includes(item.id)) return 0;
   return item.price;
 }
 
-// 蝠・刀繝懊ち繝ｳ縺ｫ謾ｯ謇墓ｸ医ヰ繝・ず繧定｡ｨ遉ｺ縺吶ｋ縺・
+// 商品ボタンに支払済バッジを表示するか
 function getPaidBadge(item){
   const d = discountItems.find(d=>d.key===activeDiscount);
   if(!d || d.type!=='paid') return null;
@@ -1253,7 +1253,7 @@ function getPaidBadge(item){
   return null;
 }
 
-// ===== 繧ｿ繝・メ繝峨Λ繝・げ =====
+// ===== タッチドラッグ =====
 let touchDragType = null, touchDragId = null;
 let touchDragEl = null, touchClone = null;
 let touchDragOver = null;
@@ -1266,7 +1266,7 @@ function setupTouchDrag(el, type, id, container){
     touchDragId = id;
     touchDragEl = type==='item' ? el : el.closest('.cat-section');
     touchDragEl.classList.add(type==='item'?'dragging-item':'dragging-cat');
-    // 繧ｯ繝ｭ繝ｼ繝ｳ菴懈・
+    // クローン作成
     touchClone = touchDragEl.cloneNode(true);
     touchClone.style.cssText = 'position:fixed;opacity:0.7;pointer-events:none;z-index:999;width:'+touchDragEl.offsetWidth+'px;transform:scale(1.05);box-shadow:0 8px 24px rgba(0,0,0,0.2);';
     touchClone.style.left = touch.clientX - touchDragEl.offsetWidth/2 + 'px';
@@ -1282,7 +1282,7 @@ function setupTouchDrag(el, type, id, container){
       touchClone.style.left = touch.clientX - touchClone.offsetWidth/2 + 'px';
       touchClone.style.top = touch.clientY - touchClone.offsetHeight/2 + 'px';
     }
-    // 荳九↓縺ゅｋ隕∫ｴ繧呈､懷・
+    // 下にある要素を検出
     touchClone.style.display='none';
     const el2 = document.elementFromPoint(touch.clientX, touch.clientY);
     touchClone.style.display='';
@@ -1337,12 +1337,12 @@ function reorderCats(srcId,dstId){
 function toggleEditMode(){
   editMode=!editMode;
   const btn=document.getElementById('edit-btn');
-  btn.textContent=editMode?'笨・螳御ｺ・:'笨擾ｸ・邱ｨ髮・;
+  btn.textContent=editMode?'✅ 完了':'✏️ 編集';
   btn.className='edit-btn'+(editMode?' active':'');
   renderCatFilterTabs();renderPOS();
 }
 
-// ===== 繧ｫ繝ｼ繝亥・萓｡譬ｼ縺ｮ蜀崎ｨ育ｮ暦ｼ亥牡蠑募・譖ｿ譎ゑｼ・=====
+// ===== カート内価格の再計算（割引切替時） =====
 function recalcCartPrices(){
   const stayInCart = cart.some(c=>{
     if(c.isStay) return true;
@@ -1374,9 +1374,9 @@ function recalcCartPrices(){
   });
 }
 
-// ===== 繧ｫ繝ｼ繝・=====
+// ===== カート =====
 function addToCart(item,cat){
-  // 螳ｿ豕翫〒莠ｺ謨ｰ蛻･譁咎≡縺後≠繧句ｴ蜷医・繝昴ャ繝励い繝・・
+  // 宿泊で人数別料金がある場合はポップアップ
   if(item.stay_prices && Object.keys(item.stay_prices).length > 0){
     openStayModal(item, cat);
     return;
@@ -1388,23 +1388,23 @@ function addToCart(item,cat){
   else cart.push({id:item.id,name:item.name,origPrice:item.price,price,qty:1,discounted:price<item.price,paidLabel:paidBadge||'',free_mura:item.free_mura||false,cat:item.cat||'',catColor:cat?cat.bg:'#fff'});
   if(STAY_CAT_IDS.includes(item.cat)) recalcCartPrices();
   renderPOS();
-  renderCart();showToast('笨・'+item.name);
+  renderCart();showToast('✓ '+item.name);
 }
 
 function addCustomItem(){
   const p=parseInt(document.getElementById('custom-price').value);
   if(!p||p<=0)return;
-  cart.push({id:'custom_'+Date.now(),name:'譛ｪ逋ｻ骭ｲ蝠・刀',origPrice:p,price:p,qty:1,discounted:false,catColor:'#f5f5f5'});
+  cart.push({id:'custom_'+Date.now(),name:'未登録商品',origPrice:p,price:p,qty:1,discounted:false,catColor:'#f5f5f5'});
   document.getElementById('custom-price').value='';
-  renderCart();showToast('笨・譛ｪ逋ｻ骭ｲ蝠・刀繧定ｿｽ蜉');
+  renderCart();showToast('✓ 未登録商品を追加');
 }
 
 function renderCart(){
   const c=document.getElementById('cart-list');c.innerHTML='';
   if(!cart.length){
-    c.innerHTML='<div style="text-align:center;color:#bbb;padding:1.5rem;font-size:12px">蝠・刀繧帝∈謚槭＠縺ｦ縺上□縺輔＞</div>';
+    c.innerHTML='<div style="text-align:center;color:#bbb;padding:1.5rem;font-size:12px">商品を選択してください</div>';
     document.getElementById('cart-count').textContent='';
-    document.getElementById('total-amount').textContent='ﾂ･0';
+    document.getElementById('total-amount').textContent='¥0';
     document.getElementById('orig-amount-row').style.display='none';
     return;
   }
@@ -1416,29 +1416,29 @@ function renderCart(){
       ? '<span style="font-size:10px;background:#fde8e8;color:'+paidDisplaySettings.color+';border:1px solid #f5c0c0;border-radius:4px;padding:1px 5px;margin-left:4px;font-weight:600;">'+item.paidLabel+'</span>'
       : (item.discounted
           ? (item.free_mura
-              ? '<span style="font-size:10px;background:#fde8e8;color:var(--red);border:1px solid #f5c0c0;border-radius:4px;padding:1px 5px;margin-left:4px;font-weight:600;">辟｡譁・/span>'
-              : '<span style="font-size:10px;background:#fde8e8;color:var(--red);border:1px solid #f5c0c0;border-radius:4px;padding:1px 5px;margin-left:4px;font-weight:600;">蜑ｲ蠑・/span>')
+              ? '<span style="font-size:10px;background:#fde8e8;color:var(--red);border:1px solid #f5c0c0;border-radius:4px;padding:1px 5px;margin-left:4px;font-weight:600;">無料</span>'
+              : '<span style="font-size:10px;background:#fde8e8;color:var(--red);border:1px solid #f5c0c0;border-radius:4px;padding:1px 5px;margin-left:4px;font-weight:600;">割引</span>')
           : '');
     const priceColor = item.paidLabel ? paidDisplaySettings.color : (item.discounted ? 'var(--red)' : 'var(--accent2)');
     div.innerHTML=
       '<div style="font-size:13px;font-weight:500;line-height:1.4;">'+item.name+discTag+'</div>'+
       '<div style="display:flex;align-items:center;gap:4px;">'+
         '<div style="display:flex;align-items:center;gap:3px;flex:1;">'+
-          '<button onclick="chgQty('+idx+',-1)" style="width:26px;height:26px;border:1px solid var(--border);border-radius:5px;background:#fff;font-size:15px;cursor:pointer;padding:0;line-height:1;">・・/button>'+
+          '<button onclick="chgQty('+idx+',-1)" style="width:26px;height:26px;border:1px solid var(--border);border-radius:5px;background:#fff;font-size:15px;cursor:pointer;padding:0;line-height:1;">－</button>'+
           '<span style="font-size:14px;font-weight:600;min-width:20px;text-align:center;">'+item.qty+'</span>'+
-          '<button onclick="chgQty('+idx+',1)" style="width:26px;height:26px;border:1px solid var(--border);border-radius:5px;background:#fff;font-size:15px;cursor:pointer;padding:0;line-height:1;">・・/button>'+
+          '<button onclick="chgQty('+idx+',1)" style="width:26px;height:26px;border:1px solid var(--border);border-radius:5px;background:#fff;font-size:15px;cursor:pointer;padding:0;line-height:1;">＋</button>'+
         '</div>'+
-        '<div style="font-size:14px;font-weight:700;color:'+priceColor+';">ﾂ･'+(item.price*item.qty).toLocaleString()+'</div>'+
-        '<div style="color:#ccc;font-size:16px;cursor:pointer;padding:0 4px;" onclick="removeCart('+idx+')">笨・/div>'+
+        '<div style="font-size:14px;font-weight:700;color:'+priceColor+';">¥'+(item.price*item.qty).toLocaleString()+'</div>'+
+        '<div style="color:#ccc;font-size:16px;cursor:pointer;padding:0 4px;" onclick="removeCart('+idx+')">✕</div>'+
       '</div>';
     c.appendChild(div);
   });
   const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
   const origTotal=cart.reduce((s,i)=>s+i.origPrice*i.qty,0);
-  document.getElementById('cart-count').textContent=cart.length+'蜩・;
-  document.getElementById('total-amount').textContent='ﾂ･'+total.toLocaleString();
+  document.getElementById('cart-count').textContent=cart.length+'品';
+  document.getElementById('total-amount').textContent='¥'+total.toLocaleString();
   const origRow=document.getElementById('orig-amount-row');
-  if(hasDiscount&&origTotal>total){origRow.style.display='block';origRow.textContent='螳壻ｾ｡ ﾂ･'+origTotal.toLocaleString();}
+  if(hasDiscount&&origTotal>total){origRow.style.display='block';origRow.textContent='定価 ¥'+origTotal.toLocaleString();}
   else origRow.style.display='none';
   renderHoldTabs();
 }
@@ -1446,18 +1446,18 @@ function renderCart(){
 function chgQty(idx,d){cart[idx].qty=Math.max(1,cart[idx].qty+d);renderCart();}
 function removeCart(idx){cart.splice(idx,1);recalcCartPrices();renderPOS();renderCart();}
 function clearCart(){
-  editingSaleId=null; // 菫ｮ豁｣繧ｭ繝｣繝ｳ繧ｻ繝ｫ・亥・螢ｲ荳翫・sales縺ｫ谿九ｋ・・
+  editingSaleId=null; // 修正キャンセル（元売上はsalesに残る）
   holds[activeHoldIdx]=null;
   sv(KEYS.holds,holds);
   cart=[];selectedAttrs={age:[],nationality:[]};activeDiscount='';
   attrVisible=false;
   var ai=document.getElementById('attr-rows-inner'),ab=document.getElementById('toggle-attr-btn');
   if(ai) ai.style.display='none';
-  if(ab) ab.textContent='笆ｲ';
+  if(ab) ab.textContent='▲';
   renderCart();renderAttrs();renderDiscountBar();renderPOS();renderHoldTabs();
 }
 
-// ===== 菫晉蕗 =====
+// ===== 保留 =====
 function renderHoldTabs(){
   const c=document.getElementById('hold-tabs');c.innerHTML='';
   const usedCount=holds.filter(h=>h!==null).length;
@@ -1471,7 +1471,7 @@ function renderHoldTabs(){
       btn.className='hold-tab'+(i===activeHoldIdx?' active':'')+(h?' has-data':'');
       btn.innerHTML=(h?'<span class="hold-dot"></span>':'')+(h?h.title:(i+1)+'');
       btn.onclick=()=>switchHold(i);
-      // 髟ｷ謚ｼ縺励〒蜷榊燕邱ｨ髮・
+      // 長押しで名前編集
       let pressTimer;
       btn.addEventListener('touchstart',()=>{pressTimer=setTimeout(()=>editHoldTitle(i),600);});
       btn.addEventListener('touchend',()=>clearTimeout(pressTimer));
@@ -1483,13 +1483,13 @@ function renderHoldTabs(){
 
 function editHoldTitle(idx){
   const h=holds[idx]; if(!h) return;
-  const newTitle=prompt('菫晉蕗蜷阪ｒ螟画峩',h.title||'');
+  const newTitle=prompt('保留名を変更',h.title||'');
   if(newTitle!==null){ holds[idx].title=newTitle||h.title; renderHoldTabs(); }
 }
 
 function holdCart(){
-  if(!cart.length){showToast('笞 繧ｫ繝ｼ繝医′遨ｺ縺ｧ縺・,'#c00');return;}
-  // 譌｢蟄倥・蜷榊燕縺後≠繧後・蠑輔″邯吶＄
+  if(!cart.length){showToast('⚠ カートが空です','#c00');return;}
+  // 既存の名前があれば引き継ぐ
   const existingTitle=holds[activeHoldIdx]?.title||'';
   document.getElementById('hold-title-input').value=existingTitle;
   document.getElementById('hold-modal').classList.add('open');
@@ -1499,18 +1499,18 @@ function confirmHold(){
   const title=document.getElementById('hold-title-input').value.trim()||new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
   holds[activeHoldIdx]={title,cart:[...cart],attrs:{...selectedAttrs},discount:activeDiscount};
   sv(KEYS.holds,holds);
-  // 菫晉蕗蠕後・譁ｰ縺励＞縺雁ｮ｢讒倡畑縺ｫ繧ｯ繝ｪ繧｢
+  // 保留後は新しいお客様用にクリア
   cart=[];selectedAttrs={age:[],nationality:[]};activeDiscount='';
-  // 谺｡縺ｮ遨ｺ縺阪せ繝ｭ繝・ヨ縺ｸ
+  // 次の空きスロットへ
   const next=holds.findIndex((h,i)=>h===null&&i!==activeHoldIdx);
   if(next!==-1)activeHoldIdx=next;
   document.getElementById('hold-modal').classList.remove('open');
   renderCart();renderAttrs();renderDiscountBar();renderPOS();renderHoldTabs();
-  showToast('笨・菫晉蕗縺励∪縺励◆');
+  showToast('✓ 保留しました');
 }
 
 function switchHold(idx){
-  // 迴ｾ蝨ｨ縺ｮ繧ｫ繝ｼ繝医ｒ菫晏ｭ假ｼ井ｸｭ霄ｫ縺後≠繧後・・・
+  // 現在のカートを保存（中身があれば）
   if(cart.length){
     const title=holds[activeHoldIdx]?.title||new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
     holds[activeHoldIdx]={title,cart:[...cart],attrs:{...selectedAttrs},discount:activeDiscount};
@@ -1522,7 +1522,7 @@ function switchHold(idx){
     cart=[...h.cart];
     selectedAttrs={...h.attrs};
     activeDiscount=h.discount||'';
-    // 螳ｿ豕翫′繧ｫ繝ｼ繝医↓蜈･縺｣縺ｦ縺・ｌ縺ｰ遨ｺ荳ｭ繧ｦ繧ｩ繝ｼ繧ｯ蜑ｲ蠑輔ｒ蜀崎ｨ育ｮ・
+    // 宿泊がカートに入っていれば空中ウォーク割引を再計算
     recalcCartPrices();
   } else {
     cart=[];selectedAttrs={age:[],nationality:[]};activeDiscount='';
@@ -1530,7 +1530,7 @@ function switchHold(idx){
   renderCart();renderAttrs();renderDiscountBar();renderPOS();renderHoldTabs();
 }
 
-// ===== 鬘ｧ螳｢螻樊ｧ =====
+// ===== 顧客属性 =====
 function renderAttrs(){
   const el=document.getElementById('attr-rows-inner'); if(!el) return;
   let html='';
@@ -1566,7 +1566,7 @@ function toggleAttr(){
   if(!el) return;
   const vis=el.style.display!=="none";
   el.style.display=vis?"none":"";
-  if(btn) btn.textContent=vis?"笆ｲ":"笆ｼ";
+  if(btn) btn.textContent=vis?"▲":"▼";
 }
 
 function renderAttrSettings(){
@@ -1574,21 +1574,21 @@ function renderAttrSettings(){
   let html='';
   Object.entries(ATTRS).forEach(function(entry){
     const key=entry[0], vals=entry[1];
-    const label={age:'蟷ｴ鮨｢螻､',nationality:'蝗ｽ邀・}[key]||key;
+    const label={age:'年齢層',nationality:'国籍'}[key]||key;
     const ek=key.replace(/'/g,"\\'");
     let items='';
     vals.forEach(function(v,i){
       items+='<div style="display:flex;align-items:center;gap:6px;background:#f9f9f9;border-radius:7px;padding:5px 8px;margin-bottom:4px;">'
         +'<span style="flex:1;font-size:13px;">'+v+'</span>'
-        +'<button onclick="deleteAttrItem(\''+ek+'\','+i+')" style="border:none;background:none;color:var(--red);font-size:16px;cursor:pointer;">笨・/button>'
+        +'<button onclick="deleteAttrItem(\''+ek+'\','+i+')" style="border:none;background:none;color:var(--red);font-size:16px;cursor:pointer;">✕</button>'
         +'</div>';
     });
     html+='<div style="margin-bottom:12px;">'
       +'<div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">'+label+'</div>'
       +items
       +'<div style="display:flex;gap:6px;margin-top:4px;">'
-      +'<input type="text" id="new-attr-'+ek+'" placeholder="霑ｽ蜉" style="flex:1;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit;">'
-      +'<button onclick="addAttrItem(\''+ek+'\')" style="padding:6px 12px;border:none;border-radius:6px;background:var(--accent);color:#fff;font-size:12px;cursor:pointer;font-family:inherit;">霑ｽ蜉</button>'
+      +'<input type="text" id="new-attr-'+ek+'" placeholder="追加" style="flex:1;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit;">'
+      +'<button onclick="addAttrItem(\''+ek+'\')" style="padding:6px 12px;border:none;border-radius:6px;background:var(--accent);color:#fff;font-size:12px;cursor:pointer;font-family:inherit;">追加</button>'
       +'</div></div>';
   });
   container.innerHTML=html;
@@ -1597,23 +1597,23 @@ function renderAttrSettings(){
 
 
 const DEFAULT_ATTRS={
-  age:['縺贋ｸ莠ｺ','蟄宣｣繧・,'繧ｫ繝・・繝ｫ','10縲・0莉｣','30縲・0莉｣','50莉｣','60莉｣莉･荳・],
-  nationality:['繧｢繧ｸ繧｢','蜿ｰ貉ｾ','荳ｭ闖ｯ','繝ｨ繝ｼ繝ｭ繝・ヱ','繧ｪ繧ｻ繧｢繝九い','繧､繝ｳ繝・,'蜊嶺ｸｭ邀ｳ','縺昴・莉門､門嵜莠ｺ'],
+  age:['お一人','子連れ','カップル','10〜20代','30〜40代','50代','60代以上'],
+  nationality:['アジア','台湾','中華','ヨーロッパ','オセアニア','インド','南中米','その他外国人'],
 };
 let ATTRS = ld('pos_attrs') || JSON.parse(JSON.stringify(DEFAULT_ATTRS));
 
 
-// ===== 豎ｺ貂・=====
+// ===== 決済 =====
 function openPayment(method){
-  if(!cart.length){showToast('笞 繧ｫ繝ｼ繝医′遨ｺ縺ｧ縺・,'#c00');return;}
+  if(!cart.length){showToast('⚠ カートが空です','#c00');return;}
   currentPayMethod=method;
   const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
-  const labels={cash:'迴ｾ驥代〒豎ｺ貂・,card:'繧ｫ繝ｼ繝峨〒豎ｺ貂・,other:'髮ｻ蟄先ｱｺ貂・};
+  const labels={cash:'現金で決済',card:'カードで決済',other:'電子決済'};
   document.getElementById('payment-modal-title').textContent=labels[method]||method;
-  document.getElementById('payment-modal-amount').textContent='ﾂ･'+total.toLocaleString();
+  document.getElementById('payment-modal-amount').textContent='¥'+total.toLocaleString();
   const cs=document.getElementById('cash-change-section');
   cs.style.display=method==='cash'?'':'none';
-  if(method==='cash'){document.getElementById('cash-received').value='';document.getElementById('change-amount').textContent='ﾂ･0';}
+  if(method==='cash'){document.getElementById('cash-received').value='';document.getElementById('change-amount').textContent='¥0';}
   document.getElementById('payment-modal').classList.add('open');
 }
 
@@ -1632,7 +1632,7 @@ function calcChange(){
   const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
   const received=parseInt(document.getElementById('cash-received').value)||0;
   const change=received-total;
-  document.getElementById('change-amount').textContent=change>=0?'ﾂ･'+change.toLocaleString():'荳崎ｶｳ';
+  document.getElementById('change-amount').textContent=change>=0?'¥'+change.toLocaleString():'不足';
   document.getElementById('change-amount').style.color=change>=0?'var(--green)':'var(--red)';
 }
 
@@ -1642,18 +1642,18 @@ function confirmPayment(){
   const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
   if(currentPayMethod==='cash'){
     const received=parseInt(document.getElementById('cash-received').value)||0;
-    if(received<total){showToast('笞 蜿怜叙驥鷹｡阪′荳崎ｶｳ縺励※縺・∪縺・,'#c00');return;}
+    if(received<total){showToast('⚠ 受取金額が不足しています','#c00');return;}
   }
   const isPaid = discountItems.find(d=>d.key===activeDiscount)?.type==='paid';
   const record={
     id:'s_'+Date.now(),datetime:new Date().toISOString(),
     items:cart.map(i=>({...i})),total,method:currentPayMethod,
     attrs:{...selectedAttrs},discount:activeDiscount,paid:isPaid,
-    memo: currentPayMethod==='other' ? '髮ｻ蟄先ｱｺ貂医∽ｼ晉･ｨ2譫壹□縺九ｉ繝ｬ繧ｸ邱繧∵ｳｨ諢・ : '',
+    memo: currentPayMethod==='other' ? '電子決済、伝票2枚だからレジ締め注意' : '',
     device:localStorage.getItem('pos_device_id')||'',
     device_name:localStorage.getItem('pos_device_name')||'',
   };
-  // 繧ｫ繝ｼ繝医〒菫ｮ豁｣荳ｭ縺縺｣縺溷ｴ蜷医∝・縺ｮ螢ｲ荳翫ｒ蜑企勁縺励※GAS縺ｫ繧ょ渚譏
+  // カートで修正中だった場合、元の売上を削除してGASにも反映
   if(editingSaleId){
     sales=sales.filter(s=>s.id!==editingSaleId);
     autoDeleteSale(editingSaleId);
@@ -1663,14 +1663,14 @@ function confirmPayment(){
   lastSaleId=record.id;
   autoSyncSale(record);
   closePaymentModal();
-  const methodLabel={cash:'迴ｾ驥・,card:'繧ｯ繝ｬ繧ｸ繝・ヨ繧ｫ繝ｼ繝・,other:'髮ｻ蟄先ｱｺ貂・}[currentPayMethod]||currentPayMethod;
-  document.getElementById('done-amount').textContent='ﾂ･'+total.toLocaleString();
-  document.getElementById('done-method').textContent=methodLabel+(isPaid?' ・・謾ｯ謇墓ｸ医∩':'');
+  const methodLabel={cash:'現金',card:'クレジットカード',other:'電子決済'}[currentPayMethod]||currentPayMethod;
+  document.getElementById('done-amount').textContent='¥'+total.toLocaleString();
+  document.getElementById('done-method').textContent=methodLabel+(isPaid?' ／ 支払済み':'');
   holds[activeHoldIdx]=null;
   sv(KEYS.holds,holds);
-  // 螳ｿ豕雁膚蜩√′縺ゅｋ縺ｨ縺阪・縲後き繝ｼ繝医↓謌ｻ繧九阪・繧ｿ繝ｳ蛻ｶ蠕｡
+  // 宿泊商品があるときの「カートに戻る」ボタン制御
   const hasStay = cart.some(i=>i.isStay || STAY_CAT_IDS.includes(i.cat) || (()=>{const it=items.find(x=>x.id===i.id);return it&&STAY_CAT_IDS.includes(it.cat);})());
-  // 縲後き繝ｼ繝医↓謌ｻ繧九阪・繧ｿ繝ｳ・壼ｮｿ豕翫′縺ゅｋ蝣ｴ蜷医・髱櫁｡ｨ遉ｺ
+  // 「カートに戻る」ボタン：宿泊がある場合は非表示
   const editBtn = document.querySelector('.done-close');
   if(editBtn) editBtn.style.display = hasStay ? 'none' : '';
 
@@ -1691,12 +1691,12 @@ function editLastSale(){
   cart=[...record.items];selectedAttrs={...record.attrs};activeDiscount=record.discount||'';
   document.getElementById('payment-done').classList.remove('open');
   renderCart();renderAttrs();renderDiscountBar();
-  showToast('笨・繧ｫ繝ｼ繝医↓謌ｻ縺励∪縺励◆');
+  showToast('✓ カートに戻しました');
 }
 
 
-// ===== 螢ｲ荳・=====
-// ===== 螢ｲ荳翫し繝悶ち繝・=====
+// ===== 売上 =====
+// ===== 売上サブタブ =====
 let currentSalesTab = 'detail';
 let currentPeriod = 'today';
 let currentChartType = 'daily';
@@ -1731,13 +1731,13 @@ function setPeriod(p){
   if(p!=='custom') renderSummary();
 }
 
-// datetime繧炭YYY-MM-DD蠖｢蠑上↓螟画鋤縺吶ｋ繝倥Ν繝代・
+// datetimeをYYYY-MM-DD形式に変換するヘルパー
 function dtToDate(datetime){
   if(!datetime) return '';
-  // ISO蠖｢蠑擾ｼ・026-04-19T10:30:00.000Z・牙ｯｾ蠢・
+  // ISO形式（2026-04-19T10:30:00.000Z）対応
   const d = new Date(datetime);
   if(!isNaN(d)){
-    // UTC縺ｧ縺ｯ縺ｪ縺上Ο繝ｼ繧ｫ繝ｫ譎る俣縺ｧ譌･莉倥ｒ蜿門ｾ・
+    // UTCではなくローカル時間で日付を取得
     return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   }
   return datetime.slice(0,10);
@@ -1785,7 +1785,7 @@ function getPeriodFiltered(){
   });
 }
 
-// 譁ｽ險ｭ蛻･莠ｺ謨ｰ繧定ｨ育ｮ暦ｼ域律蟶ｰ繧翫・螳ｿ豕翫・荳ｻ隕∵命險ｭ繧ｫ繝・ざ繝ｪ繝ｼ縺ｮ縺ｿ髮・ｨ茨ｼ・
+// 施設別人数を計算（日帰り・宿泊の主要施設カテゴリーのみ集計）
 function calcPeopleByFacility(filtered){
   var facilityCatIds=['cat_walk','cat_tree_day','cat_bbq','cat_stay_tree','cat_stay_dome','cat_stay_tent','cat_stay_hm'];
   var catNameMap={};
@@ -1796,8 +1796,8 @@ function calcPeopleByFacility(filtered){
       var catId=i.cat||'';
       var inFacility=facilityCatIds.indexOf(catId)!==-1||!!i.isStay;
       if(!inFacility) return;
-      var catName=catNameMap[catId]||catId||(i.isStay?'螳ｿ豕・:'');
-      var m=i.name.match(/[・・](\d+)莠ｺ[・・]/);
+      var catName=catNameMap[catId]||catId||(i.isStay?'宿泊':'');
+      var m=i.name.match(/[（(](\d+)人[）)]/);
       var count=m?parseInt(m[1])*i.qty:i.qty;
       result[catName]=(result[catName]||0)+count;
     });
@@ -1805,14 +1805,14 @@ function calcPeopleByFacility(filtered){
   return result;
 }
 
-// 莠ｺ謨ｰ繧定ｨ育ｮ・ 譁ｽ險ｭ繧ｫ繝・ざ繝ｪ繝ｼ縺ｮ縺ｿ蟇ｾ雎｡縲ゑｼ・莠ｺ・峨′縺ゅｌ縺ｰNﾃ玲焚驥上√↑縺代ｌ縺ｰ謨ｰ驥上ｒ縺昴・縺ｾ縺ｾ菴ｿ縺・
+// 人数を計算: 施設カテゴリーのみ対象。（N人）があればN×数量、なければ数量をそのまま使う
 function calcPersonCount(filtered){
   var facilityCatIds=['cat_walk','cat_tree_day','cat_bbq','cat_stay_tree','cat_stay_dome','cat_stay_tent','cat_stay_hm'];
   var total=0;
   filtered.forEach(function(r){
     r.items.forEach(function(i){
       if(facilityCatIds.indexOf(i.cat||'')===-1) return;
-      var m=i.name.match(/[・・](\d+)莠ｺ[・・]/);
+      var m=i.name.match(/[（(](\d+)人[）)]/);
       total+=m?parseInt(m[1])*i.qty:i.qty;
     });
   });
@@ -1828,10 +1828,10 @@ function renderSummary(){
   const el_c=document.getElementById('sum-count');
   const el_p=document.getElementById('sum-people');
   const el_a=document.getElementById('sum-avg');
-  if(el_t) el_t.textContent='ﾂ･'+total.toLocaleString();
-  if(el_c) el_c.textContent=count+'莉ｶ';
-  if(el_p) el_p.textContent=people+'莠ｺ';
-  if(el_a) el_a.textContent=count?'ﾂ･'+Math.round(total/count).toLocaleString():'ﾂ･0';
+  if(el_t) el_t.textContent='¥'+total.toLocaleString();
+  if(el_c) el_c.textContent=count+'件';
+  if(el_p) el_p.textContent=people+'人';
+  if(el_a) el_a.textContent=count?'¥'+Math.round(total/count).toLocaleString():'¥0';
   renderChart(currentChartType);
   renderStatsCards(filtered);
 }
@@ -1844,27 +1844,27 @@ function renderChart(type){
   if(!area) return;
 
   let data = [];
-  const typeLabels = {daily:'譌･蛻･螢ｲ荳・,hourly:'譎る俣蟶ｯ蛻･莉ｶ謨ｰ',weekday:'譖懈律蛻･螢ｲ荳・,item:'蝠・刀蛻･螢ｲ荳・,attr:'螻樊ｧ蛻･莉ｶ謨ｰ',discount:'蜑ｲ蠑輔・莠育ｴ・し繧､繝亥挨莉ｶ謨ｰ'};
+  const typeLabels = {daily:'日別売上',hourly:'時間帯別件数',weekday:'曜日別売上',item:'商品別売上',attr:'属性別件数',discount:'割引・予約サイト別件数'};
   if(title) title.textContent = typeLabels[type]||'';
 
   if(type==='daily'){
     const map={};
     filtered.forEach(r=>{const d=dtToDate(r.datetime);map[d]=(map[d]||0)+r.total;});
-    data=Object.entries(map).sort((a,b)=>a[0]>b[0]?1:-1).map(([k,v])=>({label:k.slice(5),value:v,unit:'ﾂ･'}));
+    data=Object.entries(map).sort((a,b)=>a[0]>b[0]?1:-1).map(([k,v])=>({label:k.slice(5),value:v,unit:'¥'}));
   } else if(type==='hourly'){
     const map={};
     for(let h=0;h<24;h++) map[h]=0;
     filtered.forEach(r=>{const h=dtToHour(r.datetime);map[h]=(map[h]||0)+1;});
-    data=Object.entries(map).filter(([,v])=>v>0).map(([k,v])=>({label:k+'譎・,value:v,unit:'莉ｶ'}));
+    data=Object.entries(map).filter(([,v])=>v>0).map(([k,v])=>({label:k+'時',value:v,unit:'件'}));
   } else if(type==='weekday'){
-    const dow=['譌･','譛・,'轣ｫ','豌ｴ','譛ｨ','驥・,'蝨・];
+    const dow=['日','月','火','水','木','金','土'];
     const map={};dow.forEach(d=>map[d]=0);
     filtered.forEach(r=>{const d=new Date(r.datetime.replace(/\//g,'-').replace(' ','T'));const w=dow[d.getDay()];map[w]=(map[w]||0)+r.total;});
-    data=dow.map(d=>({label:d,value:map[d],unit:'ﾂ･'}));
+    data=dow.map(d=>({label:d,value:map[d],unit:'¥'}));
   } else if(type==='item'){
     const map={};
     filtered.forEach(r=>r.items.forEach(i=>{map[i.name]=(map[i.name]||0)+i.price*i.qty;}));
-    data=Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([k,v])=>({label:k,value:v,unit:'ﾂ･'}));
+    data=Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([k,v])=>({label:k,value:v,unit:'¥'}));
   } else if(type==='attr'){
     const map={};
     filtered.forEach(function(r){
@@ -1876,24 +1876,24 @@ function renderChart(type){
         arr.forEach(function(v){ if(v) map[v]=(map[v]||0)+1; });
       });
     });
-    data=Object.entries(map).sort(function(a,b){return b[1]-a[1];}).map(function(e){return {label:e[0],value:e[1],unit:'莉ｶ'};});
+    data=Object.entries(map).sort(function(a,b){return b[1]-a[1];}).map(function(e){return {label:e[0],value:e[1],unit:'件'};});
   } else if(type==='discount'){
     const map={};
     filtered.forEach(r=>{
-      const d=r.discount==='mura'?'譚大・蜊企｡・:r.discount==='stay_guest'?'螳ｿ豕願・:r.discount||'縺ｪ縺・;
+      const d=r.discount==='mura'?'村内半額':r.discount==='stay_guest'?'宿泊者':r.discount||'なし';
       map[d]=(map[d]||0)+1;
     });
-    data=Object.entries(map).sort((a,b)=>b[1]-a[1]).map(([k,v])=>({label:k,value:v,unit:'莉ｶ'}));
+    data=Object.entries(map).sort((a,b)=>b[1]-a[1]).map(([k,v])=>({label:k,value:v,unit:'件'}));
   }
 
-  if(!data.length){ area.innerHTML='<div style="text-align:center;color:#bbb;padding:2rem;font-size:12px">繝・・繧ｿ縺後≠繧翫∪縺帙ｓ</div>'; return; }
+  if(!data.length){ area.innerHTML='<div style="text-align:center;color:#bbb;padding:2rem;font-size:12px">データがありません</div>'; return; }
 
   const maxVal = Math.max(...data.map(d=>d.value));
   const barColor = 'var(--accent)';
   area.innerHTML = '<div style="min-width:'+Math.max(data.length*60,300)+'px;display:flex;align-items:flex-end;gap:2px;">'+
     data.map(d=>{
       const pct = maxVal>0 ? Math.max(2, Math.round(d.value/maxVal*100)) : 0;
-      const label = d.unit==='ﾂ･' ? 'ﾂ･'+d.value.toLocaleString() : d.value+d.unit;
+      const label = d.unit==='¥' ? '¥'+d.value.toLocaleString() : d.value+d.unit;
       return '<div style="display:flex;flex-direction:column;align-items:center;gap:2px;min-width:50px;margin:0 2px;">'+
         '<div style="font-size:10px;font-weight:600;color:var(--accent2)">'+label+'</div>'+
         '<div style="width:36px;height:'+Math.round(pct*1.2)+'px;background:var(--accent);border-radius:4px 4px 0 0;min-height:4px;"></div>'+
@@ -1908,16 +1908,16 @@ function renderStatsCards(filtered){
   if(!filtered.length){statsEl.innerHTML='';return;}
   const payMap={},itemMap={},discMap={};
   filtered.forEach(r=>{
-    const k={cash:'迴ｾ驥・,card:'繧ｫ繝ｼ繝・,other:'髮ｻ蟄・}[r.method]||r.method;
+    const k={cash:'現金',card:'カード',other:'電子'}[r.method]||r.method;
     payMap[k]=(payMap[k]||0)+r.total;
     r.items.forEach(i=>{itemMap[i.name]=(itemMap[i.name]||{count:0,total:0});itemMap[i.name].count+=i.qty;itemMap[i.name].total+=i.price*i.qty;});
 
-    const d=r.discount==='mura'?'譚大・蜊企｡・:r.discount==='stay_guest'?'螳ｿ豕願・:r.discount||'縺ｪ縺・;
+    const d=r.discount==='mura'?'村内半額':r.discount==='stay_guest'?'宿泊者':r.discount||'なし';
     discMap[d]=(discMap[d]||0)+1;
   });
   const card=(title,rows)=>'<div style="background:#fff;border-radius:10px;padding:10px;box-shadow:var(--shadow);">'+
     '<div style="font-size:11px;font-weight:700;color:var(--accent2);margin-bottom:6px;">'+title+'</div>'+
-    (rows.length?rows.map(([k,v])=>'<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0;border-bottom:1px solid #f5f5f5;"><span style="color:var(--text2)">'+k+'</span><span style="font-weight:600">'+v+'</span></div>').join(''):'<div style="font-size:11px;color:#bbb">繝・・繧ｿ縺ｪ縺・/div>')+
+    (rows.length?rows.map(([k,v])=>'<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0;border-bottom:1px solid #f5f5f5;"><span style="color:var(--text2)">'+k+'</span><span style="font-weight:600">'+v+'</span></div>').join(''):'<div style="font-size:11px;color:#bbb">データなし</div>')+
   '</div>';
   const ageMap2={},natMap2={};
   filtered.forEach(r=>{
@@ -1927,7 +1927,7 @@ function renderStatsCards(filtered){
     nats.forEach(n=>{natMap2[n]=(natMap2[n]||0)+1;});
   });
   const facilityPeople=calcPeopleByFacility(filtered);
-  // 蝠・刀蛻･: 繝ｬ繧ｸ鬆・ｼ域命險ｭ邉ｻ・俄・ 謨ｰ驥城・〒繧ｽ繝ｼ繝茨ｼ区釜繧翫◆縺溘∩
+  // 商品別: レジ順（施設系）→ 数量順でソート＋折りたたみ
   var posMap={};
   items.forEach(function(it,idx){posMap[it.name]=idx;});
   var sortedItemEntries=Object.entries(itemMap).sort(function(a,b){
@@ -1939,23 +1939,23 @@ function renderStatsCards(filtered){
   var ITEM_CUTOFF=8;
   var rowFn=function(k,v){return '<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0;border-bottom:1px solid #f5f5f5;"><span style="color:var(--text2)">'+k+'</span><span style="font-weight:600">'+v+'</span></div>';};
   var itemCardHtml='<div style="background:#fff;border-radius:10px;padding:10px;box-shadow:var(--shadow);">'+
-    '<div style="font-size:11px;font-weight:700;color:var(--accent2);margin-bottom:6px;">寫 蝠・刀蛻･</div>'+
-    sortedItemEntries.slice(0,ITEM_CUTOFF).map(function(e){return rowFn(e[0],e[1].count+'轤ｹ');}).join('');
+    '<div style="font-size:11px;font-weight:700;color:var(--accent2);margin-bottom:6px;">🛍 商品別</div>'+
+    sortedItemEntries.slice(0,ITEM_CUTOFF).map(function(e){return rowFn(e[0],e[1].count+'点');}).join('');
   if(sortedItemEntries.length>ITEM_CUTOFF){
     var hiddenCount=sortedItemEntries.length-ITEM_CUTOFF;
     itemCardHtml+=
       '<div id="sum-item-more" style="display:none;">'+
-        sortedItemEntries.slice(ITEM_CUTOFF).map(function(e){return rowFn(e[0],e[1].count+'轤ｹ');}).join('')+
+        sortedItemEntries.slice(ITEM_CUTOFF).map(function(e){return rowFn(e[0],e[1].count+'点');}).join('')+
       '</div>'+
-      '<button onclick="var d=document.getElementById(\'sum-item-more\');var s=d.style.display===\'none\';d.style.display=s?\'\':\'none\';this.textContent=s?\'笆ｲ 謚倥ｊ縺溘◆繧\':\'笆ｼ 蜈ｨ縺ｦ陦ｨ遉ｺ ('+hiddenCount+'莉ｶ)\'" style="margin-top:6px;font-size:10px;color:var(--accent2);background:none;border:none;cursor:pointer;padding:2px 0;font-family:inherit;">笆ｼ 蜈ｨ縺ｦ陦ｨ遉ｺ ('+hiddenCount+'莉ｶ)</button>';
+      '<button onclick="var d=document.getElementById(\'sum-item-more\');var s=d.style.display===\'none\';d.style.display=s?\'\':\'none\';this.textContent=s?\'▲ 折りたたむ\':\'▼ 全て表示 ('+hiddenCount+'件)\'" style="margin-top:6px;font-size:10px;color:var(--accent2);background:none;border:none;cursor:pointer;padding:2px 0;font-family:inherit;">▼ 全て表示 ('+hiddenCount+'件)</button>';
   }
   itemCardHtml+='</div>';
   statsEl.innerHTML=
     itemCardHtml+
-    card('捷 蜑ｲ蠑輔・莠育ｴ・,Object.entries(discMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[k,v+'莉ｶ']))+
-    (Object.keys(facilityPeople).length?card('助 譁ｽ險ｭ蛻･莠ｺ謨ｰ',Object.entries(facilityPeople).map(([k,v])=>[k,v+'莠ｺ'])):'')+
-    (Object.keys(ageMap2).length?card('側 蟷ｴ鮨｢螻､',Object.entries(ageMap2).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[k,v+'莉ｶ'])):'')+
-    (Object.keys(natMap2).length?card('件 蝗ｽ邀・,Object.entries(natMap2).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[k,v+'莉ｶ'])):'');
+    card('🏷 割引・予約',Object.entries(discMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[k,v+'件']))+
+    (Object.keys(facilityPeople).length?card('🏕 施設別人数',Object.entries(facilityPeople).map(([k,v])=>[k,v+'人'])):'')+
+    (Object.keys(ageMap2).length?card('👤 年齢層',Object.entries(ageMap2).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[k,v+'件'])):'')+
+    (Object.keys(natMap2).length?card('🌏 国籍',Object.entries(natMap2).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[k,v+'件'])):'');
 }
 
 function renderSales(){
@@ -1972,15 +1972,15 @@ function renderSales(){
   });
   const total=filtered.reduce((s,r)=>s+r.total,0);
   const people=calcPersonCount(filtered);
-  document.getElementById('sc-total').textContent='ﾂ･'+total.toLocaleString();
-  document.getElementById('sc-count').textContent=filtered.length+'莉ｶ';
-  document.getElementById('sc-people').textContent=people+'莠ｺ';
-  document.getElementById('sc-avg').textContent=filtered.length?'ﾂ･'+Math.round(total/filtered.length).toLocaleString():'ﾂ･0';
+  document.getElementById('sc-total').textContent='¥'+total.toLocaleString();
+  document.getElementById('sc-count').textContent=filtered.length+'件';
+  document.getElementById('sc-people').textContent=people+'人';
+  document.getElementById('sc-avg').textContent=filtered.length?'¥'+Math.round(total/filtered.length).toLocaleString():'¥0';
 
-  // ===== 邨ｱ險・=====
+  // ===== 統計 =====
   const statsEl = document.getElementById('sales-stats');
   if(statsEl && filtered.length > 0){
-    // 蝠・刀蛻･
+    // 商品別
     const itemMap = {};
     filtered.forEach(r=>r.items.forEach(i=>{
       itemMap[i.name]=(itemMap[i.name]||{count:0,total:0});
@@ -2005,7 +2005,7 @@ function renderSales(){
       nats.forEach(n=>{natMapS[n]=(natMapS[n]||0)+1;});
     });
     const facilityPeopleS=calcPeopleByFacility(filtered);
-    // 蝠・刀蛻･: 繝ｬ繧ｸ鬆・ｼ域命險ｭ邉ｻ・俄・ 謨ｰ驥城・〒繧ｽ繝ｼ繝茨ｼ区釜繧翫◆縺溘∩
+    // 商品別: レジ順（施設系）→ 数量順でソート＋折りたたみ
     var posMapS={};
     items.forEach(function(it,idx){posMapS[it.name]=idx;});
     var sortedItemEntriesS=Object.entries(itemMap).sort(function(a,b){
@@ -2017,22 +2017,22 @@ function renderSales(){
     var CUTOFF_S=8;
     var rowFnS=function(k,v){return '<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid #f5f5f5;"><span style="color:var(--text2);">'+k+'</span><span style="font-weight:600;">'+v+'</span></div>';};
     var itemCardS='<div style="background:#fff;border-radius:10px;padding:12px;box-shadow:var(--shadow);">'+
-      '<div style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:8px;">寫 蝠・刀蛻･雋ｩ螢ｲ謨ｰ</div>'+
-      sortedItemEntriesS.slice(0,CUTOFF_S).map(function(e){return rowFnS(e[0],e[1].count+'轤ｹ ﾂ･'+e[1].total.toLocaleString());}).join('');
+      '<div style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:8px;">🛍 商品別販売数</div>'+
+      sortedItemEntriesS.slice(0,CUTOFF_S).map(function(e){return rowFnS(e[0],e[1].count+'点 ¥'+e[1].total.toLocaleString());}).join('');
     if(sortedItemEntriesS.length>CUTOFF_S){
       var hiddenCountS=sortedItemEntriesS.length-CUTOFF_S;
       itemCardS+=
         '<div id="sales-item-more" style="display:none;">'+
-          sortedItemEntriesS.slice(CUTOFF_S).map(function(e){return rowFnS(e[0],e[1].count+'轤ｹ ﾂ･'+e[1].total.toLocaleString());}).join('')+
+          sortedItemEntriesS.slice(CUTOFF_S).map(function(e){return rowFnS(e[0],e[1].count+'点 ¥'+e[1].total.toLocaleString());}).join('')+
         '</div>'+
-        '<button onclick="var d=document.getElementById(\'sales-item-more\');var s=d.style.display===\'none\';d.style.display=s?\'\':\'none\';this.textContent=s?\'笆ｲ 謚倥ｊ縺溘◆繧\':\'笆ｼ 蜈ｨ縺ｦ陦ｨ遉ｺ ('+hiddenCountS+'莉ｶ)\'" style="margin-top:6px;font-size:10px;color:var(--accent2);background:none;border:none;cursor:pointer;padding:2px 0;font-family:inherit;">笆ｼ 蜈ｨ縺ｦ陦ｨ遉ｺ ('+hiddenCountS+'莉ｶ)</button>';
+        '<button onclick="var d=document.getElementById(\'sales-item-more\');var s=d.style.display===\'none\';d.style.display=s?\'\':\'none\';this.textContent=s?\'▲ 折りたたむ\':\'▼ 全て表示 ('+hiddenCountS+'件)\'" style="margin-top:6px;font-size:10px;color:var(--accent2);background:none;border:none;cursor:pointer;padding:2px 0;font-family:inherit;">▼ 全て表示 ('+hiddenCountS+'件)</button>';
     }
     itemCardS+='</div>';
     statsEl.innerHTML =
       itemCardS+
-      (Object.keys(facilityPeopleS).length?makeStatCard('助 譁ｽ險ｭ蛻･莠ｺ謨ｰ',Object.entries(facilityPeopleS).map(([k,v])=>[k,v+'莠ｺ'])):'')+
-      (Object.keys(ageMapS).length?makeStatCard('側 蟷ｴ鮨｢螻､',Object.entries(ageMapS).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[k,v+'莉ｶ'])):'')+
-      (Object.keys(natMapS).length?makeStatCard('件 蝗ｽ邀・,Object.entries(natMapS).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[k,v+'莉ｶ'])):'');
+      (Object.keys(facilityPeopleS).length?makeStatCard('🏕 施設別人数',Object.entries(facilityPeopleS).map(([k,v])=>[k,v+'人'])):'')+
+      (Object.keys(ageMapS).length?makeStatCard('👤 年齢層',Object.entries(ageMapS).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[k,v+'件'])):'')+
+      (Object.keys(natMapS).length?makeStatCard('🌏 国籍',Object.entries(natMapS).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[k,v+'件'])):'');
   } else if(statsEl){
     statsEl.innerHTML='';
   }
@@ -2041,27 +2041,27 @@ function renderSales(){
     const tr=document.createElement('tr');
     if(r.flagged) tr.style.background='#fff5f5';
     tr.style.cursor='pointer';
-    const itemStr=r.items.map(i=>i.name+(i.qty>1?'ﾃ・+i.qty:'')).join('縲・);
-    const methodLabel={cash:'迴ｾ驥・,card:'繧ｫ繝ｼ繝・,other:'髮ｻ蟄・}[r.method]||r.method;
-    const discLabel=r.discount==='mura'?'譚大・蜊企｡・:r.discount==='stay_guest'?'螳ｿ豕願・:r.discount?r.discount:'';
+    const itemStr=r.items.map(i=>i.name+(i.qty>1?'×'+i.qty:'')).join('、');
+    const methodLabel={cash:'現金',card:'カード',other:'電子'}[r.method]||r.method;
+    const discLabel=r.discount==='mura'?'村内半額':r.discount==='stay_guest'?'宿泊者':r.discount?r.discount:'';
     const attrParts=[];
-    if(r.attrs){Object.keys(r.attrs).forEach(function(k){const v=r.attrs[k];if(Array.isArray(v)&&v.length)attrParts.push(v.join('繝ｻ'));else if(v)attrParts.push(v);});}
+    if(r.attrs){Object.keys(r.attrs).forEach(function(k){const v=r.attrs[k];if(Array.isArray(v)&&v.length)attrParts.push(v.join('・'));else if(v)attrParts.push(v);});}
     const attrStr=attrParts.join(' ');
     tr.innerHTML=
-      '<td style="text-align:center;font-size:14px;cursor:pointer;" onclick="event.stopPropagation();quickToggleFlag(\''+r.id+'\',this)">'+(r.flagged?'閥':'笞ｪ')+'</td>'+
+      '<td style="text-align:center;font-size:14px;cursor:pointer;" onclick="event.stopPropagation();quickToggleFlag(\''+r.id+'\',this)">'+(r.flagged?'🔴':'⚪')+'</td>'+
       '<td style="white-space:nowrap;font-size:10px">'+dtToShort(r.datetime)+'</td>'+
       '<td style="font-size:10px;min-width:160px;max-width:220px;">'+
         '<div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+itemStr+'</div>'+
         (attrStr?'<div style="font-size:9px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+attrStr+'</div>':'')+
       '</td>'+
-      '<td style="font-size:10px">'+discLabel+(r.paid?'<span style="color:var(--blue)"> 貂・/span>':'')+'</td>'+
+      '<td style="font-size:10px">'+discLabel+(r.paid?'<span style="color:var(--blue)"> 済</span>':'')+'</td>'+
       '<td style="font-size:10px">'+methodLabel+'</td>'+
-      '<td style="font-weight:600;text-align:right;font-size:11px">ﾂ･'+r.total.toLocaleString()+'</td>'+
-      '<td><button class="edit-sale-btn" onclick="event.stopPropagation();editSaleRecord(\''+r.id+'\')">繧ｫ繝ｼ繝医〒菫ｮ豁｣</button></td>';
+      '<td style="font-weight:600;text-align:right;font-size:11px">¥'+r.total.toLocaleString()+'</td>'+
+      '<td><button class="edit-sale-btn" onclick="event.stopPropagation();editSaleRecord(\''+r.id+'\')">カートで修正</button></td>';
     tr.onclick=()=>openSaleDetail(r.id);
     tbody.appendChild(tr);
   });
-  if(!filtered.length)tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:#bbb;padding:1.5rem">螢ｲ荳翫ョ繝ｼ繧ｿ縺後≠繧翫∪縺帙ｓ</td></tr>';
+  if(!filtered.length)tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:#bbb;padding:1.5rem">売上データがありません</td></tr>';
 }
 
 let currentDetailSaleId = null;
@@ -2069,28 +2069,28 @@ let currentDetailSaleId = null;
 function openSaleDetail(id){
   const r = sales.find(s=>s.id===id); if(!r) return;
   currentDetailSaleId = id;
-  const methodLabel={cash:'迴ｾ驥・,card:'繧ｯ繝ｬ繧ｸ繝・ヨ繧ｫ繝ｼ繝・,other:'髮ｻ蟄先ｱｺ貂・}[r.method]||r.method;
-  const discLabel=r.discount==='mura'?'譚大・蜊企｡・:r.discount==='stay_guest'?'螳ｿ豕願・牡蠑・:r.discount?r.discount:'縺ｪ縺・;
+  const methodLabel={cash:'現金',card:'クレジットカード',other:'電子決済'}[r.method]||r.method;
+  const discLabel=r.discount==='mura'?'村内半額':r.discount==='stay_guest'?'宿泊者割引':r.discount?r.discount:'なし';
   const itemRows=r.items.map(i=>
     '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px;">'+
-      '<span>'+i.name+(i.qty>1?' ﾃ・+i.qty:'')+'</span>'+
-      '<span style="font-weight:600">ﾂ･'+(i.price*i.qty).toLocaleString()+'</span>'+
+      '<span>'+i.name+(i.qty>1?' ×'+i.qty:'')+'</span>'+
+      '<span style="font-weight:600">¥'+(i.price*i.qty).toLocaleString()+'</span>'+
     '</div>'
   ).join('');
   document.getElementById('sale-detail-content').innerHTML=
-    '<div style="font-size:12px;color:var(--text2);margin-bottom:12px;">'+dtToDisplay(r.datetime)+(r.flagged?'縲<span style="color:var(--red);font-weight:700;">閥 繝輔Λ繧ｰ縺ゅｊ</span>':'')+'</div>'+
+    '<div style="font-size:12px;color:var(--text2);margin-bottom:12px;">'+dtToDisplay(r.datetime)+(r.flagged?'　<span style="color:var(--red);font-weight:700;">🔴 フラグあり</span>':'')+'</div>'+
     '<div style="margin-bottom:12px;">'+itemRows+'</div>'+
     '<div style="background:#f9f9f9;border-radius:8px;padding:12px;font-size:13px;">'+
-      '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:var(--text2);">謾ｯ謇墓婿豕・/span><span style="font-weight:600;">'+methodLabel+'</span></div>'+
-      '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:var(--text2);">蜑ｲ蠑・/span><span>'+discLabel+(r.paid?'縲<span style="color:var(--blue)">謾ｯ謇墓ｸ・/span>':'')+'</span></div>'+
+      '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:var(--text2);">支払方法</span><span style="font-weight:600;">'+methodLabel+'</span></div>'+
+      '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:var(--text2);">割引</span><span>'+discLabel+(r.paid?'　<span style="color:var(--blue)">支払済</span>':'')+'</span></div>'+
       
-      '<div style="display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);"><span style="font-weight:700;font-size:15px;">蜷郁ｨ・/span><span style="font-weight:700;font-size:20px;color:var(--accent2);">ﾂ･'+r.total.toLocaleString()+'</span></div>'+
+      '<div style="display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);"><span style="font-weight:700;font-size:15px;">合計</span><span style="font-weight:700;font-size:20px;color:var(--accent2);">¥'+r.total.toLocaleString()+'</span></div>'+
     '</div>';
-  // 繝｡繝｢
+  // メモ
   document.getElementById('sale-detail-memo').value = r.memo||'';
-  // 蜊ｰ繝懊ち繝ｳ迥ｶ諷・
+  // 印ボタン状態
   const flagBtn=document.getElementById('sale-detail-flag-btn');
-  if(flagBtn){ flagBtn.textContent=r.flagged?'閥 蜊ｰ繧呈ｶ医☆':'閥 蜊ｰ繧偵▽縺代ｋ'; flagBtn.style.background=r.flagged?'#fde8e8':'#f9f9f9'; }
+  if(flagBtn){ flagBtn.textContent=r.flagged?'🔴 印を消す':'🔴 印をつける'; flagBtn.style.background=r.flagged?'#fde8e8':'#f9f9f9'; }
   document.getElementById('sale-detail-modal').classList.add('open');
 }
 
@@ -2100,7 +2100,7 @@ function toggleSaleFlag(){
   sv(KEYS.sales,sales);
   openSaleDetail(currentDetailSaleId);
   renderSales();
-  showToast(r.flagged?'閥 蜊ｰ繧偵▽縺代∪縺励◆':'蜊ｰ繧呈ｶ医＠縺ｾ縺励◆');
+  showToast(r.flagged?'🔴 印をつけました':'印を消しました');
 }
 
 function saveSaleChanges(){
@@ -2109,43 +2109,43 @@ function saveSaleChanges(){
   sv(KEYS.sales,sales);
   renderSales();
   autoSyncUpdatedSale(r);
-  showToast('笨・菫晏ｭ倥＠縺ｾ縺励◆');
+  showToast('✓ 保存しました');
 }
 
 function deleteSaleFromDetail(){
   if(!currentDetailSaleId) return;
   const r = sales.find(s=>s.id===currentDetailSaleId);
   if(!r) return;
-  const methodLabel={cash:'迴ｾ驥・,card:'繧ｫ繝ｼ繝・,other:'髮ｻ蟄・}[r.method]||r.method;
-  const itemStr = r.items.slice(0,3).map(i=>i.name+(i.qty>1?'ﾃ・+i.qty:'')).join('縲・)+(r.items.length>3?'窶ｦ':'');
-  if(!confirm('縺薙・螢ｲ荳翫ｒ蜑企勁縺励∪縺吶°・歃n\n' + dtToDisplay(r.datetime) + '\n' + itemStr + '\nﾂ･' + r.total.toLocaleString() + '・・ + methodLabel + '・噂n\n窶ｻ縺薙・謫堺ｽ懊・蜿悶ｊ豸医○縺ｾ縺帙ｓ')) return;
+  const methodLabel={cash:'現金',card:'カード',other:'電子'}[r.method]||r.method;
+  const itemStr = r.items.slice(0,3).map(i=>i.name+(i.qty>1?'×'+i.qty:'')).join('、')+(r.items.length>3?'…':'');
+  if(!confirm('この売上を削除しますか？\n\n' + dtToDisplay(r.datetime) + '\n' + itemStr + '\n¥' + r.total.toLocaleString() + '（' + methodLabel + '）\n\n※この操作は取り消せません')) return;
   const deletedId=currentDetailSaleId;
   sales=sales.filter(s=>s.id!==deletedId);
   sv(KEYS.sales,sales);
   autoDeleteSale(deletedId);
   document.getElementById('sale-detail-modal').classList.remove('open');
   renderSales();
-  showToast('笨・蜑企勁縺励∪縺励◆');
+  showToast('✓ 削除しました');
 }
 
 function quickToggleFlag(id, cell){
   const r=sales.find(s=>s.id===id); if(!r) return;
   r.flagged=!r.flagged;
   sv(KEYS.sales,sales);
-  cell.textContent=r.flagged?'閥':'笞ｪ';
+  cell.textContent=r.flagged?'🔴':'⚪';
   cell.closest('tr').style.background=r.flagged?'#fff5f5':'';
 }
 
 
 function editSaleRecord(id){
   const record=sales.find(s=>s.id===id);if(!record)return;
-  // 螢ｲ荳翫ｒ蜊ｳ蜑企勁縺帙★縲∵ｱｺ貂育｢ｺ螳壹∪縺ｧ菫晄戟縺吶ｋ・医く繝｣繝ｳ繧ｻ繝ｫ譎ゅ↓豸医∴縺ｪ縺・ｈ縺・↓・・
+  // 売上を即削除せず、決済確定まで保持する（キャンセル時に消えないように）
   editingSaleId=id;
   cart=[...record.items];selectedAttrs={...record.attrs};activeDiscount=record.discount||'';
   lastSaleId=null;
   switchTab('pos');
   renderCart();renderAttrs();renderDiscountBar();
-  showToast('笨・繧ｫ繝ｼ繝医↓謌ｻ縺励∪縺励◆縲ゆｿｮ豁｣蠕後↓蜀肴ｱｺ貂医＠縺ｦ縺上□縺輔＞');
+  showToast('✓ カートに戻しました。修正後に再決済してください');
 }
 
 function localDateStr(d){
@@ -2184,37 +2184,37 @@ function clearFilter(){
 }
 
 function exportCSV(){
-  if(!sales.length){showToast('笞 螢ｲ荳翫ョ繝ｼ繧ｿ縺後≠繧翫∪縺帙ｓ','#c00');return;}
+  if(!sales.length){showToast('⚠ 売上データがありません','#c00');return;}
   const now=new Date();
   const ts=now.getFullYear()+('0'+(now.getMonth()+1)).slice(-2)+('0'+now.getDate()).slice(-2)+'_'+('0'+now.getHours()).slice(-2)+('0'+now.getMinutes()).slice(-2);
   const q=function(v){return '"'+String(v===null||v===undefined?'':v).replace(/"/g,'""')+'"';};
-  // GAS繧ｷ繝ｼ繝医→蜷後§蛻玲ｧ区・・・陦・蝠・刀・峨〒繧ｨ繧ｯ繧ｹ繝昴・繝・
-  const header=['譌･譎・,'譖懈律','螢ｲ荳雁粋險・,'蝠・刀蜷・,'繧ｫ繝・ざ繝ｪ','謨ｰ驥・,'蜊倅ｾ｡','蟆剰ｨ・,'莠ｺ謨ｰ','蜑ｲ蠑・,'謾ｯ謇墓婿豕・,'蟷ｴ鮨｢螻､','蝗ｽ邀・,'螟ｩ豌・,'螢ｲ荳蟹D'];
+  // GASシートと同じ列構成（1行1商品）でエクスポート
+  const header=['日時','曜日','売上合計','商品名','カテゴリ','数量','単価','小計','人数','割引','支払方法','年齢層','国籍','天気','売上ID'];
   var allRows=[header];
   sales.forEach(function(sale){
     saleToRows(sale).forEach(function(row){allRows.push(row);});
   });
   var csv=allRows.map(function(r){return r.map(q).join(',');}).join('\n');
-  var blob=new Blob(['・ｿ'+csv],{type:'text/csv;charset=utf-8;'});
+  var blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='螢ｲ荳垣'+ts+'.csv';a.click();
-  showToast('笨・CSV繧偵ム繧ｦ繝ｳ繝ｭ繝ｼ繝峨＠縺ｾ縺励◆');
+  a.download='売上_'+ts+'.csv';a.click();
+  showToast('✓ CSVをダウンロードしました');
 }
 
-// 螢ｲ荳・莉ｶ繧定､・焚陦後↓螟画鋤・・陦・蝠・刀 窶・CSV繝ｻGAS蜈ｱ騾壹ヵ繧ｩ繝ｼ繝槭ャ繝茨ｼ・
-// 蛻・ 譌･譎・ 譖懈律, 螢ｲ荳雁粋險・ 蝠・刀蜷・ 繧ｫ繝・ざ繝ｪ, 謨ｰ驥・ 蜊倅ｾ｡, 蟆剰ｨ・ 莠ｺ謨ｰ, 蜑ｲ蠑・ 謾ｯ謇墓婿豕・ 蟷ｴ鮨｢螻､, 蝗ｽ邀・ 螟ｩ豌・ 螢ｲ荳蟹D
+// 売上1件を複数行に変換（1行1商品 — CSV・GAS共通フォーマット）
+// 列: 日時, 曜日, 売上合計, 商品名, カテゴリ, 数量, 単価, 小計, 人数, 割引, 支払方法, 年齢層, 国籍, 天気, 売上ID
 function saleToRows(sale){
   var FACILITY_CATS=['cat_walk','cat_tree_day','cat_bbq','cat_stay_tree','cat_stay_dome','cat_stay_tent','cat_stay_hm'];
   var discountItems2=ld(KEYS.discounts)||discountItems;
   var discLabel=sale.discount?(discountItems2.find(function(d){return d.key===sale.discount;})||{}).label||sale.discount:'';
-  var method={cash:'迴ｾ驥・,card:'繧ｯ繝ｬ繧ｸ繝・ヨ繧ｫ繝ｼ繝・,other:'髮ｻ蟄先ｱｺ貂・}[sale.method]||sale.method||'';
+  var method={cash:'現金',card:'クレジットカード',other:'電子決済'}[sale.method]||sale.method||'';
   var attrs=sale.attrs||{};
   var ages=Array.isArray(attrs.age)?attrs.age:(attrs.age?[attrs.age]:[]);
   var nats=Array.isArray(attrs.nationality)?attrs.nationality:(attrs.nationality?[attrs.nationality]:[]);
-  var ageStr=ages.join('繝ｻ');
-  var natStr=nats.join('繝ｻ');
+  var ageStr=ages.join('・');
+  var natStr=nats.join('・');
   var dt=new Date(sale.datetime);
-  var DOW=['譌･','譛・,'轣ｫ','豌ｴ','譛ｨ','驥・,'蝨・];
+  var DOW=['日','月','火','水','木','金','土'];
   var dtStr='',dow='';
   if(!isNaN(dt)){
     var mo=dt.getMonth()+1,dy=dt.getDate(),h=dt.getHours(),mi=dt.getMinutes();
@@ -2226,33 +2226,33 @@ function saleToRows(sale){
   var weatherStr=(todayWeather||[]).map(function(k){var w=WEATHER_OPTIONS.find(function(x){return x.key===k;});return w?w.label:'';}).filter(Boolean).join('/');
   return (sale.items||[]).map(function(i,idx){
     var isFirst=idx===0;
-    var catName=catNameMap[i.cat||'']||i.cat||(i.isStay?'螳ｿ豕・:'');
+    var catName=catNameMap[i.cat||'']||i.cat||(i.isStay?'宿泊':'');
     var isF=FACILITY_CATS.indexOf(i.cat||'')!==-1||!!i.isStay;
-    var m=i.name.match(/[・・](\d+)莠ｺ[・・]/);
+    var m=i.name.match(/[（(](\d+)人[）)]/);
     var persons=isF?(m?parseInt(m[1])*i.qty:i.qty):0;
     return [
-      dtStr,                   // A: 譌･譎ゑｼ亥・陦後ゅた繝ｼ繝育畑・・
-      isFirst?dow:'',          // B: 譖懈律
-      isFirst?sale.total:'',   // C: 螢ｲ荳雁粋險・
-      i.name,                  // D: 蝠・刀蜷・
-      catName,                 // E: 繧ｫ繝・ざ繝ｪ
-      i.qty,                   // F: 謨ｰ驥・
-      i.price,                 // G: 蜊倅ｾ｡
-      i.price*i.qty,           // H: 蟆剰ｨ・
-      persons,                 // I: 莠ｺ謨ｰ
-      isFirst?discLabel:'',    // J: 蜑ｲ蠑・
-      isFirst?method:'',       // K: 謾ｯ謇墓婿豕・
-      isFirst?ageStr:'',       // L: 蟷ｴ鮨｢螻､
-      isFirst?natStr:'',       // M: 蝗ｽ邀・
-      isFirst?weatherStr:'',         // N: 螟ｩ豌・
-      isFirst?sale.memo||'':'',     // O: 繝｡繝｢
-      sale.id,                      // P: 螢ｲ荳蟹D・亥・陦後る㍾隍・賜髯､逕ｨ・・
-      isFirst?sale.device_name||sale.device||'':'',   // Q: 遶ｯ譛ｫ蜷・
+      dtStr,                   // A: 日時（全行。ソート用）
+      isFirst?dow:'',          // B: 曜日
+      isFirst?sale.total:'',   // C: 売上合計
+      i.name,                  // D: 商品名
+      catName,                 // E: カテゴリ
+      i.qty,                   // F: 数量
+      i.price,                 // G: 単価
+      i.price*i.qty,           // H: 小計
+      persons,                 // I: 人数
+      isFirst?discLabel:'',    // J: 割引
+      isFirst?method:'',       // K: 支払方法
+      isFirst?ageStr:'',       // L: 年齢層
+      isFirst?natStr:'',       // M: 国籍
+      isFirst?weatherStr:'',         // N: 天気
+      isFirst?sale.memo||'':'',     // O: メモ
+      sale.id,                      // P: 売上ID（全行。重複排除用）
+      isFirst?sale.device_name||sale.device||'':'',   // Q: 端末名
     ];
   });
 }
 
-// 蜷梧悄繝｡繝九Η繝ｼ陦ｨ遉ｺ
+// 同期メニュー表示
 function toggleSyncMenu(e){
   e.stopPropagation();
   const m=document.getElementById('sync-menu');
@@ -2262,7 +2262,7 @@ function toggleSyncMenu(e){
   }
 }
 
-// 蜷梧悄繝｢繝ｼ繝蛾∈謚・
+// 同期モード選択
 function doSync(mode){
   document.getElementById('sync-menu').style.display='none';
   var data=sales;
@@ -2278,23 +2278,23 @@ function doSync(mode){
     if(from)data=data.filter(function(s){return localDateStr(new Date(s.datetime))>=from;});
     if(to)data=data.filter(function(s){return localDateStr(new Date(s.datetime))<=to;});
   }
-  syncSalesData(data, mode==='all'?'蜈ｨ莉ｶ':mode==='today'?'莉頑律':mode==='yesterday'?'譏ｨ譌･':'邨櫁ｾｼ');
+  syncSalesData(data, mode==='all'?'全件':mode==='today'?'今日':mode==='yesterday'?'昨日':'絞込');
 }
 
-// GET縺ｧ繝・・繧ｿ騾∽ｿ｡・・OST繝ｪ繝繧､繝ｬ繧ｯ繝亥撫鬘後ｒ蝗樣∩・・
+// GETでデータ送信（POSTリダイレクト問題を回避）
 async function gasGet(url, data){
   var qs='?d='+encodeURIComponent(JSON.stringify(data));
   await fetch(url+qs,{method:'GET'});
 }
 
-// 螳滄圀縺ｮ蜷梧悄蜃ｦ逅・
+// 実際の同期処理
 async function syncSalesData(data, label){
   const url=(ld(KEYS.gas)||DEFAULT_GAS_URL)||'';
-  if(!url){showToast('笞 GAS URL繧定ｨｭ螳壹＠縺ｦ縺上□縺輔＞','#c00');switchTab('settings-pos');return;}
-  if(!data.length){showToast('笞 蟇ｾ雎｡繝・・繧ｿ縺後≠繧翫∪縺帙ｓ','#c00');return;}
-  showToast(label+'繧貞酔譛滉ｸｭ...',null,15000);
+  if(!url){showToast('⚠ GAS URLを設定してください','#c00');switchTab('settings-pos');return;}
+  if(!data.length){showToast('⚠ 対象データがありません','#c00');return;}
+  showToast(label+'を同期中...',null,15000);
   try{
-    var isAll=label==='蜈ｨ莉ｶ';
+    var isAll=label==='全件';
     if(isAll){
       await gasGet(url,{type:'clear_sheets'});
     }
@@ -2302,13 +2302,13 @@ async function syncSalesData(data, label){
       var rows=saleToRows(data[i]);
       await gasGet(url,{type:'add_rows',rows:rows});
     }
-    showToast('笨・'+label+'繧貞酔譛溘＠縺ｾ縺励◆・・+data.length+'莉ｶ・・,null,4000);
-  }catch(e){showToast('笞 騾壻ｿ｡繧ｨ繝ｩ繝ｼ: '+e.message,'#c00');}
+    showToast('✓ '+label+'を同期しました（'+data.length+'件）',null,4000);
+  }catch(e){showToast('⚠ 通信エラー: '+e.message,'#c00');}
 }
-// 譌ｧ髢｢謨ｰ蜷阪ｒ邯ｭ謖・ｼ亥ｾ梧婿莠呈鋤・・
+// 旧関数名を維持（後方互換）
 async function syncSales(){ doSync('all'); }
 
-// 豎ｺ貂医＃縺ｨ縺ｫ閾ｪ蜍暮∽ｿ｡・域眠隕擾ｼ・
+// 決済ごとに自動送信（新規）
 async function autoSyncSale(sale){
   const url=(ld(KEYS.gas)||DEFAULT_GAS_URL)||'';
   if(!url) return;
@@ -2317,7 +2317,7 @@ async function autoSyncSale(sale){
   }catch(e){}
 }
 
-// 繝昴ャ繝励い繝・・縺ｧ螟画峩縺励◆螢ｲ荳翫ｒ蜀埼・ｼ・eplace・・
+// ポップアップで変更した売上を再送（replace）
 async function autoSyncUpdatedSale(sale){
   const url=(ld(KEYS.gas)||DEFAULT_GAS_URL)||'';
   if(!url) return;
@@ -2334,18 +2334,18 @@ async function autoDeleteSale(saleId){
   }catch(e){}
 }
 
-// GAS謗･邯壹ユ繧ｹ繝・
+// GAS接続テスト
 async function testGasConnection(){
   const url=document.getElementById('pos-gas-url').value.trim()||ld(KEYS.gas)||DEFAULT_GAS_URL||'';
-  if(!url){showToast('笞 URL繧貞・蜉帙＠縺ｦ縺上□縺輔＞','#c00');return;}
-  showToast('謗･邯夂｢ｺ隱堺ｸｭ...',null,5000);
+  if(!url){showToast('⚠ URLを入力してください','#c00');return;}
+  showToast('接続確認中...',null,5000);
   try{
     const res=await fetch(url,{method:'GET',redirect:'follow'});
     const json=await res.json();
-    if(json.status==='ok')showToast('笨・GAS謗･邯唹K・・+json.message+'・・,null,5000);
-    else showToast('笞 蠢懃ｭ皮焚蟶ｸ: '+JSON.stringify(json),'#c00',6000);
+    if(json.status==='ok')showToast('✅ GAS接続OK（'+json.message+'）',null,5000);
+    else showToast('⚠ 応答異常: '+JSON.stringify(json),'#c00',6000);
   }catch(e){
-    showToast('笞 謗･邯壼､ｱ謨・ '+e.message,'#c00',6000);
+    showToast('⚠ 接続失敗: '+e.message,'#c00',6000);
   }
 }
 
@@ -2353,14 +2353,14 @@ function saveDeviceName(){
   const el=document.getElementById('pos-device-name');
   if(!el) return;
   const name=el.value.trim();
-  if(!name){showToast('笞 遶ｯ譛ｫ蜷阪ｒ蜈･蜉帙＠縺ｦ縺上□縺輔＞','#c00');return;}
+  if(!name){showToast('⚠ 端末名を入力してください','#c00');return;}
   localStorage.setItem('pos_device_name',name);
-  // 譌｢蟄伜｣ｲ荳翫ョ繝ｼ繧ｿ縺ｮ遶ｯ譛ｫ蜷阪ｂ譖ｴ譁ｰ
+  // 既存売上データの端末名も更新
   var did=localStorage.getItem('pos_device_id')||'';
   var changed=false;
   sales.forEach(function(s){if(s.device===did){s.device_name=name;changed=true;}});
   if(changed) sv(KEYS.sales,sales);
-  showToast('笨・遶ｯ譛ｫ蜷阪ｒ菫晏ｭ倥＠縺ｾ縺励◆',null,3000);
+  showToast('✅ 端末名を保存しました',null,3000);
   initDeviceNameField();
 }
 function initDeviceNameField(){
@@ -2368,13 +2368,13 @@ function initDeviceNameField(){
   var el=document.getElementById('pos-device-name');
   var curr=document.getElementById('pos-device-name-current');
   if(el) el.value=dname;
-  if(curr) curr.textContent=dname?'迴ｾ蝨ｨ縺ｮ遶ｯ譛ｫ蜷・ '+dname:'・域悴險ｭ螳夲ｼ・;
+  if(curr) curr.textContent=dname?'現在の端末名: '+dname:'（未設定）';
 }
 function initVersionInfo(){
   var box=document.getElementById('pos-version-info');
   if(!box) return;
   var typeColor=APP_VERSION_TYPE==='main'?'var(--accent)':'var(--accent2)';
-  var typeLabel=APP_VERSION_TYPE==='main'?'main迚・:'TEST迚・;
+  var typeLabel=APP_VERSION_TYPE==='main'?'main版':'TEST版';
   fetch('https://api.github.com/repos/whwkwkss30ma-ux/pos-main/commits?per_page=1&sha=main',{headers:{'Accept':'application/vnd.github.v3+json'}})
     .then(function(res){
       var link=res.headers.get('Link')||'';
@@ -2395,26 +2395,26 @@ function initVersionInfo(){
       var verStr=count?'ver.'+(count+APP_VERSION_OFFSET):'ver.-';
       var b=document.getElementById('pos-version-info');
       if(!b) return;
-      b.innerHTML='<div style="font-size:12px;color:var(--accent);font-weight:700;">POS繝ｬ繧ｸ '+verStr+'</div>'
-        +'<div style="font-size:11px;color:var(--text2);margin-top:2px;">譖ｴ譁ｰ: '+dateStr+' &nbsp;|&nbsp; <span style="color:'+typeColor+';font-weight:600;">'+typeLabel+'</span></div>';
+      b.innerHTML='<div style="font-size:12px;color:var(--accent);font-weight:700;">POSレジ '+verStr+'</div>'
+        +'<div style="font-size:11px;color:var(--text2);margin-top:2px;">更新: '+dateStr+' &nbsp;|&nbsp; <span style="color:'+typeColor+';font-weight:600;">'+typeLabel+'</span></div>';
     })
     .catch(function(){
       var b=document.getElementById('pos-version-info');
       if(!b) return;
-      b.innerHTML='<div style="font-size:12px;color:var(--accent);font-weight:700;">POS繝ｬ繧ｸ ver.-</div>'
-        +'<div style="font-size:11px;color:var(--text2);margin-top:2px;"><span style="color:'+typeColor+';font-weight:600;">'+typeLabel+'</span> (蜿門ｾ怜､ｱ謨・</div>';
+      b.innerHTML='<div style="font-size:12px;color:var(--accent);font-weight:700;">POSレジ ver.-</div>'
+        +'<div style="font-size:11px;color:var(--text2);margin-top:2px;"><span style="color:'+typeColor+';font-weight:600;">'+typeLabel+'</span> (取得失敗)</div>';
     });
 }
 function savePosGasUrl(){
   const el=document.getElementById('pos-gas-url');
   if(!el) return;
   const url=el.value.trim();
-  if(!url){showToast('笞 URL繧貞・蜉帙＠縺ｦ縺上□縺輔＞','#c00');return;}
+  if(!url){showToast('⚠ URLを入力してください','#c00');return;}
   sv(KEYS.gas,url);
-  showToast('笨・GAS URL繧剃ｿ晏ｭ倥＠縺ｾ縺励◆',null,4000);
+  showToast('✅ GAS URLを保存しました',null,4000);
 }
 
-// ===== 險ｭ螳・=====
+// ===== 設定 =====
 function renderSettings(){
   renderCatMgmt();renderItemList();
   const agEl=document.getElementById('agreement-content'); if(agEl) agEl.value=ld(KEYS.agree)||'';
@@ -2422,25 +2422,25 @@ function renderSettings(){
   renderAttrSettings();
   renderDiscountSettingsList();
   renderTimerFacSettings();
-  // 謾ｯ謇墓ｸ医∩陦ｨ遉ｺ險ｭ螳壹ｒ隱ｭ縺ｿ霎ｼ縺ｿ
+  // 支払済み表示設定を読み込み
   const pLabel=document.getElementById('paid-label-input');
   const pColor=document.getElementById('paid-color-input');
   const pPreview=document.getElementById('paid-preview');
-  if(pLabel) pLabel.value=paidDisplaySettings.label||'謾ｯ謇墓ｸ・;
+  if(pLabel) pLabel.value=paidDisplaySettings.label||'支払済';
   if(pColor) pColor.value=paidDisplaySettings.color||'#c0392b';
-  if(pPreview){ pPreview.textContent=paidDisplaySettings.label||'謾ｯ謇墓ｸ・; pPreview.style.color=paidDisplaySettings.color||'#c0392b'; }
-  // 繧ｫ繝ｩ繝ｼ繝斐ャ繧ｫ繝ｼ縺ｮ繝ｪ繧｢繝ｫ繧ｿ繧､繝繝励Ξ繝薙Η繝ｼ
+  if(pPreview){ pPreview.textContent=paidDisplaySettings.label||'支払済'; pPreview.style.color=paidDisplaySettings.color||'#c0392b'; }
+  // カラーピッカーのリアルタイムプレビュー
   if(pColor) pColor.oninput=()=>{ const v=pColor.value; if(pPreview){pPreview.style.color=v;} };
-  if(pLabel) pLabel.oninput=()=>{ if(pPreview)pPreview.textContent=pLabel.value||'謾ｯ謇墓ｸ・; };
+  if(pLabel) pLabel.oninput=()=>{ if(pPreview)pPreview.textContent=pLabel.value||'支払済'; };
 }
 
 function savePaidDisplaySettings(){
-  const label=document.getElementById('paid-label-input')?.value||'謾ｯ謇墓ｸ・;
+  const label=document.getElementById('paid-label-input')?.value||'支払済';
   const color=document.getElementById('paid-color-input')?.value||'#c0392b';
   paidDisplaySettings={label,color};
   sv('pos_paid_display',paidDisplaySettings);
   renderPOS();
-  showToast('笨・謾ｯ謇墓ｸ医∩陦ｨ遉ｺ繧剃ｿ晏ｭ倥＠縺ｾ縺励◆');
+  showToast('✓ 支払済み表示を保存しました');
 }
 
 function renderTimerFacSettings(){
@@ -2451,30 +2451,30 @@ function renderTimerFacSettings(){
     facDiv.style.cssText = 'margin-bottom:16px;';
     facDiv.innerHTML = '<div style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:8px;">'+fac.label+'</div>';
 
-    // 蝟ｶ讌ｭ邨ゆｺ・・譛邨ょ女莉・
+    // 営業終了・最終受付
     const timeRow = document.createElement('div');
     timeRow.style.cssText = 'display:flex;gap:12px;margin-bottom:8px;flex-wrap:wrap;';
     timeRow.innerHTML =
       '<div style="display:flex;align-items:center;gap:6px;font-size:12px;">'+
-        '<span style="color:var(--text2);">蝟ｶ讌ｭ邨ゆｺ・/span>'+
+        '<span style="color:var(--text2);">営業終了</span>'+
         '<input type="time" id="timer_close_'+fi+'" value="'+(fac.close||'')+'\" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;">'+
       '</div>'+
       '<div style="display:flex;align-items:center;gap:6px;font-size:12px;">'+
-        '<span style="color:var(--text2);">譛邨ょ女莉・/span>'+
+        '<span style="color:var(--text2);">最終受付</span>'+
         '<input type="time" id="timer_last_'+fi+'" value="'+(fac.lastOrder||'')+'\" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;">'+
       '</div>';
     facDiv.appendChild(timeRow);
 
-    // 繧ｳ繝ｼ繧ｹ縺斐→縺ｮ螳滄圀縺ｮ蛻・焚
+    // コースごとの実際の分数
     fac.courses.forEach((cr,ci)=>{
       if(cr.min === 0) return;
       const row = document.createElement('div');
       row.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px;';
       row.innerHTML =
         '<span style="min-width:60px;color:var(--text2);">'+cr.label+'</span>'+
-        '<span style="color:var(--text2);">螳滄圀縺ｮ謇隕∵凾髢・/span>'+
+        '<span style="color:var(--text2);">実際の所要時間</span>'+
         '<input type="number" id="timer_'+fi+'_'+ci+'" value="'+(cr.actual||cr.min)+'" min="1" max="300" style="width:70px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;">'+
-        '<span style="color:var(--text2);">蛻・/span>';
+        '<span style="color:var(--text2);">分</span>';
       facDiv.appendChild(row);
     });
     c.appendChild(facDiv);
@@ -2493,7 +2493,7 @@ function saveTimerSettings(){
       if(el) cr.actual = parseInt(el.value)||cr.min;
     });
   });
-  showToast('笨・譎る俣險ｭ螳壹ｒ菫晏ｭ倥＠縺ｾ縺励◆');
+  showToast('✓ 時間設定を保存しました');
 }
 
 function renderCatMgmt(){
@@ -2503,7 +2503,7 @@ function renderCatMgmt(){
     div.dataset.catId=cat.id;
     div.style.cssText='display:flex;align-items:center;gap:5px;padding:7px;background:#f9f9f9;border-radius:8px;margin-bottom:5px;flex-wrap:wrap;-webkit-user-select:none;user-select:none;';
     const handle=document.createElement('span');
-    handle.textContent='笄ｿ';
+    handle.textContent='⠿';
     handle.style.cssText='cursor:grab;color:#aaa;font-size:20px;padding:0 6px;touch-action:none;flex-shrink:0;';
     div.appendChild(handle);
     const inner=document.createElement('div');
@@ -2511,15 +2511,15 @@ function renderCatMgmt(){
     inner.innerHTML=
       '<span class="color-swatch" style="background:'+cat.bg+';border-color:'+cat.border+'"></span>'+
       '<input type="text" value="'+cat.name+'" style="flex:1;min-width:60px;font-size:12px;font-weight:500;padding:4px 6px;border:1px solid var(--border);border-radius:6px;font-family:inherit;" onchange="updateCatProp(\''+cat.id+'\',\'name\',this.value)">'+
-      '<label style="font-size:10px;color:var(--text2)">閭梧勹</label><input type="color" value="'+cat.bg+'" onchange="updateCatProp(\''+cat.id+'\',\'bg\',this.value)">'+
-      '<label style="font-size:10px;color:var(--text2)">譫</label><input type="color" value="'+cat.border+'" onchange="updateCatProp(\''+cat.id+'\',\'border\',this.value)">'+
-      '<label style="font-size:10px;color:var(--text2)">譁・ｭ・/label><input type="color" value="'+cat.text+'" onchange="updateCatProp(\''+cat.id+'\',\'text\',this.value)">'+
-      '<label style="font-size:10px;color:var(--text2)">驥鷹｡・/label><input type="color" value="'+cat.price+'" onchange="updateCatProp(\''+cat.id+'\',\'price\',this.value)">'+
+      '<label style="font-size:10px;color:var(--text2)">背景</label><input type="color" value="'+cat.bg+'" onchange="updateCatProp(\''+cat.id+'\',\'bg\',this.value)">'+
+      '<label style="font-size:10px;color:var(--text2)">枠</label><input type="color" value="'+cat.border+'" onchange="updateCatProp(\''+cat.id+'\',\'border\',this.value)">'+
+      '<label style="font-size:10px;color:var(--text2)">文字</label><input type="color" value="'+cat.text+'" onchange="updateCatProp(\''+cat.id+'\',\'text\',this.value)">'+
+      '<label style="font-size:10px;color:var(--text2)">金額</label><input type="color" value="'+cat.price+'" onchange="updateCatProp(\''+cat.id+'\',\'price\',this.value)">'+
       '<select style="font-size:10px;padding:3px;border:1px solid var(--border);border-radius:5px;" onchange="updateCatProp(\''+cat.id+'\',\'fontSize\',this.value)">'+
-        '<option value="" '+((!cat.fontSize||cat.fontSize==='')?' selected':'')+'>譁・ｭ励し繧､繧ｺ</option>'+
+        '<option value="" '+((!cat.fontSize||cat.fontSize==='')?' selected':'')+'>文字サイズ</option>'+
         ['9px','10px','11px','12px','13px','14px'].map(s=>'<option value="'+s+'"'+(cat.fontSize===s?' selected':'')+'>'+s+'</option>').join('')+
       '</select>'+
-      '<button onclick="deleteCat(\''+cat.id+'\')" style="padding:3px 7px;border:1px solid #fcc;border-radius:5px;background:#fff;color:var(--red);font-size:10px;cursor:pointer;font-family:inherit;">蜑企勁</button>';
+      '<button onclick="deleteCat(\''+cat.id+'\')" style="padding:3px 7px;border:1px solid #fcc;border-radius:5px;background:#fff;color:var(--red);font-size:10px;cursor:pointer;font-family:inherit;">削除</button>';
     div.appendChild(inner);
     setupSettingsDrag(handle, div, c, ()=>{
       catOrder=[...c.querySelectorAll('[data-cat-id]')].map(r=>r.dataset.catId);
@@ -2543,19 +2543,19 @@ function addCategory(){
   const border=document.getElementById('new-cat-border').value;
   const text=document.getElementById('new-cat-text').value;
   const price=document.getElementById('new-cat-price').value;
-  if(!name){showToast('笞 繧ｫ繝・ざ繝ｪ繝ｼ蜷阪ｒ蜈･蜉帙＠縺ｦ縺上□縺輔＞','#c00');return;}
+  if(!name){showToast('⚠ カテゴリー名を入力してください','#c00');return;}
   cats.push({id:'cat_'+Date.now(),name,bg,border,text,price});
   sv(KEYS.cats,cats);document.getElementById('new-cat-name').value='';
-  renderCatMgmt();renderPOS();renderCatFilterTabs();showToast('笨・繧ｫ繝・ざ繝ｪ繝ｼ繧定ｿｽ蜉縺励∪縺励◆');
+  renderCatMgmt();renderPOS();renderCatFilterTabs();showToast('✓ カテゴリーを追加しました');
 }
 
 function deleteCat(catId){
-  if(items.some(i=>i.cat===catId)){showToast('笞 縺薙・繧ｫ繝・ざ繝ｪ繝ｼ縺ｫ蝠・刀縺後≠繧翫∪縺・,'#c00');return;}
+  if(items.some(i=>i.cat===catId)){showToast('⚠ このカテゴリーに商品があります','#c00');return;}
   const cat=cats.find(c=>c.id===catId);
-  if(!confirm('繧ｫ繝・ざ繝ｪ繝ｼ縲・+(cat?.name||'')+'縲阪ｒ蜑企勁縺励∪縺吶°・歃n蜈・↓謌ｻ縺帙∪縺帙ｓ縲・))return;
+  if(!confirm('カテゴリー「'+(cat?.name||'')+'」を削除しますか？\n元に戻せません。'))return;
   cats=cats.filter(c=>c.id!==catId);sv(KEYS.cats,cats);
   renderCatMgmt();renderPOS();renderCatFilterTabs();
-  showToast('笨・蜑企勁縺励∪縺励◆');
+  showToast('✓ 削除しました');
 }
 
 function saveCatSettings(){
@@ -2563,7 +2563,7 @@ function saveCatSettings(){
   renderCatMgmt();
   renderPOS();
   renderCatFilterTabs();
-  showToast('笨・繧ｫ繝・ざ繝ｪ繝ｼ繧剃ｿ晏ｭ倥＠縺ｾ縺励◆');
+  showToast('✓ カテゴリーを保存しました');
 }
 
 function updateCatProp(catId,prop,val){
@@ -2571,7 +2571,7 @@ function updateCatProp(catId,prop,val){
   if(cat){
     cat[prop]=val;
     sv(KEYS.cats,cats);
-    if(prop!=='name') renderCatMgmt(); // 蜷榊燕螟画峩譎ゅ・蜀肴緒逕ｻ縺励↑縺・ｼ亥・蜉帙′豸医∴繧九◆繧・ｼ・
+    if(prop!=='name') renderCatMgmt(); // 名前変更時は再描画しない（入力が消えるため）
     renderPOS();
     renderCatFilterTabs();
   }
@@ -2585,7 +2585,7 @@ function renderItemList(){
     div.dataset.itemId=item.id;
     div.style.cssText='display:flex;align-items:center;gap:6px;padding:7px;background:#f9f9f9;border-radius:8px;margin-bottom:4px;-webkit-user-select:none;user-select:none;';
     const handle=document.createElement('span');
-    handle.textContent='笄ｿ';
+    handle.textContent='⠿';
     handle.style.cssText='cursor:grab;color:#aaa;font-size:20px;padding:0 4px;touch-action:none;flex-shrink:0;';
     div.appendChild(handle);
     const inner=document.createElement('div');
@@ -2594,10 +2594,10 @@ function renderItemList(){
       '<span class="color-swatch" style="background:'+cat.bg+';border-color:'+cat.border+'"></span>'+
       '<span class="iname">'+item.name+'</span>'+
       '<span class="icat">'+cat.name+'</span>'+
-      '<span class="iprice">ﾂ･'+item.price.toLocaleString()+'</span>'+
-      '<span style="font-size:10px;color:var(--text2)">蝨ｨ蠎ｫ:'+(item.stock||0)+'</span>'+
-      '<button onclick="editItem('+idx+')" style="padding:3px 7px;border:1px solid #88aacc;border-radius:5px;background:#fff;color:var(--blue);font-size:10px;cursor:pointer;font-family:inherit;">邱ｨ髮・/button>'+
-      '<button onclick="deleteItem('+idx+')" style="padding:3px 7px;border:1px solid #fcc;border-radius:5px;background:#fff;color:var(--red);font-size:10px;cursor:pointer;font-family:inherit;">蜑企勁</button>';
+      '<span class="iprice">¥'+item.price.toLocaleString()+'</span>'+
+      '<span style="font-size:10px;color:var(--text2)">在庫:'+(item.stock||0)+'</span>'+
+      '<button onclick="editItem('+idx+')" style="padding:3px 7px;border:1px solid #88aacc;border-radius:5px;background:#fff;color:var(--blue);font-size:10px;cursor:pointer;font-family:inherit;">編集</button>'+
+      '<button onclick="deleteItem('+idx+')" style="padding:3px 7px;border:1px solid #fcc;border-radius:5px;background:#fff;color:var(--red);font-size:10px;cursor:pointer;font-family:inherit;">削除</button>';
     div.appendChild(inner);
     setupSettingsDrag(handle, div, c, ()=>{
       itemOrder=[...c.querySelectorAll('[data-item-id]')].map(r=>r.dataset.itemId);
@@ -2608,7 +2608,7 @@ function renderItemList(){
   updateCatSelects();
 }
 
-// ===== 險ｭ螳壹ち繝也畑繧ｿ繝・メ繝峨Λ繝・げ・医ワ繝ｳ繝峨Ν謗ｴ縺ｿ縺ｧ蜊ｳ繝峨Λ繝・げ繝ｻ譁・ｭ鈴∈謚槭↑縺暦ｼ・=====
+// ===== 設定タブ用タッチドラッグ（ハンドル掴みで即ドラッグ・文字選択なし） =====
 function setupSettingsDrag(handle, row, container, onDrop){
   let clone=null,overEl=null,dragging=false;
   handle.addEventListener('touchstart',e=>{
@@ -2662,18 +2662,18 @@ function addItem(){
   const price=parseInt(document.getElementById('new-item-price').value);
   const cat=document.getElementById('new-item-cat').value;
   const stock=parseInt(document.getElementById('new-item-stock').value)||0;
-  if(!name||!price){showToast('笞 蝠・刀蜷阪→驥鷹｡阪ｒ蜈･蜉帙＠縺ｦ縺上□縺輔＞','#c00');return;}
+  if(!name||!price){showToast('⚠ 商品名と金額を入力してください','#c00');return;}
   items.push({id:'i_'+Date.now(),name,price,cat,stock});
   sv(KEYS.items,items);
   document.getElementById('new-item-name').value='';document.getElementById('new-item-price').value='';document.getElementById('new-item-stock').value='0';
-  renderItemList();renderPOS();renderCatFilterTabs();showToast('笨・蝠・刀繧定ｿｽ蜉縺励∪縺励◆');
+  renderItemList();renderPOS();renderCatFilterTabs();showToast('✓ 商品を追加しました');
 }
 
 function deleteItem(idx){
   const item=items[idx];
-  if(!confirm('縲・+item.name+'縲阪ｒ蜑企勁縺励∪縺吶°・歃n縺薙・謫堺ｽ懊・蜈・↓謌ｻ縺帙∪縺帙ｓ縲・)){return;}
+  if(!confirm('「'+item.name+'」を削除しますか？\nこの操作は元に戻せません。')){return;}
   items.splice(idx,1);sv(KEYS.items,items);renderItemList();renderPOS();renderCatFilterTabs();
-  showToast('笨・蜑企勁縺励∪縺励◆');
+  showToast('✓ 削除しました');
 }
 
 function openItemModal(catId){
@@ -2683,8 +2683,8 @@ function openItemModal(catId){
   document.getElementById('modal-item-price').value='';
   document.getElementById('modal-item-stock').value='0';
   document.getElementById('modal-item-fontsize').value='';
-  document.getElementById('item-modal-title').textContent='蝠・刀繧堤匳骭ｲ';
-  document.getElementById('item-modal-save-btn').textContent='霑ｽ蜉';
+  document.getElementById('item-modal-title').textContent='商品を登録';
+  document.getElementById('item-modal-save-btn').textContent='追加';
   delete document.getElementById('item-modal').dataset.editIdx;
   document.getElementById('item-modal').classList.add('open');
 }
@@ -2697,8 +2697,8 @@ function editItem(idx){
   document.getElementById('modal-item-cat').value=item.cat;
   document.getElementById('modal-item-stock').value=item.stock||0;
   document.getElementById('modal-item-fontsize').value=item.fontSize||'';
-  document.getElementById('item-modal-title').textContent='蝠・刀繧堤ｷｨ髮・;
-  document.getElementById('item-modal-save-btn').textContent='菫晏ｭ・;
+  document.getElementById('item-modal-title').textContent='商品を編集';
+  document.getElementById('item-modal-save-btn').textContent='保存';
   document.getElementById('item-modal').dataset.editIdx=idx;
   document.getElementById('item-modal').classList.add('open');
 }
@@ -2714,19 +2714,19 @@ function saveModalItem(){
   const cat=document.getElementById('modal-item-cat').value;
   const stock=parseInt(document.getElementById('modal-item-stock').value)||0;
   const fontSize=document.getElementById('modal-item-fontsize').value||'';
-  if(!name||!price){showToast('笞 蝠・刀蜷阪→驥鷹｡阪ｒ蜈･蜉帙＠縺ｦ縺上□縺輔＞','#c00');return;}
+  if(!name||!price){showToast('⚠ 商品名と金額を入力してください','#c00');return;}
   const editIdx=document.getElementById('item-modal').dataset.editIdx;
   if(editIdx!==undefined&&editIdx!==''){
     items[parseInt(editIdx)]={...items[parseInt(editIdx)],name,price,cat,stock,fontSize};
-    showToast('笨・'+name+' 繧呈峩譁ｰ縺励∪縺励◆');
+    showToast('✓ '+name+' を更新しました');
   } else {
     items.push({id:'i_'+Date.now(),name,price,cat,stock,fontSize});
-    showToast('笨・'+name+' 繧定ｿｽ蜉縺励∪縺励◆');
+    showToast('✓ '+name+' を追加しました');
   }
   sv(KEYS.items,items);closeItemModal();renderItemList();renderPOS();renderCatFilterTabs();
 }
 
-// ===== 螻樊ｧ險ｭ螳・=====
+// ===== 属性設定 =====
 
 function setupAttrDrag(handle, key, idx, container){
   let dragIdx=null, clone=null, overEl=null;
@@ -2771,12 +2771,12 @@ function setupAttrDrag(handle, key, idx, container){
 }
 
 function resetAttrsToDefault(){
-  if(!confirm('螻樊ｧ繧偵ョ繝輔か繝ｫ繝医↓謌ｻ縺励∪縺吶°・歃n謇句虚縺ｧ霑ｽ蜉縺励◆鬆・岼縺ｯ豸医∴縺ｾ縺吶・)) return;
+  if(!confirm('属性をデフォルトに戻しますか？\n手動で追加した項目は消えます。')) return;
   ATTRS=JSON.parse(JSON.stringify(DEFAULT_ATTRS));
   sv('pos_attrs',ATTRS);
   renderAttrSettings();
   renderAttrs();
-  showToast('笨・螻樊ｧ繧偵ョ繝輔か繝ｫ繝医↓謌ｻ縺励∪縺励◆');
+  showToast('✓ 属性をデフォルトに戻しました');
 }
 
 function addAttrItem(key){
@@ -2789,7 +2789,7 @@ function addAttrItem(key){
 }
 function editAttrItem(key,idx,val){ATTRS[key][idx]=val;}
 function deleteAttrItem(key,idx){
-  if(!confirm('縲・+ATTRS[key][idx]+'縲阪ｒ蜑企勁縺励∪縺吶°・・))return;
+  if(!confirm('「'+ATTRS[key][idx]+'」を削除しますか？'))return;
   ATTRS[key].splice(idx,1);renderAttrSettings();renderAttrs();
 }
 
@@ -2837,9 +2837,9 @@ function renderDiscountSettingsList(){
     div.style.cssText='display:flex;align-items:center;gap:6px;padding:7px;background:#f9f9f9;border-radius:8px;margin-bottom:5px;';
     div.innerHTML=
       '<span style="flex:1;font-size:13px;font-weight:500;">'+d.label+'</span>'+
-      '<span style="font-size:11px;color:var(--text2);min-width:60px;">'+(d.type==='paid'?'莠育ｴ・し繧､繝・:'蜑ｲ蠑・)+'</span>'+
-      '<button onclick="editDiscountItem('+idx+')" style="padding:3px 7px;border:1px solid #88aacc;border-radius:5px;background:#fff;color:var(--blue);font-size:10px;cursor:pointer;font-family:inherit;">邱ｨ髮・/button>'+
-      (!d.fixed?'<button onclick="deleteDiscountItem('+idx+')" style="padding:3px 7px;border:1px solid #fcc;border-radius:5px;background:#fff;color:var(--red);font-size:10px;cursor:pointer;font-family:inherit;">蜑企勁</button>':'');
+      '<span style="font-size:11px;color:var(--text2);min-width:60px;">'+(d.type==='paid'?'予約サイト':'割引')+'</span>'+
+      '<button onclick="editDiscountItem('+idx+')" style="padding:3px 7px;border:1px solid #88aacc;border-radius:5px;background:#fff;color:var(--blue);font-size:10px;cursor:pointer;font-family:inherit;">編集</button>'+
+      (!d.fixed?'<button onclick="deleteDiscountItem('+idx+')" style="padding:3px 7px;border:1px solid #fcc;border-radius:5px;background:#fff;color:var(--red);font-size:10px;cursor:pointer;font-family:inherit;">削除</button>':'');
     container.appendChild(div);
   });
 }
@@ -2847,19 +2847,19 @@ function renderDiscountSettingsList(){
 function addDiscountItem(){
   const label=document.getElementById('new-disc-label').value.trim();
   const type=document.getElementById('new-disc-type').value;
-  if(!label){showToast('笞 繝ｩ繝吶Ν蜷阪ｒ蜈･蜉帙＠縺ｦ縺上□縺輔＞','#c00');return;}
+  if(!label){showToast('⚠ ラベル名を入力してください','#c00');return;}
   const key='disc_'+Date.now();
   discountItems.push({key,label,type,fixed:false});
   sv(KEYS.discounts,discountItems);
   document.getElementById('new-disc-label').value='';
   renderDiscountSettingsList();
   renderDiscountBar();
-  showToast('笨・霑ｽ蜉縺励∪縺励◆');
+  showToast('✓ 追加しました');
 }
 
 function editDiscountItem(idx){
   const d=discountItems[idx];
-  const newLabel=prompt('繝ｩ繝吶Ν蜷阪ｒ螟画峩',d.label);
+  const newLabel=prompt('ラベル名を変更',d.label);
   if(newLabel!==null&&newLabel.trim()){
     discountItems[idx].label=newLabel.trim();
     sv(KEYS.discounts,discountItems);
@@ -2869,18 +2869,18 @@ function editDiscountItem(idx){
 }
 
 function deleteDiscountItem(idx){
-  if(!confirm('縲・+discountItems[idx].label+'縲阪ｒ蜑企勁縺励∪縺吶°・・))return;
+  if(!confirm('「'+discountItems[idx].label+'」を削除しますか？'))return;
   discountItems.splice(idx,1);
   sv(KEYS.discounts,discountItems);
   renderDiscountSettingsList();
   renderDiscountBar();
-  showToast('笨・蜑企勁縺励∪縺励◆');
+  showToast('✓ 削除しました');
 }
 
 function saveDiscountSettings(){
   sv(KEYS.discounts,discountItems);
   renderDiscountBar();
-  showToast('笨・蜑ｲ蠑輔・莠育ｴ・し繧､繝郁ｨｭ螳壹ｒ菫晏ｭ倥＠縺ｾ縺励◆');
+  showToast('✓ 割引・予約サイト設定を保存しました');
 }
 
 
@@ -2895,21 +2895,21 @@ function saveDiscountSettings(){
 
 
 
-// ===== 螻樊ｧ繝ｻ蜑ｲ蠑輔・陦ｨ遉ｺ/髱櫁｡ｨ遉ｺ =====
+// ===== 属性・割引の表示/非表示 =====
 let attrVisible = false;
 let discountVisible = true;
 function toggleAttr(){
   attrVisible = !attrVisible;
   document.getElementById('attr-rows-inner').style.display = attrVisible ? '' : 'none';
-  document.getElementById('toggle-attr-btn').textContent = attrVisible ? '笆ｼ' : '笆ｲ';
+  document.getElementById('toggle-attr-btn').textContent = attrVisible ? '▼' : '▲';
 }
 function toggleDiscount(){
   discountVisible = !discountVisible;
   document.getElementById('discount-bar').style.display = discountVisible ? '' : 'none';
-  document.getElementById('toggle-disc-btn').textContent = discountVisible ? '笆ｼ' : '笆ｲ';
+  document.getElementById('toggle-disc-btn').textContent = discountVisible ? '▼' : '▲';
 }
 
-// ===== 螳ｿ豕贋ｺｺ謨ｰ繝昴ャ繝励い繝・・ =====
+// ===== 宿泊人数ポップアップ =====
 let pendingStayItem = null;
 let pendingStayCat = null;
 
@@ -2918,18 +2918,18 @@ function openStayModal(item, cat){
   pendingStayCat = cat;
   const prices = item.stay_prices || {};
   const keys = Object.keys(prices).map(Number).sort((a,b)=>a-b);
-  let html = '<div style="margin-bottom:12px;font-size:13px;color:var(--text2)">莠ｺ謨ｰ蛻･譁咎≡</div>';
+  let html = '<div style="margin-bottom:12px;font-size:13px;color:var(--text2)">人数別料金</div>';
   html += '<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">';
   keys.forEach(n => {
     const p = prices[n];
     const total = p * n;
     html += `<button onclick="selectStayPeople(${n})" style="padding:10px;border:1px solid var(--border);border-radius:8px;background:#f9f9f9;cursor:pointer;font-family:inherit;text-align:left;font-size:13px;">
-      <span style="font-weight:600">${n}莠ｺ</span>縲<span style="color:#888">ﾂ･${p.toLocaleString()}/莠ｺ</span>縲<span style="font-weight:700;color:var(--accent2)">蜷郁ｨ・ﾂ･${total.toLocaleString()}</span>
+      <span style="font-weight:600">${n}人</span>　<span style="color:#888">¥${p.toLocaleString()}/人</span>　<span style="font-weight:700;color:var(--accent2)">合計 ¥${total.toLocaleString()}</span>
     </button>`;
   });
   html += '</div>';
   document.getElementById('stay-modal-content').innerHTML = html;
-  document.getElementById('stay-modal-title').textContent = item.name + ' - 莠ｺ謨ｰ繧帝∈謚・;
+  document.getElementById('stay-modal-title').textContent = item.name + ' - 人数を選択';
   document.getElementById('stay-modal').classList.add('open');
 }
 
@@ -2945,7 +2945,7 @@ function selectStayPeople(n){
   const cat = pendingStayCat;
   cart.push({
     id: pendingStayItem.id + '_' + Date.now(),
-    name: pendingStayItem.name + '・・ + n + '莠ｺ・・,
+    name: pendingStayItem.name + '（' + n + '人）',
     origPrice: totalPrice,
     price: finalPrice,
     qty: 1,
@@ -2961,10 +2961,10 @@ function selectStayPeople(n){
   recalcCartPrices();
   renderCart();
   renderPOS();
-  showToast('笨・' + n + '莠ｺ縺ｧ霑ｽ蜉縺励∪縺励◆');
+  showToast('✓ ' + n + '人で追加しました');
 }
 
-// ===== 螢ｲ荳翫し繝悶ち繝・=====
+// ===== 売上サブタブ =====
 function renderSalesView(){ switchSalesTab(currentSalesTab); }
 function switchSalesTab(tab){
   currentSalesTab=tab;
@@ -2983,26 +2983,26 @@ currentDetailSaleId=null;
 function openSaleDetail(saleId){
   currentDetailSaleId=saleId;
   const r=sales.find(s=>s.id===saleId);if(!r)return;
-  const mLabel={cash:'迴ｾ驥・,card:'繧ｯ繝ｬ繧ｸ繝・ヨ繧ｫ繝ｼ繝・,other:'髮ｻ蟄先ｱｺ貂・}[r.method]||r.method||'';
+  const mLabel={cash:'現金',card:'クレジットカード',other:'電子決済'}[r.method]||r.method||'';
   const discountItems2=ld(KEYS.discounts)||discountItems;
-  const discLabel=r.discount?(discountItems2.find(d=>d.key===r.discount)?.label||r.discount):'縺ｪ縺・;
-  const iRows=(r.items||[]).map(i=>'<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid #f5f5f5;"><span>'+i.name+(i.qty>1?' ﾃ・+i.qty:'')+'</span><span style="font-weight:600;">ﾂ･'+(i.price*i.qty).toLocaleString()+'</span></div>').join('');
+  const discLabel=r.discount?(discountItems2.find(d=>d.key===r.discount)?.label||r.discount):'なし';
+  const iRows=(r.items||[]).map(i=>'<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid #f5f5f5;"><span>'+i.name+(i.qty>1?' ×'+i.qty:'')+'</span><span style="font-weight:600;">¥'+(i.price*i.qty).toLocaleString()+'</span></div>').join('');
   document.getElementById('sale-detail-content').innerHTML=
     '<div style="font-size:10px;color:var(--text2);margin-bottom:6px;word-break:break-all;">ID: '+r.id+'</div>'+
     '<div style="background:#f9f9f9;border-radius:8px;padding:12px;font-size:13px;">'+
-    '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:var(--text2);">譌･譎・/span><span>'+dtToDisplay(r.datetime)+'</span></div>'+
-    '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:var(--text2);">謾ｯ謇・/span><span style="font-weight:600;">'+mLabel+(r.paid?' <span style="font-size:11px;color:var(--blue);">謾ｯ謇墓ｸ・/span>':'')+'</span></div>'+
-    '<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="color:var(--text2);">蜑ｲ蠑・/span><span>'+discLabel+'</span></div>'+
+    '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:var(--text2);">日時</span><span>'+dtToDisplay(r.datetime)+'</span></div>'+
+    '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:var(--text2);">支払</span><span style="font-weight:600;">'+mLabel+(r.paid?' <span style="font-size:11px;color:var(--blue);">支払済</span>':'')+'</span></div>'+
+    '<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="color:var(--text2);">割引</span><span>'+discLabel+'</span></div>'+
     '<div style="border-top:1px solid var(--border);padding-top:8px;margin-bottom:8px;">'+iRows+'</div>'+
-    '<div style="display:flex;justify-content:space-between;padding-top:4px;"><span style="font-weight:700;font-size:15px;">蜷郁ｨ・/span><span style="font-weight:700;font-size:20px;color:var(--accent2);">ﾂ･'+r.total.toLocaleString()+'</span></div>'+
+    '<div style="display:flex;justify-content:space-between;padding-top:4px;"><span style="font-weight:700;font-size:15px;">合計</span><span style="font-weight:700;font-size:20px;color:var(--accent2);">¥'+r.total.toLocaleString()+'</span></div>'+
     '</div>';
   document.getElementById('sale-detail-memo').value=r.memo||'';
   const fb=document.getElementById('sale-detail-flag-btn');
-  if(fb){ fb.textContent=r.flagged?'閥 蜊ｰ繧呈ｶ医☆':'閥 蜊ｰ繧偵▽縺代ｋ'; fb.style.background=r.flagged?'#fde8e8':'#f9f9f9'; }
-  // 螻樊ｧ驕ｸ謚朸I
+  if(fb){ fb.textContent=r.flagged?'🔴 印を消す':'🔴 印をつける'; fb.style.background=r.flagged?'#fde8e8':'#f9f9f9'; }
+  // 属性選択UI
   const attrsEl=document.getElementById('sale-detail-attrs');
   if(attrsEl){
-    var ah='<div style="font-size:11px;color:var(--text2);margin-bottom:4px;">側 螻樊ｧ</div>';
+    var ah='<div style="font-size:11px;color:var(--text2);margin-bottom:4px;">👤 属性</div>';
     Object.keys(ATTRS).forEach(function(key){
       const arr=(r.attrs&&r.attrs[key])||[];
       ATTRS[key].forEach(function(v){
@@ -3030,42 +3030,42 @@ function toggleSaleFlag(){
   const r=sales.find(s=>s.id===currentDetailSaleId);if(!r)return;
   r.flagged=!r.flagged;sv(KEYS.sales,sales);
   openSaleDetail(currentDetailSaleId);renderSales();
-  showToast(r.flagged?'閥 蜊ｰ繧偵▽縺代∪縺励◆':'蜊ｰ繧呈ｶ医＠縺ｾ縺励◆');
+  showToast(r.flagged?'🔴 印をつけました':'印を消しました');
 }
 function saveSaleChanges(){
   const r=sales.find(s=>s.id===currentDetailSaleId);if(!r)return;
   r.memo=document.getElementById('sale-detail-memo').value;
-  sv(KEYS.sales,sales);autoSyncUpdatedSale(r);renderSales();showToast('笨・菫晏ｭ倥＠縺ｾ縺励◆');
+  sv(KEYS.sales,sales);autoSyncUpdatedSale(r);renderSales();showToast('✓ 保存しました');
 }
 function deleteSaleFromDetail(){
   if(!currentDetailSaleId)return;
   const r=sales.find(s=>s.id===currentDetailSaleId);if(!r)return;
-  const ml={cash:'迴ｾ驥・,card:'繧ｫ繝ｼ繝・,other:'髮ｻ蟄・}[r.method]||r.method;
-  const is=r.items.slice(0,3).map(i=>i.name+(i.qty>1?'ﾃ・+i.qty:'')).join('縲・)+(r.items.length>3?'窶ｦ':'');
-  if(!confirm('縺薙・螢ｲ荳翫ｒ蜑企勁縺励∪縺吶°・歃n\n'+dtToDisplay(r.datetime)+'\n'+is+'\nﾂ･'+r.total.toLocaleString()+'・・+ml+'・噂n\n窶ｻ蜿悶ｊ豸医○縺ｾ縺帙ｓ'))return;
+  const ml={cash:'現金',card:'カード',other:'電子'}[r.method]||r.method;
+  const is=r.items.slice(0,3).map(i=>i.name+(i.qty>1?'×'+i.qty:'')).join('、')+(r.items.length>3?'…':'');
+  if(!confirm('この売上を削除しますか？\n\n'+dtToDisplay(r.datetime)+'\n'+is+'\n¥'+r.total.toLocaleString()+'（'+ml+'）\n\n※取り消せません'))return;
   const deletedId=currentDetailSaleId;
   sales=sales.filter(s=>s.id!==deletedId);
   sv(KEYS.sales,sales);autoDeleteSale(deletedId);
   document.getElementById('sale-detail-modal').classList.remove('open');
-  renderSales();showToast('笨・蜑企勁縺励∪縺励◆');
+  renderSales();showToast('✓ 削除しました');
 }
 function quickToggleFlag(id,cell){
   const r=sales.find(s=>s.id===id);if(!r)return;
   r.flagged=!r.flagged;sv(KEYS.sales,sales);
-  cell.textContent=r.flagged?'閥':'笞ｪ';
+  cell.textContent=r.flagged?'🔴':'⚪';
   cell.closest('tr').style.background=r.flagged?'#fff5f5':'';
 }
 function executeReset(){
   const rC=document.getElementById('reset-cats')?.checked;
   const rI=document.getElementById('reset-items')?.checked;
   const rD=document.getElementById('reset-discounts')?.checked;
-  if(!rC&&!rI&&!rD){showToast('笞 繝ｪ繧ｻ繝・ヨ縺吶ｋ鬆・岼繧帝∈謚槭＠縺ｦ縺上□縺輔＞','#c00');return;}
-  if(!confirm('驕ｸ謚槭＠縺滄・岼繧偵Μ繧ｻ繝・ヨ縺励∪縺吶ょ・縺ｫ謌ｻ縺帙∪縺帙ｓ縲ゅｈ繧阪＠縺・〒縺吶°・・))return;
+  if(!rC&&!rI&&!rD){showToast('⚠ リセットする項目を選択してください','#c00');return;}
+  if(!confirm('選択した項目をリセットします。元に戻せません。よろしいですか？'))return;
   if(rC){cats=DEFAULT_CATS.map(c=>({...c}));sv(KEYS.cats,cats);}
   if(rI){items=DEFAULT_ITEMS.map(i=>({...i}));sv(KEYS.items,items);}
   if(rD){discountItems=DEFAULT_DISCOUNTS.map(d=>({...d}));sv(KEYS.discounts,discountItems);}
   renderSettings();renderPOS();renderDiscountBar();
-  showToast('笨・繝ｪ繧ｻ繝・ヨ縺励∪縺励◆');
+  showToast('✓ リセットしました');
 }
 function exportSettings(){
   const now=new Date();
@@ -3079,7 +3079,7 @@ function exportSettings(){
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download='pos_data_'+ts+'.json';a.click();
-  showToast('笨・繝・・繧ｿ繧偵お繧ｯ繧ｹ繝昴・繝医＠縺ｾ縺励◆');
+  showToast('✓ データをエクスポートしました');
 }
 function triggerImport(){
   const el=document.getElementById('import-file-input');
@@ -3090,7 +3090,7 @@ function triggerImport(){
     reader.onload=function(ev){
       try{
         const data=JSON.parse(ev.target.result);
-        if(!data._version) throw new Error('繝輔か繝ｼ繝槭ャ繝井ｸ肴ｭ｣');
+        if(!data._version) throw new Error('フォーマット不正');
         if(data.cats){cats=data.cats; sv(KEYS.cats,cats);}
         if(data.items){items=data.items; sv(KEYS.items,items);}
         if(data.discounts){discountItems=data.discounts; sv(KEYS.discounts,discountItems);}
@@ -3117,9 +3117,9 @@ function triggerImport(){
         }
         renderCatFilterTabs();renderPOS();renderCart();
         renderDiscountBar();renderAttrs();renderHoldTabs();renderSettings();
-        showToast('笨・繧､繝ｳ繝昴・繝亥ｮ御ｺ・ｼ亥｣ｲ荳・'+addedSales+'莉ｶ 菫晉蕗+'+addedHolds+'莉ｶ・・);
+        showToast('✓ インポート完了（売上+'+addedSales+'件 保留+'+addedHolds+'件）');
       }catch(err){
-        showToast('笞 繧､繝ｳ繝昴・繝亥､ｱ謨・ '+err.message,'#c00');
+        showToast('⚠ インポート失敗: '+err.message,'#c00');
       }
       el.value='';
     };
@@ -3134,7 +3134,7 @@ function importSettings(e){
   reader.onload=function(ev){
     try{
       const data=JSON.parse(ev.target.result);
-      if(!data._version) throw new Error('繝輔か繝ｼ繝槭ャ繝井ｸ肴ｭ｣');
+      if(!data._version) throw new Error('フォーマット不正');
       if(data.cats){cats=data.cats; sv(KEYS.cats,cats);}
       if(data.items){items=data.items; sv(KEYS.items,items);}
       if(data.discounts){discountItems=data.discounts; sv(KEYS.discounts,discountItems);}
@@ -3142,7 +3142,7 @@ function importSettings(e){
       if(data.gas) sv(KEYS.gas,data.gas);
       if(data.sites){siteNames=data.sites; sv(KEYS.sites,siteNames);}
       if(data.paidDisplay){paidDisplaySettings=data.paidDisplay; sv('pos_paid_display',paidDisplaySettings);}
-      // 螢ｲ荳奇ｼ夐㍾隍⑩D繧帝勁縺・※霑ｽ蜉
+      // 売上：重複IDを除いて追加
       let addedSales=0;
       if(data.sales&&data.sales.length){
         const existIds=new Set(sales.map(s=>s.id));
@@ -3151,7 +3151,7 @@ function importSettings(e){
         sv(KEYS.sales,sales);
         addedSales=newSales.length;
       }
-      // 菫晉蕗・夂ｩｺ繧ｹ繝ｭ繝・ヨ縺ｫ霑ｽ蜉
+      // 保留：空スロットに追加
       let addedHolds=0;
       if(data.holds&&data.holds.length){
         data.holds.forEach(h=>{
@@ -3162,9 +3162,9 @@ function importSettings(e){
       }
       renderCatFilterTabs(); renderPOS(); renderCart();
       renderDiscountBar(); renderAttrs(); renderHoldTabs(); renderSettings();
-      showToast('笨・繧､繝ｳ繝昴・繝亥ｮ御ｺ・ｼ亥｣ｲ荳・'+addedSales+'莉ｶ 菫晉蕗+'+addedHolds+'莉ｶ・・);
+      showToast('✓ インポート完了（売上+'+addedSales+'件 保留+'+addedHolds+'件）');
     }catch(err){
-      showToast('笞 繧､繝ｳ繝昴・繝亥､ｱ謨・ '+err.message,'#c00');
+      showToast('⚠ インポート失敗: '+err.message,'#c00');
     }
     e.target.value='';
   };
@@ -3176,7 +3176,7 @@ function showToast(msg,col,duration){
 }
 
 
-// ===== 螟ｩ豌・=====
+// ===== 天気 =====
 function openWeatherPicker(){
   const el=document.getElementById('weather-options'); if(!el) return;
   let html='';
@@ -3193,7 +3193,7 @@ function toggleWeather(key){
   const idx=todayWeather.indexOf(key);
   if(idx===-1) todayWeather.push(key);
   else todayWeather.splice(idx,1);
-  // 繝懊ち繝ｳ譖ｴ譁ｰ
+  // ボタン更新
   WEATHER_OPTIONS.forEach(w=>{
     const btn=document.getElementById('w-btn-'+w.key); if(!btn) return;
     const active=todayWeather.includes(w.key);
@@ -3205,15 +3205,15 @@ function saveWeather(){
   sv('pos_weather',todayWeather);
   renderWeatherDisplay();
   document.getElementById('weather-modal').classList.remove('open');
-  showToast('笨・螟ｩ豌励ｒ菫晏ｭ倥＠縺ｾ縺励◆');
+  showToast('✓ 天気を保存しました');
 }
 function renderWeatherDisplay(){
   const el=document.getElementById('weather-display'); if(!el) return;
-  if(!todayWeather.length){ el.textContent='研'; return; }
+  if(!todayWeather.length){ el.textContent='🌤'; return; }
   el.textContent=todayWeather.map(k=>{const w=WEATHER_OPTIONS.find(x=>x.key===k);return w?w.icon:'';}).join('');
 }
 
-// ===== 譎りｨ茨ｼ医き繝ｼ繝井ｸ企Κ繝ｻ譎る俣繧ｿ繝門・騾夲ｼ・=====
+// ===== 時計（カート上部・時間タブ共通） =====
 function updateClocks(){
   const now = new Date();
   const t = now.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
@@ -3222,7 +3222,7 @@ function updateClocks(){
   if(c1) c1.textContent = t;
   if(c2) c2.textContent = t;
   updateTimerCountdown();
-  // 豈主・譁ｽ險ｭ繝懊ち繝ｳ縺ｮ谿九ｊ譎る俣繧呈峩譁ｰ
+  // 毎分施設ボタンの残り時間を更新
   if(now.getSeconds() === 0){
     const fb = document.getElementById('timer-fac-btns');
     if(fb) renderTimerFacBtns();
@@ -3231,8 +3231,8 @@ function updateClocks(){
 setInterval(updateClocks, 1000);
 updateClocks();
 
-// ===== 譎る俣險育ｮ励ち繝・=====
-let timerFacId_dummy; // 荳企Κ縺ｧ螳｣險貂医∩
+// ===== 時間計算タブ =====
+let timerFacId_dummy; // 上部で宣言済み
 
 function initTimer(){
   renderTimerFacBtns();
@@ -3250,7 +3250,7 @@ function renderTimerFacBtns(){
     const wrap = document.createElement('div');
     wrap.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:4px;';
 
-    // 譁ｽ險ｭ繝懊ち繝ｳ
+    // 施設ボタン
     const b = document.createElement('button');
     const active = timerFacId === f.id;
     b.style.cssText = 'padding:10px 16px;border-radius:8px;border:2px solid '+(active?'var(--accent)':'var(--border)')+';background:'+(active?'var(--accent)':'#fff')+';color:'+(active?'#fff':'var(--text2)')+';font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;';
@@ -3258,15 +3258,15 @@ function renderTimerFacBtns(){
     b.onclick = ()=>{ timerFacId=f.id; timerCourse=TIMER_FACS.find(x=>x.id===f.id).courses[0].min; renderTimerFacBtns(); renderTimerCourseBtns(); calcTimer(); };
     wrap.appendChild(b);
 
-    // 譎る俣諠・ｱ
+    // 時間情報
     const info = document.createElement('div');
     info.style.cssText = 'font-size:13px;line-height:1.8;color:var(--text2);';
     const lastMins = f.lastOrder ? getMinutesUntil(f.lastOrder, now) : null;
     const closeMins = f.close ? getMinutesUntil(f.close, now) : null;
     const lastColor = lastMins !== null && lastMins <= 0 ? 'var(--red)' : lastMins !== null && lastMins <= 30 ? '#e67700' : 'var(--text2)';
     const closeColor = closeMins !== null && closeMins <= 0 ? 'var(--red)' : closeMins !== null && closeMins <= 30 ? '#e67700' : 'var(--text2)';
-    const lastLine = f.lastOrder ? '譛邨ょ女莉・'+f.lastOrder+(lastMins!==null?' ('+formatMins(lastMins)+')':'') : '';
-    const closeLine = f.close ? '蝟ｶ讌ｭ邨ゆｺ・'+f.close+(closeMins!==null?' ('+formatMins(closeMins)+')':'') : '';
+    const lastLine = f.lastOrder ? '最終受付 '+f.lastOrder+(lastMins!==null?' ('+formatMins(lastMins)+')':'') : '';
+    const closeLine = f.close ? '営業終了 '+f.close+(closeMins!==null?' ('+formatMins(closeMins)+')':'') : '';
     info.innerHTML =
       (lastLine ? '<span style="color:'+lastColor+'">'+lastLine+'</span><br>' : '')+
       (closeLine ? '<span style="color:'+closeColor+'">'+closeLine+'</span>' : '');
@@ -3282,12 +3282,12 @@ function getMinutesUntil(timeStr, now){
 }
 
 function formatMins(mins){
-  if(mins < 0) return '邨ゆｺ・;
-  if(mins < 60) return '谿九ｊ'+mins+'蛻・;
-  return '谿九ｊ'+Math.floor(mins/60)+'譎る俣'+( mins%60 ? (mins%60)+'蛻・ : '');
+  if(mins < 0) return '終了';
+  if(mins < 60) return '残り'+mins+'分';
+  return '残り'+Math.floor(mins/60)+'時間'+( mins%60 ? (mins%60)+'分' : '');
 }
 
-// ===== 荳｡譁ｹ蛻ｩ逕ｨ =====
+// ===== 両方利用 =====
 let comboOrder = 'walk_tree'; // 'walk_tree' or 'tree_walk'
 let comboWalkCourse = 55;
 let comboTreeCourse = 55;
@@ -3372,7 +3372,7 @@ function calcCombo(){
     secondEnd = addMins(firstEnd, getActualMins(second, secondCourse));
   }
 
-  // 蝟ｶ讌ｭ邨ゆｺ・メ繧ｧ繝・け
+  // 営業終了チェック
   const walkFac = TIMER_FACS.find(f=>f.id==='walk');
   const treeFac = TIMER_FACS.find(f=>f.id==='tree');
   const walkClose = walkFac?.close;
@@ -3386,16 +3386,16 @@ function calcCombo(){
   result.innerHTML =
     '<div style="background:#f9f9f9;border-radius:8px;padding:12px;">'+
       '<div style="font-size:13px;color:var(--text2);margin-bottom:8px;">'+
-        (comboOrder==='walk_tree'?'遨ｺ荳ｭ繧ｦ繧ｩ繝ｼ繧ｯ 竊・繝・Μ繝ｼ繝上え繧ｹ譏ｼ':'繝・Μ繝ｼ繝上え繧ｹ譏ｼ 竊・遨ｺ荳ｭ繧ｦ繧ｩ繝ｼ繧ｯ')+
+        (comboOrder==='walk_tree'?'空中ウォーク → ツリーハウス昼':'ツリーハウス昼 → 空中ウォーク')+
       '</div>'+
       '<div style="display:flex;flex-direction:column;gap:6px;font-size:14px;margin-bottom:10px;">'+
-        '<div>'+firstFac?.label+'縲<span style="font-weight:700">'+startVal+' 竊・'+firstEnd+'</span>縲<span style="color:var(--text2);font-size:12px;">('+firstCr?.label+')</span></div>'+
-        '<div>'+secondFac?.label+'縲<span style="font-weight:700">'+firstEnd+' 竊・'+secondEnd+'</span>縲<span style="color:var(--text2);font-size:12px;">('+secondCr?.label+')</span></div>'+
+        '<div>'+firstFac?.label+'　<span style="font-weight:700">'+startVal+' → '+firstEnd+'</span>　<span style="color:var(--text2);font-size:12px;">('+firstCr?.label+')</span></div>'+
+        '<div>'+secondFac?.label+'　<span style="font-weight:700">'+firstEnd+' → '+secondEnd+'</span>　<span style="color:var(--text2);font-size:12px;">('+secondCr?.label+')</span></div>'+
       '</div>'+
       '<div style="text-align:center;font-size:44px;font-weight:700;font-family:monospace;color:'+(anyOver?'var(--red)':'var(--accent2)')+'">'+secondEnd+'</div>'+
-      '<div style="text-align:center;font-size:13px;color:var(--text2);margin-top:6px;">髢句ｧ・'+startVal+' 竊・蜈ｨ菴鍋ｵゆｺ・'+secondEnd+'</div>'+
-      (isOverWalk?'<div style="color:var(--red);font-size:13px;text-align:center;margin-top:4px;">笞 遨ｺ荳ｭ繧ｦ繧ｩ繝ｼ繧ｯ蝟ｶ讌ｭ邨ゆｺ・ｼ・+walkClose+'・芽ｶ・℃</div>':'')+
-      (isOverTree?'<div style="color:var(--red);font-size:13px;text-align:center;margin-top:4px;">笞 繝・Μ繝ｼ繝上え繧ｹ蝟ｶ讌ｭ邨ゆｺ・ｼ・+treeClose+'・芽ｶ・℃</div>':'')+
+      '<div style="text-align:center;font-size:13px;color:var(--text2);margin-top:6px;">開始 '+startVal+' → 全体終了 '+secondEnd+'</div>'+
+      (isOverWalk?'<div style="color:var(--red);font-size:13px;text-align:center;margin-top:4px;">⚠ 空中ウォーク営業終了（'+walkClose+'）超過</div>':'')+
+      (isOverTree?'<div style="color:var(--red);font-size:13px;text-align:center;margin-top:4px;">⚠ ツリーハウス営業終了（'+treeClose+'）超過</div>':'')+
     '</div>';
 }
 
@@ -3427,7 +3427,7 @@ function setTimerNow(){
 
 function calcTimer(){
   const startVal = document.getElementById('timer-start').value;
-  if(!startVal){ showToast('笞 髢句ｧ区凾髢薙ｒ蜈･蜉帙＠縺ｦ縺上□縺輔＞','#c00'); return; }
+  if(!startVal){ showToast('⚠ 開始時間を入力してください','#c00'); return; }
   const fac = TIMER_FACS.find(f=>f.id===timerFacId);
   const course = fac.courses.find(c=>c.min===timerCourse);
   const [sh,sm] = startVal.split(':').map(Number);
@@ -3446,13 +3446,13 @@ function calcTimer(){
     end: endStr,
     endAt: new Date(),
   };
-  // endAt縺ｫ邨ゆｺ・凾蛻ｻ繧偵そ繝・ヨ
+  // endAtに終了時刻をセット
   const [eh,em] = endStr.split(':').map(Number);
   result.endAt = new Date(); result.endAt.setHours(eh,em,0,0);
 
   document.getElementById('timer-result').style.display='';
-  document.getElementById('timer-result-label').textContent = fac.label + '縲' + course.label;
-  // 邨ゆｺ・凾髢薙′蝟ｶ讌ｭ邨ゆｺ・ｒ雜・∴縺ｦ縺・ｋ縺句愛螳・
+  document.getElementById('timer-result-label').textContent = fac.label + '　' + course.label;
+  // 終了時間が営業終了を超えているか判定
   const endEl = document.getElementById('timer-result-end');
   endEl.textContent = endStr;
   let overClose = false;
@@ -3462,9 +3462,9 @@ function calcTimer(){
     overClose = (eh*60+em) > (ch*60+cm);
   }
   endEl.style.color = overClose ? 'var(--red)' : 'var(--accent2)';
-  document.getElementById('timer-result-detail').textContent = '髢句ｧ・' + startVal + '縲竊偵邨ゆｺ・' + endStr + (overClose ? '縲笞 蝟ｶ讌ｭ邨ゆｺ・ｶ・℃' : '') + '縲・懊蝟ｶ讌ｭ邨ゆｺ・' + fac.close + '縲譛邨ょ女莉・' + (fac.lastOrder||'');
+  document.getElementById('timer-result-detail').textContent = '開始 ' + startVal + '　→　終了 ' + endStr + (overClose ? '　⚠ 営業終了超過' : '') + '　｜　営業終了 ' + fac.close + '　最終受付 ' + (fac.lastOrder||'');
 
-  // 螻･豁ｴ縺ｫ霑ｽ蜉
+  // 履歴に追加
   timerResults.unshift(result);
   if(timerResults.length > 5) timerResults.pop();
   renderTimerHistory();
@@ -3478,12 +3478,12 @@ function updateTimerCountdown(){
   const latest = timerResults[0];
   const diff = Math.floor((latest.endAt - now) / 1000);
   if(diff < 0){
-    el.textContent = '竢ｰ 譎る俣邨ゆｺ・;
+    el.textContent = '⏰ 時間終了';
     el.style.background = '#fde8e8';
     el.style.color = 'var(--red)';
   } else {
     const m = Math.floor(diff/60), s = diff%60;
-    el.textContent = '谿九ｊ ' + m + '蛻・ + String(s).padStart(2,'0') + '遘・;
+    el.textContent = '残り ' + m + '分' + String(s).padStart(2,'0') + '秒';
     el.style.background = diff < 300 ? '#fff3e0' : '#f0f7e8';
     el.style.color = diff < 300 ? 'var(--accent2)' : 'var(--green)';
   }
@@ -3492,17 +3492,17 @@ function updateTimerCountdown(){
 function renderTimerHistory(){
   const c = document.getElementById('timer-history'); if(!c) return;
   timerResults.forEach((r,i)=>{
-    if(i===0) return; // 譛譁ｰ縺ｯ荳翫↓陦ｨ遉ｺ貂医∩
+    if(i===0) return; // 最新は上に表示済み
     const div = document.createElement('div');
     div.style.cssText = 'background:var(--surface);border-radius:10px;padding:12px;box-shadow:var(--shadow);display:flex;align-items:center;gap:10px;';
     div.innerHTML =
-      '<div style="flex:1;font-size:12px;color:var(--text2)">'+r.fac+'縲'+r.course+'<br>'+r.start+' 竊・'+r.end+'</div>'+
+      '<div style="flex:1;font-size:12px;color:var(--text2)">'+r.fac+'　'+r.course+'<br>'+r.start+' → '+r.end+'</div>'+
       '<div style="font-size:18px;font-weight:700;font-family:monospace;color:var(--accent2)">'+r.end+'</div>';
     c.appendChild(div);
   });
 }
 
-// ===== 陦ｨ遉ｺ繧ｵ繧､繧ｺ隱ｿ謨ｴ =====
+// ===== 表示サイズ調整 =====
 const DISP_KEY = 'pos_display';
 
 function applyFontScale(val){
@@ -3521,7 +3521,7 @@ function saveDisplaySettings(){
   const fs = document.getElementById('font-scale')?.value || 100;
   const cw = document.getElementById('cart-width')?.value || 28;
   sv(DISP_KEY, {fontScale:fs, cartWidth:cw});
-  showToast('笨・陦ｨ遉ｺ險ｭ螳壹ｒ菫晏ｭ倥＠縺ｾ縺励◆');
+  showToast('✓ 表示設定を保存しました');
 }
 
 function loadDisplaySettings(){
@@ -3539,23 +3539,23 @@ function loadDisplaySettings(){
   }
 }
 
-// ===== 蛻晄悄蛹・=====
-// localStorage縺ｮ蜿､縺・cat_stay 繧・蛻・牡縺ｫ閾ｪ蜍輔・繧､繧ｰ繝ｬ繝ｼ繧ｷ繝ｧ繝ｳ
+// ===== 初期化 =====
+// localStorageの古い cat_stay を4分割に自動マイグレーション
 (function migrateStayCategory(){
   const savedCats = ld(KEYS.cats);
-  if(!savedCats) return; // 繝・ヵ繧ｩ繝ｫ繝井ｽｿ逕ｨ荳ｭ縺ｪ繧我ｸ崎ｦ・
+  if(!savedCats) return; // デフォルト使用中なら不要
   const hasOldStay = savedCats.some(c=>c.id==='cat_stay');
   const hasNewStay = savedCats.some(c=>c.id==='cat_stay_tree');
   if(hasOldStay && !hasNewStay){
-    // 譌ｧ cat_stay 繧・蛻・牡縺ｫ鄂ｮ縺肴鋤縺・
+    // 旧 cat_stay を4分割に置き換え
     const newCats = [];
     savedCats.forEach(c=>{
       if(c.id==='cat_stay'){
         newCats.push(
-          {id:'cat_stay_tree',name:'螳ｿ豕奇ｼ壹ヤ繝ｪ繝ｼ繝上え繧ｹ',bg:'#fff5f0',border:'#e0b090',text:'#7a3020',price:'#888'},
-          {id:'cat_stay_dome',name:'螳ｿ豕奇ｼ壹ラ繝ｼ繝',      bg:'#fff5f7',border:'#e0a0b0',text:'#7a3050',price:'#888'},
-          {id:'cat_stay_tent',name:'螳ｿ豕奇ｼ夂ｩｺ荳ｭ繝・Φ繝・,  bg:'#f5f0ff',border:'#b0a0e0',text:'#402070',price:'#888'},
-          {id:'cat_stay_hm',  name:'螳ｿ豕奇ｼ壹ワ繝ｳ繝｢繝・け',  bg:'#f0fff5',border:'#90d0a0',text:'#204830',price:'#888'}
+          {id:'cat_stay_tree',name:'宿泊：ツリーハウス',bg:'#fff5f0',border:'#e0b090',text:'#7a3020',price:'#888'},
+          {id:'cat_stay_dome',name:'宿泊：ドーム',      bg:'#fff5f7',border:'#e0a0b0',text:'#7a3050',price:'#888'},
+          {id:'cat_stay_tent',name:'宿泊：空中テント',  bg:'#f5f0ff',border:'#b0a0e0',text:'#402070',price:'#888'},
+          {id:'cat_stay_hm',  name:'宿泊：ハンモック',  bg:'#f0fff5',border:'#90d0a0',text:'#204830',price:'#888'}
         );
       } else {
         newCats.push(c);
@@ -3563,17 +3563,17 @@ function loadDisplaySettings(){
     });
     cats = newCats;
     sv(KEYS.cats, cats);
-    // 譌ｧ cat_stay 縺ｮ蝠・刀繧帝←蛻・↑譁ｰ繧ｫ繝・ざ繝ｪ繝ｼ縺ｫ遘ｻ陦・
+    // 旧 cat_stay の商品を適切な新カテゴリーに移行
     const savedItems = ld(KEYS.items);
     if(savedItems){
       savedItems.forEach(item=>{
         if(item.cat==='cat_stay'){
           const n=item.name;
-          if(n.includes('繝・Μ繝ｼ繝上え繧ｹ')&&!n.includes('譏ｼ')) item.cat='cat_stay_tree';
-          else if(n.includes('繝峨・繝')) item.cat='cat_stay_dome';
-          else if(n.includes('繝・Φ繝・)) item.cat='cat_stay_tent';
-          else if(n.includes('繝上Φ繝｢繝・け')) item.cat='cat_stay_hm';
-          else item.cat='cat_stay_tree'; // 縺昴・莉悶・莉ｮ縺ｫ繝・Μ繝ｼ繝上え繧ｹ縺ｸ
+          if(n.includes('ツリーハウス')&&!n.includes('昼')) item.cat='cat_stay_tree';
+          else if(n.includes('ドーム')) item.cat='cat_stay_dome';
+          else if(n.includes('テント')) item.cat='cat_stay_tent';
+          else if(n.includes('ハンモック')) item.cat='cat_stay_hm';
+          else item.cat='cat_stay_tree'; // その他は仮にツリーハウスへ
         }
       });
       items = savedItems;
@@ -3590,11 +3590,11 @@ restoreFromIDB().then(()=>{
   siteNames = ld(KEYS.sites) || {};
   ATTRS = ld('pos_attrs') || JSON.parse(JSON.stringify(DEFAULT_ATTRS));
   holds = ld(KEYS.holds) || [null,null,null,null,null,null,null,null,null,null];
-  // 蜷咲ｧｰ遘ｻ陦・ 繝√ぉ繧｢繝ｻ繝吶Φ繝・竊・繝吶Φ繝・
+  // 名称移行: チェア・ベンチ → ベンチ
   var needSave=false;
-  items.forEach(function(it){if(it.id==='i_b04'&&it.name==='繝√ぉ繧｢繝ｻ繝吶Φ繝・){it.name='繝吶Φ繝・;needSave=true;}});
+  items.forEach(function(it){if(it.id==='i_b04'&&it.name==='チェア・ベンチ'){it.name='ベンチ';needSave=true;}});
   if(needSave) sv(KEYS.items,items);
-  // 蟇晁｢矩・ｺ丈ｿｮ豁｣: 螟冗畑(i_b19)繧貞・逕ｨ(i_b20)縺ｮ蜑阪↓
+  // 寝袋順序修正: 夏用(i_b19)を冬用(i_b20)の前に
   (function(){
     var i19=items.findIndex(function(i){return i.id==='i_b19';}),i20=items.findIndex(function(i){return i.id==='i_b20';});
     if(i19!==-1&&i20!==-1&&i19>i20){
@@ -3612,7 +3612,7 @@ restoreFromIDB().then(()=>{
     }
   })();
   loadDisplaySettings();
-  // 螢ｲ荳頑・邏ｰ繝輔ぅ繝ｫ繧ｿ繝ｼ繧剃ｻ頑律縺ｫ蛻晄悄蛹・
+  // 売上明細フィルターを今日に初期化
   var _t=localDateStr();
   var _fe=document.getElementById('filter-from');
   var _te=document.getElementById('filter-to');
@@ -3624,4 +3624,3 @@ restoreFromIDB().then(()=>{
 </script>
 </body>
 </html>
-
