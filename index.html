@@ -2340,9 +2340,11 @@ async function testGasConnection(){
   if(!url){showToast('⚠ URLを入力してください','#c00');return;}
   showToast('接続確認中...',null,5000);
   try{
-    const res=await fetch(url,{method:'GET',redirect:'follow'});
+    const qs='?d='+encodeURIComponent(JSON.stringify({type:'test'}));
+    const res=await fetch(url+qs,{method:'GET',redirect:'follow'});
     const json=await res.json();
-    if(json.status==='ok')showToast('✅ GAS接続OK（'+json.message+'）',null,5000);
+    // status:'ok' または 'error' が返ればGASに届いている
+    if(json.status) showToast('✅ GAS接続OK',null,5000);
     else showToast('⚠ 応答異常: '+JSON.stringify(json),'#c00',6000);
   }catch(e){
     showToast('⚠ 接続失敗: '+e.message,'#c00',6000);
