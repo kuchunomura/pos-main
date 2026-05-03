@@ -861,6 +861,8 @@ const DEFAULT_ITEMS = [
   {id:'i_b20', name:'寝袋（冬用）',        price:1000,cat:'cat_rental',stock:2, free_mura:false},
 ];
 
+// 常にmain用GAS URLを強制（test用URLが混入した場合も上書き）
+sv(KEYS.gas, DEFAULT_GAS_URL);
 let cats = ld(KEYS.cats) || DEFAULT_CATS;
 let items = ld(KEYS.items) || DEFAULT_ITEMS;
 let sales = ld(KEYS.sales) || [];
