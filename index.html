@@ -673,7 +673,6 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
     <div class="payment-done-btns">
       <button class="done-next" onclick="nextCustomer()">✅ 次のお客様へ</button>
       <button class="done-flag" onclick="flagAndClose()">🔴 印をつけて閉じる</button>
-      <button class="done-close" onclick="editLastSale()">↩️ カートに戻る</button>
     </div>
   </div>
 </div>
@@ -693,11 +692,22 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 
 <div class="toast" id="toast"></div>
 
+<!-- 修正モード離脱確認ポップアップ -->
+<div id="edit-cancel-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:14px;padding:24px 20px;max-width:300px;width:88%;text-align:center;">
+    <div style="font-size:16px;font-weight:700;margin-bottom:20px;color:#333;">修正を取りやめますか？</div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <button onclick="returnToSalesWithRestore()" style="padding:12px;border-radius:8px;border:none;background:#1976d2;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">はい（取引明細に戻る）</button>
+      <button onclick="closeEditCancelPopup()" style="padding:12px;border-radius:8px;border:1px solid #ccc;background:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;color:#333;">いいえ（カートに戻る）</button>
+    </div>
+  </div>
+</div>
+
 <script>
-// ===== バージョン種別（main / test） =====
+// ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-// test版139回分をオフセット（ここからカウント継続）
-const APP_VERSION_OFFSET = 138;
+const APP_VERSION = 224;
+const APP_BUILD_DATE = '2026/05/06';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
@@ -751,11 +761,11 @@ const DEFAULT_CATS = [
   {id:'cat_stay_hm',    name:'宿泊：ハンモック',    bg:'#f0fff5',border:'#90d0a0',text:'#204830',price:'#888'},
   {id:'cat_rental',     name:'備品レンタル',        bg:'#fffaf0',border:'#e8c878',text:'#6b4f20',price:'#888'},
   {id:'cat_pet',        name:'ペット',              bg:'#fff0f8',border:'#e8a0c0',text:'#7a2050',price:'#888'},
+  {id:'cat_uketsuke',   name:'受付飲食',            bg:'#fff0f0',border:'#d09090',text:'#502020',price:'#888'},
   {id:'cat_goods',      name:'グッズ',              bg:'#faf5ff',border:'#c8a0d8',text:'#4a2060',price:'#888'},
   {id:'cat_unmanned',   name:'無人販売',            bg:'#f0fbfa',border:'#90c8c0',text:'#204840',price:'#888'},
   {id:'cat_shoumouhin', name:'消耗品',              bg:'#f0f8ff',border:'#90b0d0',text:'#203050',price:'#888'},
   {id:'cat_picnic',     name:'ピクニック飲食',      bg:'#fffff0',border:'#d0c060',text:'#504010',price:'#888'},
-  {id:'cat_uketsuke',   name:'受付飲食',            bg:'#fff0f0',border:'#d09090',text:'#502020',price:'#888'},
   {id:'cat_drink',      name:'飲み物',              bg:'#f5fbf5',border:'#a0d0a0',text:'#2a5a2a',price:'#888'},
   {id:'cat_food',       name:'食べ物',              bg:'#fffef0',border:'#e0d080',text:'#5a5020',price:'#888'},
   {id:'cat_other',      name:'その他',              bg:'#f8f8f8',border:'#c0c0c0',text:'#505050',price:'#888'},
@@ -769,6 +779,8 @@ const DEFAULT_ITEMS = [
   {id:'i_walk55',  name:'空中ウォーク 55分',      price:2000, cat:'cat_walk', stock:0, free_mura:false},
   {id:'i_walk115', name:'空中ウォーク 115分',      price:2500, cat:'cat_walk', stock:0, free_mura:false},
   {id:'i_walk1day',name:'空中ウォーク 1DAY',       price:3000, cat:'cat_walk', stock:0, free_mura:false},
+  {id:'i_1777680532193', name:'500円　55分延長',  price:500,  cat:'cat_walk', stock:0, free_mura:false},
+  {id:'i_1777557786554', name:'テスト',            price:1,    cat:'cat_walk', stock:0, free_mura:false},
   {id:'i_tree55',  name:'ツリーハウス昼 55分',     price:2000, cat:'cat_tree_day', stock:0, free_mura:false},
   {id:'i_tree115', name:'ツリーハウス昼 115分',    price:3000, cat:'cat_tree_day', stock:0, free_mura:false},
   {id:'i_tree1day',name:'ツリーハウス昼 1DAY',     price:4000, cat:'cat_tree_day', stock:0, free_mura:false},
@@ -829,13 +841,14 @@ const DEFAULT_ITEMS = [
   {id:'i_g18', name:'野菜チップス',         price:500,  cat:'cat_goods',    stock:0, free_mura:false},
   {id:'i_g19', name:'ターボライター',       price:400,  cat:'cat_goods',    stock:0, free_mura:false},
   {id:'i_g20', name:'マスク',               price:500,  cat:'cat_goods',    stock:0, free_mura:false},
+  {id:'i_1777769842699', name:'まな板',     price:1500, cat:'cat_goods',    stock:0, free_mura:false},
   {id:'i_u01', name:'コーヒー',             price:100,  cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_u02', name:'ひのき着火剤',         price:100,  cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_u03', name:'水 2L',                price:200,  cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_u04', name:'マシュマロ',           price:400,  cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_u05', name:'カップ麺',             price:400,  cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_u06', name:'薪（量り売り）2kg',    price:400,  cat:'cat_unmanned', stock:0, free_mura:false},
-  {id:'i_u07', name:'十津川造林 薪（大）',  price:400,  cat:'cat_unmanned', stock:0, free_mura:false},
+  {id:'i_u07', name:'十津川造林 薪（大）',  price:500,  cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_u08', name:'十津川造林 薪（小）',  price:300,  cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_u09', name:'ヒノキ炭',             price:600,  cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_u10', name:'スウェーデントーチ',   price:1000, cat:'cat_unmanned', stock:0, free_mura:false},
@@ -856,14 +869,29 @@ const DEFAULT_ITEMS = [
   {id:'i_r03', name:'アールグレイ',         price:400,  cat:'cat_uketsuke', stock:0, free_mura:false},
   {id:'i_r04', name:'紙パック飲料',         price:200,  cat:'cat_uketsuke', stock:0, free_mura:false},
   {id:'i_r05', name:'アイスクリーム',       price:400,  cat:'cat_uketsuke', stock:0, free_mura:false},
-  {id:'i_b18', name:'BBQ焼き網',           price:70,  cat:'cat_rental',stock:5, free_mura:false},
+  {id:'i_1777686977430', name:'氷',             price:400,  cat:'cat_uketsuke', stock:0, free_mura:false},
+  {id:'i_1777687073002', name:'水2ℓ',           price:200,  cat:'cat_uketsuke', stock:0, free_mura:false},
+  {id:'i_1777700361610', name:'くまのサイダー',  price:400,  cat:'cat_uketsuke', stock:0, free_mura:false},
+  {id:'i_1777786361036', name:'鮎',              price:500,  cat:'cat_uketsuke', stock:0, free_mura:false},
+  {id:'i_b18', name:'BBQ焼き網',           price:200, cat:'cat_rental',stock:5, free_mura:false},
   {id:'i_b19', name:'寝袋（夏用）',        price:1000,cat:'cat_rental',stock:10,free_mura:false},
   {id:'i_b20', name:'寝袋（冬用）',        price:1000,cat:'cat_rental',stock:2, free_mura:false},
 ];
 
-// 常にmain用GAS URLを強制（test用URLが混入した場合も上書き）
+// 常にtest用GAS URLを強制固定
 sv(KEYS.gas, DEFAULT_GAS_URL);
 let cats = ld(KEYS.cats) || DEFAULT_CATS;
+// cat_uketsukeをcat_petの直後に移動（localStorage古い順序を修正）
+(function(){
+  var ui=cats.findIndex(function(c){return c.id==='cat_uketsuke';});
+  var pi=cats.findIndex(function(c){return c.id==='cat_pet';});
+  if(ui>-1&&pi>-1&&ui!==pi+1){
+    var u=cats.splice(ui,1)[0];
+    var pi2=cats.findIndex(function(c){return c.id==='cat_pet';});
+    cats.splice(pi2+1,0,u);
+    sv(KEYS.cats,cats);
+  }
+})();
 let items = ld(KEYS.items) || DEFAULT_ITEMS;
 let sales = ld(KEYS.sales) || [];
 // 既存売上データにデバイスIDを補完（初回のみ）
@@ -898,6 +926,8 @@ let itemOrder = ld(KEYS.itemOrder) || null;
 let catOrder = ld(KEYS.catOrder) || null;
 let lastSaleId = null;
 let editingSaleId = null; // カートで修正中の元売上ID
+var _editCancelPendingTab = null; // 修正モード離脱確認ポップアップ用：移動先タブ
+var _keepEditState = false; // switchTab時にeditingSaleIdを保持するフラグ
 const WEATHER_OPTIONS = [
   {key:'sunny', icon:'☀️', label:'晴れ'},
   {key:'cloudy', icon:'☁️', label:'曇り'},
@@ -925,8 +955,15 @@ let activeHoldIdx = 0; // 現在表示中の保留スロット
 
 // ===== タブ切替 =====
 function switchTab(t) {
-  // POSタブから離れる際、修正中フラグをクリア（元売上はsalesに残る）
-  if(t!=='pos') editingSaleId=null;
+  // 修正モード中カートが空の状態でタブ移動しようとした → 削除確認ポップアップ
+  if(t!=='pos' && editingSaleId && cart.length===0){
+    _editCancelPendingTab=t;
+    var pop=document.getElementById('edit-cancel-popup');
+    if(pop) pop.style.display='flex';
+    return;
+  }
+  if(t!=='pos' && !_keepEditState) editingSaleId=null;
+  _keepEditState=false;
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.tabbar button').forEach((el,i) => {
     el.classList.toggle('active', ['pos','timer','sales','settings-pos'][i] === t);
@@ -1357,6 +1394,7 @@ function recalcCartPrices(){
       const isRental = item?.cat==='cat_rental' || cartItem.cat==='cat_rental';
       if(isRental){ cartItem.price=cartItem.origPrice; cartItem.discounted=false; cartItem.paidLabel=''; }
       else if(cartItem.id==='i_bbq' || cartItem.free_mura){ cartItem.price=0; cartItem.discounted=true; cartItem.paidLabel=''; }
+      else if(cartItem.muraOff){ cartItem.price=cartItem.origPrice; cartItem.discounted=false; cartItem.paidLabel=''; }
       else{ cartItem.price=Math.floor(cartItem.origPrice/2); cartItem.discounted=true; cartItem.paidLabel=''; }
     } else if(activeDiscount==='sou' && SOU_FREE_IDS.includes(cartItem.id)){
       cartItem.price=0; cartItem.discounted=true; cartItem.paidLabel=paidDisplaySettings.label;
@@ -1387,7 +1425,7 @@ function addToCart(item,cat){
   const price = paidBadge ? 0 : getDiscountedPrice(item);
   const ex=cart.find(c=>c.id===item.id&&c.discounted===(price<item.price)&&!c.paidLabel===!paidBadge);
   if(ex)ex.qty++;
-  else cart.push({id:item.id,name:item.name,origPrice:item.price,price,qty:1,discounted:price<item.price,paidLabel:paidBadge||'',free_mura:item.free_mura||false,cat:item.cat||'',catColor:cat?cat.bg:'#fff'});
+  else cart.push({id:item.id,name:item.name,origPrice:item.price,price,qty:1,discounted:price<item.price,paidLabel:paidBadge||'',free_mura:item.free_mura||false,cat:item.cat||'',catColor:cat?cat.bg:'#fff',muraOff:false});
   if(STAY_CAT_IDS.includes(item.cat)) recalcCartPrices();
   renderPOS();
   renderCart();showToast('✓ '+item.name);
@@ -1422,6 +1460,10 @@ function renderCart(){
               : '<span style="font-size:10px;background:#fde8e8;color:var(--red);border:1px solid #f5c0c0;border-radius:4px;padding:1px 5px;margin-left:4px;font-weight:600;">割引</span>')
           : '');
     const priceColor = item.paidLabel ? paidDisplaySettings.color : (item.discounted ? 'var(--red)' : 'var(--accent2)');
+    const canToggleMura = activeDiscount==='mura' && item.cat!=='cat_rental' && !item.free_mura && item.id!=='i_bbq';
+    const muraToggle = canToggleMura
+      ? '<button onclick="toggleMuraOff('+idx+')" style="font-size:10px;padding:2px 6px;border-radius:4px;border:1px solid '+(item.muraOff?'#ccc':'var(--red)')+';background:'+(item.muraOff?'#f5f5f5':'#fff0f0')+';color:'+(item.muraOff?'#999':'var(--red)')+';cursor:pointer;font-weight:600;white-space:nowrap;">'+(item.muraOff?'通常':'村民↓')+'</button>'
+      : '';
     div.innerHTML=
       '<div style="font-size:13px;font-weight:500;line-height:1.4;">'+item.name+discTag+'</div>'+
       '<div style="display:flex;align-items:center;gap:4px;">'+
@@ -1430,6 +1472,7 @@ function renderCart(){
           '<span style="font-size:14px;font-weight:600;min-width:20px;text-align:center;">'+item.qty+'</span>'+
           '<button onclick="chgQty('+idx+',1)" style="width:26px;height:26px;border:1px solid var(--border);border-radius:5px;background:#fff;font-size:15px;cursor:pointer;padding:0;line-height:1;">＋</button>'+
         '</div>'+
+        muraToggle+
         '<div style="font-size:14px;font-weight:700;color:'+priceColor+';">¥'+(item.price*item.qty).toLocaleString()+'</div>'+
         '<div style="color:#ccc;font-size:16px;cursor:pointer;padding:0 4px;" onclick="removeCart('+idx+')">✕</div>'+
       '</div>';
@@ -1446,9 +1489,22 @@ function renderCart(){
 }
 
 function chgQty(idx,d){cart[idx].qty=Math.max(1,cart[idx].qty+d);renderCart();}
+function toggleMuraOff(idx){cart[idx].muraOff=!cart[idx].muraOff;recalcCartPrices();renderCart();}
 function removeCart(idx){cart.splice(idx,1);recalcCartPrices();renderPOS();renderCart();}
 function clearCart(){
-  editingSaleId=null; // 修正キャンセル（元売上はsalesに残る）
+  if(editingSaleId){
+    // 修正モード中はeditingSaleIdを保持（タブ切り替え時に削除確認できるように）
+    holds[activeHoldIdx]=null;
+    sv(KEYS.holds,holds);
+    cart=[];selectedAttrs={age:[],nationality:[]};activeDiscount='';
+    attrVisible=false;
+    var ai2=document.getElementById('attr-rows-inner'),ab2=document.getElementById('toggle-attr-btn');
+    if(ai2) ai2.style.display='none';
+    if(ab2) ab2.textContent='▲';
+    renderCart();renderAttrs();renderDiscountBar();renderPOS();renderHoldTabs();
+    return;
+  }
+  editingSaleId=null;
   holds[activeHoldIdx]=null;
   sv(KEYS.holds,holds);
   cart=[];selectedAttrs={age:[],nationality:[]};activeDiscount='';
@@ -1670,12 +1726,6 @@ function confirmPayment(){
   document.getElementById('done-method').textContent=methodLabel+(isPaid?' ／ 支払済み':'');
   holds[activeHoldIdx]=null;
   sv(KEYS.holds,holds);
-  // 宿泊商品があるときの「カートに戻る」ボタン制御
-  const hasStay = cart.some(i=>i.isStay || STAY_CAT_IDS.includes(i.cat) || (()=>{const it=items.find(x=>x.id===i.id);return it&&STAY_CAT_IDS.includes(it.cat);})());
-  // 「カートに戻る」ボタン：宿泊がある場合は非表示
-  const editBtn = document.querySelector('.done-close');
-  if(editBtn) editBtn.style.display = hasStay ? 'none' : '';
-
   document.getElementById('payment-done').classList.add('open');
 }
 
@@ -2150,6 +2200,57 @@ function editSaleRecord(id){
   showToast('✓ カートに戻しました。修正後に再決済してください');
 }
 
+// 修正モード離脱確認ポップアップ：「取引履歴を削除してタブを移動」ボタン
+function confirmDeleteAndSwitch(){
+  var id=editingSaleId;
+  if(id){
+    sales=sales.filter(function(s){return s.id!==id;});
+    sv(KEYS.sales,sales);
+    autoDeleteSale(id);
+    editingSaleId=null;
+  }
+  var pop=document.getElementById('edit-cancel-popup');
+  if(pop) pop.style.display='none';
+  var t=_editCancelPendingTab;
+  _editCancelPendingTab=null;
+  if(t) switchTab(t);
+}
+// 修正モード離脱確認ポップアップ：「取引明細に戻る（履歴を復元）」ボタン
+function returnToSalesWithRestore(){
+  var pop=document.getElementById('edit-cancel-popup');
+  if(pop) pop.style.display='none';
+  _editCancelPendingTab=null;
+  // 元の取引をカートに復元（editingSaleIdは保持）
+  if(editingSaleId){
+    var record=sales.find(function(s){return s.id===editingSaleId;});
+    if(record){
+      cart=record.items.map(function(i){return Object.assign({},i);});
+      selectedAttrs=Object.assign({},record.attrs);
+      activeDiscount=record.discount||'';
+      recalcCartPrices();
+    }
+  }
+  _keepEditState=true; // editingSaleIdを保持したまま売上タブへ
+  switchTab('sales');
+}
+// 修正モード離脱確認ポップアップ：「カートに戻って取引履歴を修正」ボタン
+function closeEditCancelPopup(){
+  var pop=document.getElementById('edit-cancel-popup');
+  if(pop) pop.style.display='none';
+  _editCancelPendingTab=null;
+  // 元の取引をカートに復元
+  if(editingSaleId){
+    var record=sales.find(function(s){return s.id===editingSaleId;});
+    if(record){
+      cart=record.items.map(function(i){return Object.assign({},i);});
+      selectedAttrs=Object.assign({},record.attrs);
+      activeDiscount=record.discount||'';
+      recalcCartPrices();
+      renderCart();renderAttrs();renderDiscountBar();
+    }
+  }
+}
+
 function localDateStr(d){
   d=d||new Date();
   return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
@@ -2191,7 +2292,7 @@ function exportCSV(){
   const ts=now.getFullYear()+('0'+(now.getMonth()+1)).slice(-2)+('0'+now.getDate()).slice(-2)+'_'+('0'+now.getHours()).slice(-2)+('0'+now.getMinutes()).slice(-2);
   const q=function(v){return '"'+String(v===null||v===undefined?'':v).replace(/"/g,'""')+'"';};
   // GASシートと同じ列構成（1行1商品）でエクスポート
-  const header=['日時','曜日','売上合計','商品名','カテゴリ','数量','単価','小計','人数','割引','支払方法','年齢層','国籍','天気','売上ID'];
+  const header=['日時','売上合計','商品名','カテゴリ','数量','単価','小計','人数','割引','支払方法','年齢層','国籍','天気','メモ','売上ID','端末名'];
   var allRows=[header];
   sales.forEach(function(sale){
     saleToRows(sale).forEach(function(row){allRows.push(row);});
@@ -2204,7 +2305,7 @@ function exportCSV(){
 }
 
 // 売上1件を複数行に変換（1行1商品 — CSV・GAS共通フォーマット）
-// 列: 日時, 曜日, 売上合計, 商品名, カテゴリ, 数量, 単価, 小計, 人数, 割引, 支払方法, 年齢層, 国籍, 天気, 売上ID
+// 列: 日時, 売上合計, 商品名, カテゴリ, 数量, 単価, 小計, 人数, 割引, 支払方法, 年齢層, 国籍, 天気, メモ, 売上ID, 端末名
 function saleToRows(sale){
   var FACILITY_CATS=['cat_walk','cat_tree_day','cat_bbq','cat_stay_tree','cat_stay_dome','cat_stay_tent','cat_stay_hm'];
   var discountItems2=ld(KEYS.discounts)||discountItems;
@@ -2217,11 +2318,10 @@ function saleToRows(sale){
   var natStr=nats.join('・');
   var dt=new Date(sale.datetime);
   var DOW=['日','月','火','水','木','金','土'];
-  var dtStr='',dow='';
+  var dtStr='';
   if(!isNaN(dt)){
     var mo=dt.getMonth()+1,dy=dt.getDate(),h=dt.getHours(),mi=dt.getMinutes();
-    dtStr=dt.getFullYear()+'/'+(mo<10?'0':'')+mo+'/'+(dy<10?'0':'')+dy+' ('+(DOW[dt.getDay()]||'')+') '+(h<10?'0':'')+h+':'+(mi<10?'0':'')+mi;
-    dow=DOW[dt.getDay()]||'';
+    dtStr=mo+'/'+(dy<10?'0':'')+dy+' ('+(DOW[dt.getDay()]||'')+') '+(h<10?'0':'')+h+':'+(mi<10?'0':'')+mi;
   }
   var catNameMap={};
   cats.forEach(function(c){catNameMap[c.id]=c.name;});
@@ -2233,23 +2333,22 @@ function saleToRows(sale){
     var m=i.name.match(/[（(](\d+)人[）)]/);
     var persons=isF?(m?parseInt(m[1])*i.qty:i.qty):0;
     return [
-      dtStr,                   // A: 日時（全行。ソート用）
-      isFirst?dow:'',          // B: 曜日
-      isFirst?sale.total:'',   // C: 売上合計
-      i.name,                  // D: 商品名
-      catName,                 // E: カテゴリ
-      i.qty,                   // F: 数量
-      i.price,                 // G: 単価
-      i.price*i.qty,           // H: 小計
-      persons,                 // I: 人数
-      isFirst?discLabel:'',    // J: 割引
-      isFirst?method:'',       // K: 支払方法
-      isFirst?ageStr:'',       // L: 年齢層
-      isFirst?natStr:'',       // M: 国籍
-      isFirst?weatherStr:'',         // N: 天気
-      isFirst?sale.memo||'':'',     // O: メモ
-      sale.id,                      // P: 売上ID（全行。重複排除用）
-      isFirst?sale.device_name||sale.device||'':'',   // Q: 端末名
+      dtStr,                                          // A: 日時（全行。ソート用）
+      isFirst?sale.total:'',                          // B: 売上合計
+      i.name,                                         // C: 商品名
+      catName,                                        // D: カテゴリ
+      i.qty,                                          // E: 数量
+      i.price,                                        // F: 単価
+      i.price*i.qty,                                  // G: 小計
+      persons,                                        // H: 人数
+      isFirst?discLabel:'',                           // I: 割引
+      isFirst?method:'',                              // J: 支払方法
+      isFirst?ageStr:'',                              // K: 年齢層
+      isFirst?natStr:'',                              // L: 国籍
+      isFirst?weatherStr:'',                          // M: 天気
+      isFirst?sale.memo||'':'',                       // N: メモ
+      sale.id,                                        // O: 売上ID（全行。重複排除用）
+      isFirst?sale.device_name||sale.device||'':'',   // P: 端末名
     ];
   });
 }
@@ -2286,7 +2385,7 @@ function doSync(mode){
 // GETでデータ送信（POSTリダイレクト問題を回避）
 async function gasGet(url, data){
   var qs='?d='+encodeURIComponent(JSON.stringify(data));
-  await fetch(url+qs,{method:'GET'});
+  await fetch(url+qs,{method:'GET',mode:'no-cors'});
 }
 
 // 実際の同期処理
@@ -2312,24 +2411,22 @@ async function syncSales(){ doSync('all'); }
 
 // 決済ごとに自動送信（新規）
 async function autoSyncSale(sale){
-  const url=(ld(KEYS.gas)||DEFAULT_GAS_URL)||'';
+  const url=DEFAULT_GAS_URL;
   if(!url) return;
-  try{
-    await gasGet(url,{type:'add_rows',rows:saleToRows(sale)});
-  }catch(e){}
+  try{ await gasGet(url,{type:'add_rows',rows:saleToRows(sale)}); }catch(e){}
 }
 
 // ポップアップで変更した売上を再送（replace）
 async function autoSyncUpdatedSale(sale){
-  const url=(ld(KEYS.gas)||DEFAULT_GAS_URL)||'';
+  const url=DEFAULT_GAS_URL;
   if(!url) return;
   try{
     await gasGet(url,{type:'replace_rows',sale_id:sale.id,rows:saleToRows(sale)});
-  }catch(e){}
+  }catch(e){showToast('⚠ GAS同期エラー: '+e.message,'#c00',6000);}
 }
 
 async function autoDeleteSale(saleId){
-  const url=(ld(KEYS.gas)||DEFAULT_GAS_URL)||'';
+  const url=DEFAULT_GAS_URL;
   if(!url) return;
   try{
     await gasGet(url,{type:'delete_rows',sale_id:saleId});
@@ -2375,39 +2472,12 @@ function initDeviceNameField(){
   if(curr) curr.textContent=dname?'現在の端末名: '+dname:'（未設定）';
 }
 function initVersionInfo(){
-  var box=document.getElementById('pos-version-info');
-  if(!box) return;
+  var b=document.getElementById('pos-version-info');
+  if(!b) return;
   var typeColor=APP_VERSION_TYPE==='main'?'var(--accent)':'var(--accent2)';
   var typeLabel=APP_VERSION_TYPE==='main'?'main版':'TEST版';
-  fetch('https://api.github.com/repos/whwkwkss30ma-ux/pos-main/commits?per_page=1&sha=main',{headers:{'Accept':'application/vnd.github.v3+json'}})
-    .then(function(res){
-      var link=res.headers.get('Link')||'';
-      var m=link.match(/[?&]page=(\d+)>;\s*rel="last"/);
-      var count=m?parseInt(m[1],10):null;
-      return res.json().then(function(data){return{count:count,data:data};});
-    })
-    .then(function(r){
-      var count=r.count;
-      var commit=r.data&&r.data[0]&&r.data[0].commit;
-      var dateStr='';
-      if(commit&&commit.committer&&commit.committer.date){
-        var d=new Date(commit.committer.date);
-        // JST (+9)
-        var jst=new Date(d.getTime()+9*60*60*1000);
-        dateStr=jst.getUTCFullYear()+'/'+(jst.getUTCMonth()+1).toString().padStart(2,'0')+'/'+jst.getUTCDate().toString().padStart(2,'0')+' '+jst.getUTCHours().toString().padStart(2,'0')+':'+jst.getUTCMinutes().toString().padStart(2,'0');
-      }
-      var verStr=count?'ver.'+(count+APP_VERSION_OFFSET):'ver.-';
-      var b=document.getElementById('pos-version-info');
-      if(!b) return;
-      b.innerHTML='<div style="font-size:12px;color:var(--accent);font-weight:700;">POSレジ '+verStr+'</div>'
-        +'<div style="font-size:11px;color:var(--text2);margin-top:2px;">更新: '+dateStr+' &nbsp;|&nbsp; <span style="color:'+typeColor+';font-weight:600;">'+typeLabel+'</span></div>';
-    })
-    .catch(function(){
-      var b=document.getElementById('pos-version-info');
-      if(!b) return;
-      b.innerHTML='<div style="font-size:12px;color:var(--accent);font-weight:700;">POSレジ ver.-</div>'
-        +'<div style="font-size:11px;color:var(--text2);margin-top:2px;"><span style="color:'+typeColor+';font-weight:600;">'+typeLabel+'</span> (取得失敗)</div>';
-    });
+  b.innerHTML='<div style="font-size:12px;color:var(--accent);font-weight:700;">POSレジ ver.'+APP_VERSION+'</div>'
+    +'<div style="font-size:11px;color:var(--text2);margin-top:2px;">更新: '+APP_BUILD_DATE+' &nbsp;|&nbsp; <span style="color:'+typeColor+';font-weight:600;">'+typeLabel+'</span></div>';
 }
 function savePosGasUrl(){
   const el=document.getElementById('pos-gas-url');
