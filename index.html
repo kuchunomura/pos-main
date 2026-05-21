@@ -783,8 +783,14 @@ function openDB(){
 function sv(k,v){
   const s=JSON.stringify(v);
   try{localStorage.setItem(k,s);}catch(e){}
+}
+function saveSnapshotToIDB(){
+  const SNAP=['pos_items','pos_sales','pos_gas','pos_cats','pos_item_order','pos_cat_order',
+              'pos_sites','pos_discounts','pos_attrs','pos_display','pos_paid_display','pos_timer_fac','pos_holds'];
   openDB().then(db=>{
-    db.transaction(STORE_NAME,'readwrite').objectStore(STORE_NAME).put(s,k);
+    const tx=db.transaction(STORE_NAME,'readwrite');
+    const st=tx.objectStore(STORE_NAME);
+    SNAP.forEach(k=>{const v=localStorage.getItem(k);if(v!=null)st.put(v,k);});
   }).catch(()=>{});
 }
 function ld(k){
@@ -2056,6 +2062,7 @@ function confirmPayment(){
     editingSaleId=null;
   }
   sales.push(record);sv(KEYS.sales,sales);
+  saveSnapshotToIDB();
   lastSaleId=record.id;
   autoSyncSale(record);
   if(nextDayMode) updateCarryOverBanner();
