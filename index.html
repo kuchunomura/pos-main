@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -37,7 +37,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 .cat-section{margin-bottom:14px;}
 .cat-section.dragging-cat{opacity:0.4;}
 .cat-section.drag-over-cat{border-top:3px solid var(--accent);}
-.cat-header{display:flex;align-items:center;gap:6px;margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid var(--border);}
+.cat-header{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid var(--border);}
 .cat-header-title{font-size:12px;font-weight:700;}
 .cat-drag-handle{font-size:14px;color:#bbb;cursor:grab;padding:0 2px;display:none;}
 .edit-mode .cat-drag-handle{display:block;}
@@ -163,6 +163,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 .payment-done-method{font-size:12px;color:var(--text2);margin-bottom:16px;}
 .payment-done-btns{display:flex;flex-direction:column;gap:7px;}
 .payment-done-btns button{padding:12px;border-radius:10px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+.done-next{padding:20px !important;font-size:17px !important;}
 .done-edit{background:#fff3e0;color:var(--accent2);border:1px solid var(--accent3) !important;}
 .done-next{background:var(--accent);color:#fff;}
 .done-flag{background:#fde8e8;color:var(--red);border:1px solid #f5c0c0 !important;}
@@ -191,6 +192,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
     <div class="pos-left">
       <div class="pos-top-bar">
         <div class="cat-filter-tabs" id="cat-filter-tabs"></div>
+        <button id="next-day-btn"  class="edit-btn" onclick="toggleNextDay(1)" title="翌日計上モード">🌙 翌日</button>
+        <button id="next-day2-btn" class="edit-btn" onclick="toggleNextDay(2)" title="翌々日計上モード">🌙🌙 翌々日</button>
         <button class="edit-btn" id="edit-btn" onclick="toggleEditMode()">✏️ 編集</button>
       </div>
       <div class="pos-items-area" id="pos-items-area"></div>
@@ -227,6 +230,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
         <h3>🛒 カート</h3>
         <span id="cart-count" style="font-size:11px;color:var(--text2)"></span>
       </div>
+      <div id="carry-over-badge" style="display:none;background:#fff3cd;color:#7a5500;padding:4px 12px;font-size:12px;font-weight:700;text-align:center;">前日繰越: ¥0</div>
+      <div id="next-day-banner" style="display:none;background:#7a5500;color:#fff;padding:5px 12px;font-size:12px;font-weight:700;text-align:center;letter-spacing:0.5px;">🌙 翌日計上モード ON</div>
       <div class="cart-list" id="cart-list"></div>
       <div class="cart-footer">
         <div id="orig-amount-row" class="orig-amount" style="display:none"></div>
@@ -378,6 +383,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
     <div class="date-filter" style="margin-bottom:10px;">
       <button class="btn-sm2" id="filter-btn-today" onclick="setFilterToday()">📅 今日</button>
       <button class="btn-sm2" id="filter-btn-yesterday" onclick="setFilterYesterday()">昨日</button>
+      <button class="btn-sm2" id="filter-btn-tomorrow" onclick="setFilterTomorrow()">明日</button>
+      <button class="btn-sm2" id="filter-btn-day2" onclick="setFilterDayAfterTomorrow()">明後日</button>
       <input type="date" id="filter-from" onchange="updateFilterBtnState()">
       <span style="font-size:12px">〜</span>
       <input type="date" id="filter-to" onchange="updateFilterBtnState()">
@@ -595,7 +602,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 
 <!-- 決済モーダル -->
 <div class="modal-overlay" id="payment-modal">
-  <div class="modal">
+  <div class="modal" style="max-width:480px;">
     <h3 id="payment-modal-title">決済確認</h3>
     <div style="font-size:26px;font-weight:700;text-align:center;margin:12px 0;color:var(--accent2)" id="payment-modal-amount"></div>
     <div id="cash-change-section" style="display:none">
@@ -604,15 +611,19 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
         <input type="number" id="cash-received" oninput="calcChange()" placeholder="0"
           style="width:100%;text-align:center;font-size:26px;font-weight:700;color:var(--blue);padding:8px 10px;border:2px solid var(--blue);border-radius:10px;font-family:inherit;">
       </div>
-      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;">
-        <button onclick="setCashExact()" style="flex:1;min-width:60px;padding:8px 4px;border:1px solid var(--green);border-radius:8px;background:#f0f7e8;color:var(--green);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">ちょうど</button>
-        <button onclick="addCash(10000)" style="flex:1;min-width:44px;padding:8px 2px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">1万</button>
-        <button onclick="addCash(5000)"  style="flex:1;min-width:44px;padding:8px 2px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">5千</button>
-        <button onclick="addCash(1000)"  style="flex:1;min-width:44px;padding:8px 2px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">1千</button>
-        <button onclick="addCash(500)"   style="flex:1;min-width:44px;padding:8px 2px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">500</button>
-        <button onclick="addCash(100)"   style="flex:1;min-width:44px;padding:8px 2px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">100</button>
-        <button onclick="addCash(50)"    style="flex:1;min-width:44px;padding:8px 2px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">50</button>
-        <button onclick="document.getElementById('cash-received').value='';calcChange();" style="flex:1;min-width:44px;padding:8px 2px;border:1px solid #fcc;border-radius:8px;background:#fff;color:var(--red);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">C</button>
+      <!-- C（1/3）+ ちょうど（2/3） -->
+      <div style="display:grid;grid-template-columns:1fr 2fr;gap:6px;margin-top:8px;">
+        <button onclick="document.getElementById('cash-received').value='';calcChange();" style="padding:11px 4px;border:1px solid #fcc;border-radius:10px;background:#fff;color:var(--red);font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;">C</button>
+        <button onclick="setCashExact()" style="padding:11px 4px;border:1px solid var(--green);border-radius:10px;background:#f0f7e8;color:var(--green);font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;">ちょうど</button>
+      </div>
+      <!-- 金額ボタン -->
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:6px;">
+        <button onclick="addCash(10000)" style="padding:16px 2px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">10,000</button>
+        <button onclick="addCash(5000)"  style="padding:16px 2px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">5,000</button>
+        <button onclick="addCash(1000)"  style="padding:16px 2px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">1,000</button>
+        <button onclick="addCash(500)"   style="padding:16px 2px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">500</button>
+        <button onclick="addCash(100)"   style="padding:16px 2px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">100</button>
+        <button onclick="addCash(50)"    style="padding:16px 2px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">50</button>
       </div>
       <div style="text-align:center;padding:10px;background:#f0f7e8;border-radius:8px;margin-top:8px;">
         <div style="font-size:12px;color:var(--text2);margin-bottom:2px;">お釣り</div>
@@ -621,7 +632,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
     </div>
     <div class="modal-btns">
       <button onclick="closePaymentModal()">キャンセル</button>
-      <button class="confirm" onclick="confirmPayment()">決済完了</button>
+      <button id="payment-confirm-btn" class="confirm" onclick="confirmPayment()" style="padding:16px 28px;font-size:15px;">決済完了</button>
     </div>
   </div>
 </div>
@@ -643,6 +654,12 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
         <option value="13px">大（13px）</option>
         <option value="15px">特大（15px）</option>
       </select>
+    </div>
+    <div class="form-row">
+      <label>名前カラー（部分設定）</label>
+      <div id="nameparts-editor" style="display:flex;flex-direction:column;gap:5px;margin-top:4px;"></div>
+      <button type="button" onclick="addNamePart()" style="margin-top:6px;padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:#fff;font-size:11px;cursor:pointer;font-family:inherit;">＋ 部分追加</button>
+      <div style="font-size:9px;color:#999;margin-top:3px;">複数パーツで色分け表示。テキストの合計が商品名になります。</div>
     </div>
     <div class="modal-btns">
       <button onclick="closeItemModal()">キャンセル</button>
@@ -674,6 +691,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
       <button class="done-next" onclick="nextCustomer()">✅ 次のお客様へ</button>
       <button class="done-flag" onclick="flagAndClose()">🔴 印をつけて閉じる</button>
     </div>
+    <div id="done-countdown" style="margin-top:10px;font-size:11px;color:#bbb;"></div>
   </div>
 </div>
 
@@ -706,8 +724,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 224;
-const APP_BUILD_DATE = '2026/05/06';
+const APP_VERSION = 256;
+const APP_BUILD_DATE = '2026/05/21';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
@@ -755,10 +773,10 @@ const DEFAULT_CATS = [
   {id:'cat_walk',       name:'空中ウォーク',        bg:'#f0f6ff',border:'#a0c0e8',text:'#2a4a70',price:'#888'},
   {id:'cat_tree_day',   name:'ツリーハウス昼',      bg:'#f0fff8',border:'#80c8a0',text:'#1a4a30',price:'#888'},
   {id:'cat_bbq',        name:'BBQ',                 bg:'#eef4ff',border:'#7090d0',text:'#204080',price:'#888'},
-  {id:'cat_stay_tree',  name:'宿泊：ツリーハウス',  bg:'#fff5f0',border:'#e0b090',text:'#7a3020',price:'#888'},
-  {id:'cat_stay_dome',  name:'宿泊：ドーム',        bg:'#fff5f7',border:'#e0a0b0',text:'#7a3050',price:'#888'},
-  {id:'cat_stay_tent',  name:'宿泊：空中テント',    bg:'#f5f0ff',border:'#b0a0e0',text:'#402070',price:'#888'},
-  {id:'cat_stay_hm',    name:'宿泊：ハンモック',    bg:'#f0fff5',border:'#90d0a0',text:'#204830',price:'#888'},
+  {id:'cat_stay_tree',  name:'宿泊：ツリーハウス',  bg:'#F5F0E8',border:'#B09060',text:'#604020',price:'#888'},
+  {id:'cat_stay_dome',  name:'宿泊：ドーム',        bg:'#EEF2F6',border:'#9088C0',text:'#2C4870',price:'#888'},
+  {id:'cat_stay_tent',  name:'宿泊：空中テント',    bg:'#FAF0E6',border:'#C89060',text:'#5A3010',price:'#888'},
+  {id:'cat_stay_hm',    name:'宿泊：ハンモック',    bg:'#EBF3FA',border:'#78A8CC',text:'#1E4A78',price:'#888'},
   {id:'cat_rental',     name:'備品レンタル',        bg:'#fffaf0',border:'#e8c878',text:'#6b4f20',price:'#888'},
   {id:'cat_pet',        name:'ペット',              bg:'#fff0f8',border:'#e8a0c0',text:'#7a2050',price:'#888'},
   {id:'cat_uketsuke',   name:'受付飲食',            bg:'#fff0f0',border:'#d09090',text:'#502020',price:'#888'},
@@ -786,18 +804,18 @@ const DEFAULT_ITEMS = [
   {id:'i_tree1day',name:'ツリーハウス昼 1DAY',     price:4000, cat:'cat_tree_day', stock:0, free_mura:false},
   {id:'i_bbq',     name:'BBQスペース',             price:3000, cat:'cat_bbq', stock:0, free_mura:true},
   // 宿泊：ツリーハウス
-  {id:'i_st_th',  name:'ツリーハウス',       price:12000,cat:'cat_stay_tree',stock:1, stay_prices:{1:14000,2:12000,3:10000,4:8000,5:8000}},
+  {id:'i_st_th',  name:'ツリーハウス',       price:12000,cat:'cat_stay_tree',stock:1, stay_prices:{1:14000,2:12000,3:10000,4:8000,5:8000}, dotColor:'#72A862'},
   // 宿泊：ドーム
-  {id:'i_st_dm',  name:'ドーム（ミラー）',   price:10000,cat:'cat_stay_dome',stock:1, stay_prices:{1:12000,2:10000,3:8000,4:7000,5:7000}},
-  {id:'i_st_dt',  name:'ドーム（クリア）',     price:10000,cat:'cat_stay_dome',stock:1, stay_prices:{1:12000,2:10000,3:8000,4:7000,5:7000}},
-  {id:'i_st_dg',  name:'ドーム（グレー）',   price:10000,cat:'cat_stay_dome',stock:1, stay_prices:{1:12000,2:10000,3:8000,4:7000,5:7000}},
+  {id:'i_st_dm',  name:'ドーム（ミラー）',   price:10000,cat:'cat_stay_dome',stock:1, stay_prices:{1:12000,2:10000,3:8000,4:7000,5:7000}, dotColor:'#B0B0B0', nameParts:[{text:'ドーム',color:'#1a1a1a'},{text:'（ミラー）',color:'#1a1a1a'}]},
+  {id:'i_st_dt',  name:'ドーム（クリア）',     price:10000,cat:'cat_stay_dome',stock:1, stay_prices:{1:12000,2:10000,3:8000,4:7000,5:7000}, dotColor:'#9ABFC9', nameParts:[{text:'ドーム',color:'#1a1a1a'},{text:'（クリア）',color:'#1a1a1a'}]},
+  {id:'i_st_dg',  name:'ドーム（グレー）',   price:10000,cat:'cat_stay_dome',stock:1, stay_prices:{1:12000,2:10000,3:8000,4:7000,5:7000}, dotColor:'#888888', nameParts:[{text:'ドーム',color:'#1a1a1a'},{text:'（グレー）',color:'#1a1a1a'}]},
   // 宿泊：空中テント
-  {id:'i_st_t1',  name:'テント①オレンジ',   price:7000, cat:'cat_stay_tent',stock:1, stay_prices:{1:9000,2:7000,3:7000}},
-  {id:'i_st_t2',  name:'テント②ホワイト',   price:7000, cat:'cat_stay_tent',stock:1, stay_prices:{1:9000,2:7000,3:7000}},
-  {id:'i_st_t3',  name:'テント③ベージュ',   price:7000, cat:'cat_stay_tent',stock:1, stay_prices:{1:9000,2:7000,3:7000}},
+  {id:'i_st_t1',  name:'テント①オレンジ',   price:7000, cat:'cat_stay_tent',stock:1, stay_prices:{1:9000,2:7000,3:7000}, dotColor:'#E07820', nameParts:[{text:'テント①',color:'#1a1a1a'},{text:'オレンジ',color:'#1a1a1a'}]},
+  {id:'i_st_t2',  name:'テント②ホワイト',   price:7000, cat:'cat_stay_tent',stock:1, stay_prices:{1:9000,2:7000,3:7000}, dotColor:'#C0C8D0', nameParts:[{text:'テント②',color:'#1a1a1a'},{text:'ホワイト',color:'#1a1a1a'}]},
+  {id:'i_st_t3',  name:'テント③ベージュ',   price:7000, cat:'cat_stay_tent',stock:1, stay_prices:{1:9000,2:7000,3:7000}, dotColor:'#C8A870', nameParts:[{text:'テント③',color:'#1a1a1a'},{text:'ベージュ',color:'#1a1a1a'}]},
   // 宿泊：ハンモック（⑥ 2+3名構成に変更）
-  {id:'i_st_h1',name:'ハンモック①',price:6000,cat:'cat_stay_hm',stock:1,stay_prices:{1:6000,2:5000,3:4000,4:4000,5:4000}},
-  {id:'i_st_h2',name:'ハンモック②',price:6000,cat:'cat_stay_hm',stock:1,stay_prices:{1:6000,2:5000,3:4000,4:4000,5:4000}},
+  {id:'i_st_h1',name:'ハンモック①',price:6000,cat:'cat_stay_hm',stock:1,stay_prices:{1:6000,2:5000,3:4000,4:4000,5:4000}, dotColor:'#5A90B8'},
+  {id:'i_st_h2',name:'ハンモック②',price:6000,cat:'cat_stay_hm',stock:1,stay_prices:{1:6000,2:5000,3:4000,4:4000,5:4000}, dotColor:'#5A90B8'},
   // 備品レンタル
   {id:'i_pet_01', name:'ペット', price:3000, cat:'cat_pet', stock:99, free_mura:false},
   {id:'i_b01', name:'焚火台セット',        price:1500,cat:'cat_rental',stock:7, free_mura:false},
@@ -810,6 +828,7 @@ const DEFAULT_ITEMS = [
   {id:'i_b06c',name:'マッチ 1箱',          price:200, cat:'cat_rental',stock:5, free_mura:false},
   {id:'i_b06d',name:'ランタン',            price:500, cat:'cat_rental',stock:5, free_mura:false},
   {id:'i_b07', name:'薪割りセット',        price:500, cat:'cat_rental',stock:1, free_mura:false},
+  {id:'i_b07b',name:'薪割りセット（改定後）',price:800,cat:'cat_rental',stock:1, free_mura:false},
   {id:'i_b08', name:'コーヒーセット',      price:1500,cat:'cat_rental',stock:1, free_mura:false},
   {id:'i_b09', name:'天体望遠鏡',          price:1500,cat:'cat_rental',stock:2, free_mura:false},
   {id:'i_b10', name:'ポータブル電源（大）',price:1400,cat:'cat_rental',stock:3, free_mura:false},
@@ -878,8 +897,8 @@ const DEFAULT_ITEMS = [
   {id:'i_b20', name:'寝袋（冬用）',        price:1000,cat:'cat_rental',stock:2, free_mura:false},
 ];
 
-// 常にtest用GAS URLを強制固定
-sv(KEYS.gas, DEFAULT_GAS_URL);
+// 未設定時のみデフォルトURLを適用
+if(!ld(KEYS.gas)) sv(KEYS.gas, DEFAULT_GAS_URL);
 let cats = ld(KEYS.cats) || DEFAULT_CATS;
 // cat_uketsukeをcat_petの直後に移動（localStorage古い順序を修正）
 (function(){
@@ -891,6 +910,23 @@ let cats = ld(KEYS.cats) || DEFAULT_CATS;
     cats.splice(pi2+1,0,u);
     sv(KEYS.cats,cats);
   }
+})();
+// 宿泊カテゴリ背景色マイグレーション
+(function(){
+  var newColors={
+    cat_stay_tree:{bg:'#F5F0E8',border:'#B09060',text:'#604020'},
+    cat_stay_dome:{bg:'#EEF2F6',border:'#9088C0',text:'#2C4870'},
+    cat_stay_tent:{bg:'#FAF0E6',border:'#C89060',text:'#5A3010'},
+    cat_stay_hm:  {bg:'#EBF3FA',border:'#78A8CC',text:'#1E4A78'},
+  };
+  var changed=false;
+  cats.forEach(function(cat){
+    var nc=newColors[cat.id];
+    if(nc&&(cat.bg!==nc.bg||cat.border!==nc.border)){
+      cat.bg=nc.bg;cat.border=nc.border;cat.text=nc.text;changed=true;
+    }
+  });
+  if(changed) sv(KEYS.cats,cats);
 })();
 let items = ld(KEYS.items) || DEFAULT_ITEMS;
 let sales = ld(KEYS.sales) || [];
@@ -917,7 +953,15 @@ const DEFAULT_DISCOUNTS = [
 let discountItems = ld(KEYS.discounts) || DEFAULT_DISCOUNTS;
 let cart = [];
 let selectedAttrs = {age:[],nationality:[]};
-let activeDiscount = ''; // 'mura' or site key or 'pass_day' or 'pass_night'
+let activeDiscount = ''; // site key or 'pass_day' or 'pass_night' or 'stay_guest'
+let activeMura = false;  // 村民割引トグル（activeDiscountとは独立）
+let nextDayMode = 0; // 翌日計上モード: 0=OFF, 1=翌日, 2=翌々日
+let paymentDoneTimer = null;
+let paymentDoneCountdownInterval = null;
+let lastPaidSessionItems = []; // 決済完了後3分間、時間スロットハイライト保持用
+let lastPaidTime = 0;
+let carryOverTotal = 0;      // 前日繰越合計（GASから取得）
+let carryOverFetchDate = ''; // 最後にGASから取得した日付（日付またぎ検出用）
 let currentPayMethod = '';
 let editMode = false;
 let filterCatId = 'all';
@@ -999,6 +1043,102 @@ function getCatTimeInfo(catId){
   return m[catId]||'';
 }
 
+// カテゴリーの時間スロット表示HTML（常時表示。カート一致時にハイライト）
+function getCatTimeSlots(catId){
+  if(catId!=='cat_walk' && catId!=='cat_tree_day') return '';
+  var closeHour = catId==='cat_walk' ? 17 : 16;
+  var slots = [{min:55},{min:115},{min:0}];
+  var now = new Date();
+  var sessionItems = cart.filter(function(c){ return c.cat===catId && !c.paidLabel; });
+  var hasCurrent = sessionItems.length > 0;
+  var useLastPaid = !hasCurrent && lastPaidTime && (Date.now()-lastPaidTime)<180000;
+  var parts = slots.map(function(slot){
+    var inCart;
+    if(hasCurrent){
+      inCart = sessionItems.some(function(c){
+        if(slot.min===0) return /1day/i.test(c.name)||/1DAY/.test(c.name);
+        var m55=c.name.match(/(\d+)分/);
+        return m55 && parseInt(m55[1])===slot.min;
+      });
+    } else if(useLastPaid){
+      inCart = lastPaidSessionItems.some(function(c){
+        if(c.cat!==catId) return false;
+        if(slot.min===0) return /1day/i.test(c.name)||/1DAY/.test(c.name);
+        var m55=c.name.match(/(\d+)分/);
+        return m55 && parseInt(m55[1])===slot.min;
+      });
+    } else {
+      inCart = false;
+    }
+    var label = slot.min===0 ? '1DAY' : slot.min+'分';
+    var endStr;
+    if(slot.min===0){
+      endStr = '→'+closeHour+':00';
+    } else {
+      var actualMins = catId==='cat_walk' ? (slot.min===55?60:slot.min===115?120:slot.min) : slot.min;
+      var end = new Date(now.getTime()+actualMins*60000);
+      endStr = '→'+end.getHours()+':'+('0'+end.getMinutes()).slice(-2);
+    }
+    var color = inCart ? '#8B3A3A' : '#777';
+    var weight = inCart ? '700' : '500';
+    var fsize = inCart ? '15px' : '13px';
+    return '<span data-slot-cat="'+catId+'" data-slot-min="'+slot.min+'" style="color:'+color+';font-weight:'+weight+';font-size:'+fsize+';white-space:nowrap;">'+label+endStr+'</span>';
+  });
+  return '<span style="margin-left:1em;display:inline-flex;gap:14px;align-items:center;">'+parts.join('')+'</span>';
+}
+
+// 毎分ヘッダーの時間スロット終了時刻をDOM更新（renderPOS不要）
+function updateCatTimeSlots(){
+  var now = new Date();
+  document.querySelectorAll('[data-slot-cat]').forEach(function(span){
+    var catId = span.dataset.slotCat;
+    var min = parseInt(span.dataset.slotMin);
+    var closeHour = catId==='cat_walk' ? 17 : 16;
+    var currentItems = cart.filter(function(c){ return c.cat===catId && !c.paidLabel; });
+    var hasCur = currentItems.length > 0;
+    var inCart;
+    if(hasCur){
+      inCart = currentItems.some(function(c){
+        if(min===0) return /1day/i.test(c.name)||/1DAY/.test(c.name);
+        var m55=c.name.match(/(\d+)分/);
+        return m55 && parseInt(m55[1])===min;
+      });
+    } else if(lastPaidTime && (Date.now()-lastPaidTime)<180000){
+      inCart = lastPaidSessionItems.some(function(c){
+        if(c.cat!==catId) return false;
+        if(min===0) return /1day/i.test(c.name)||/1DAY/.test(c.name);
+        var m55=c.name.match(/(\d+)分/);
+        return m55 && parseInt(m55[1])===min;
+      });
+    } else {
+      inCart = false;
+    }
+    var label = min===0 ? '1DAY' : min+'分';
+    var endStr;
+    if(min===0){
+      endStr = '→'+closeHour+':00';
+    } else {
+      var actualMins = catId==='cat_walk' ? (min===55?60:min===115?120:min) : min;
+      var end = new Date(now.getTime()+actualMins*60000);
+      endStr = '→'+end.getHours()+':'+('0'+end.getMinutes()).slice(-2);
+    }
+    span.textContent = label+endStr;
+    span.style.color = inCart ? '#8B3A3A' : '#777';
+    span.style.fontWeight = inCart ? '700' : '500';
+    span.style.fontSize = inCart ? '15px' : '13px';
+  });
+}
+
+
+// グループ内のcat-header高さを揃えてボタン行を一致させる
+function equalizeGroupHeaders(){
+  document.querySelectorAll('[data-cat-group]').forEach(function(wrap){
+    var headers = wrap.querySelectorAll('.cat-header');
+    var maxH = 0;
+    headers.forEach(function(h){ h.style.minHeight=''; maxH=Math.max(maxH,h.offsetHeight); });
+    headers.forEach(function(h){ h.style.minHeight=maxH+'px'; });
+  });
+}
 
 // カテゴリーグループ（横並び表示）
 const CAT_GROUPS = [
@@ -1059,12 +1199,14 @@ function renderDiscountBar(){
   const c=document.getElementById('discount-bar');if(!c)return;c.innerHTML='';
   discountItems.forEach(d=>{
     const b=document.createElement('button');
-    const isActive=activeDiscount===d.key;
+    const isMuraKey=d.key==='mura';
+    const isActive=isMuraKey ? activeMura : activeDiscount===d.key;
     const isPaid=d.type==='paid';
     b.className='disc-btn'+(isActive?(isPaid?' paid-active':' active'):'');
     b.textContent=d.label+(isPaid&&isActive?' ✓支払済':'');
     b.onclick=()=>{
-      activeDiscount=isActive?'':d.key;
+      if(isMuraKey){ activeMura=!activeMura; }
+      else { activeDiscount=isActive?'':d.key; }
       recalcCartPrices();
       renderDiscountBar();renderPOS();renderCart();
     };
@@ -1093,8 +1235,10 @@ function renderPOS(){
       const header=document.createElement('div');
       header.className='cat-header';
       const catTimeInfo=getCatTimeInfo(cat.id);
+      const catTimeSlots=getCatTimeSlots(cat.id);
       header.innerHTML='<span class="cat-drag-handle">⠿⠿</span><span class="cat-header-title" style="color:'+cat.text+'">'+cat.name+'</span>'+
-        (catTimeInfo?'<span style="font-size:11px;color:#555;margin-left:3em;font-weight:500;">'+catTimeInfo+'</span>':'');
+        (catTimeInfo?'<span style="font-size:13px;color:#555;margin-left:3em;font-weight:500;">'+catTimeInfo+'</span>':'')+
+        catTimeSlots;
       header.style.borderBottomColor=cat.border;
       const grid=document.createElement('div');grid.className='cat-items';
       catItems.forEach(item=>{
@@ -1113,7 +1257,8 @@ function renderPOS(){
         const grp=getCatGroup(cat.id);
         const wrap=document.createElement('div');
         wrap.style.cssText='display:flex;gap:6px;';
-        section.style.flex='1';
+        wrap.dataset.catGroup='1';
+        section.style.flex=(grp[0]==='cat_tree_day')?'2':'1';
         wrap.appendChild(section);
         grp.slice(1).forEach(function(fId){
           const fCat=cats.find(x=>x.id===fId); if(!fCat) return;
@@ -1123,7 +1268,8 @@ function renderPOS(){
           fSec.className='cat-section';fSec.dataset.catId=fId;fSec.style.flex='1';
           const fHdr=document.createElement('div');fHdr.className='cat-header';
           const fTI=getCatTimeInfo(fId);
-          fHdr.innerHTML='<span class="cat-header-title" style="color:'+fCat.text+'">'+fCat.name+'</span>'+(fTI?'<span style="font-size:11px;color:#555;margin-left:3em;font-weight:500;">'+fTI+'</span>':'');
+          const fTS=getCatTimeSlots(fId);
+          fHdr.innerHTML='<span class="cat-header-title" style="color:'+fCat.text+'">'+fCat.name+'</span>'+(fTI?'<span style="font-size:11px;color:#555;margin-left:3em;font-weight:500;">'+fTI+'</span>':'')+fTS;
           fHdr.style.borderBottomColor=fCat.border;
           const fGrid=document.createElement('div');fGrid.className='cat-items';
           fItems.forEach(function(item){fGrid.appendChild(makeItemBtn(item,fCat,fGrid));});
@@ -1147,7 +1293,8 @@ function renderPOS(){
       const header=document.createElement('div');
       header.className='cat-header';
       const cti=getCatTimeInfo(cat.id);
-      header.innerHTML='<span class="cat-header-title" style="color:'+cat.text+'">'+cat.name+'</span>'+(cti?'<span style="font-size:11px;color:#555;margin-left:3em;font-weight:500;">'+cti+'</span>':'');
+      const cts=getCatTimeSlots(cat.id);
+      header.innerHTML='<span class="cat-header-title" style="color:'+cat.text+'">'+cat.name+'</span>'+(cti?'<span style="font-size:11px;color:#555;margin-left:3em;font-weight:500;">'+cti+'</span>':'')+cts;
       header.style.borderBottomColor=cat.border;
       const grid=document.createElement('div');grid.className='cat-items';
       catItems.forEach(item=>{ grid.appendChild(makeItemBtn(item,cat,grid)); });
@@ -1156,7 +1303,8 @@ function renderPOS(){
         const grp=getCatGroup(cat.id);
         const wrap=document.createElement('div');
         wrap.style.cssText='display:flex;gap:6px;';
-        section.style.flex='1';
+        wrap.dataset.catGroup='1';
+        section.style.flex=(grp[0]==='cat_tree_day')?'2':'1';
         wrap.appendChild(section);
         grp.slice(1).forEach(function(fId){
           const fCat=cats.find(x=>x.id===fId); if(!fCat) return;
@@ -1165,7 +1313,8 @@ function renderPOS(){
           const fSec=document.createElement('div');fSec.className='cat-section';fSec.style.flex='1';
           const fHdr=document.createElement('div');fHdr.className='cat-header';
           const fTI=getCatTimeInfo(fId);
-          fHdr.innerHTML='<span class="cat-header-title" style="color:'+fCat.text+'">'+fCat.name+'</span>'+(fTI?'<span style="font-size:11px;color:#555;margin-left:3em;font-weight:500;">'+fTI+'</span>':'');
+          const fTS=getCatTimeSlots(fId);
+          fHdr.innerHTML='<span class="cat-header-title" style="color:'+fCat.text+'">'+fCat.name+'</span>'+(fTI?'<span style="font-size:11px;color:#555;margin-left:3em;font-weight:500;">'+fTI+'</span>':'')+fTS;
           fHdr.style.borderBottomColor=fCat.border;
           const fGrid=document.createElement('div');fGrid.className='cat-items';
           fItems.forEach(function(item){fGrid.appendChild(makeItemBtn(item,fCat,fGrid));});
@@ -1179,6 +1328,7 @@ function renderPOS(){
       hasAny=true;
     });
   }
+  setTimeout(equalizeGroupHeaders, 0);
 }
 
 function shadeColor(col, pct){
@@ -1219,9 +1369,22 @@ function makeItemBtn(item, cat, grid){
   } else {
     priceHtml='<div class="item-price" style="color:'+cat.price+'">¥'+dispPrice.toLocaleString()+'</div>';
   }
+  var dotHtml='';
+  if(STAY_CAT_IDS.includes(item.cat)){
+    var dotColor=item.dotColor||item.nameColor||cat.text;
+    dotHtml='<span style="color:'+dotColor+';">●</span>';
+  }
+  var nameHtml;
+  if(item.nameParts && item.nameParts.length > 1){
+    var sizeStyle=(item.fontSize||cat.fontSize)?'font-size:'+(item.fontSize||cat.fontSize)+';':'';
+    var defColor=item.nameColor||cat.text;
+    nameHtml='<div class="item-name" style="'+sizeStyle+'">'+dotHtml+item.nameParts.map(function(p){return '<span style="color:'+(p.color||defColor)+'">'+p.text+'</span>';}).join('')+'</div>';
+  } else {
+    nameHtml='<div class="item-name" style="color:'+(item.nameColor||cat.text)+';'+(item.fontSize||cat.fontSize?'font-size:'+(item.fontSize||cat.fontSize)+';':'')+'">'+dotHtml+item.name+'</div>';
+  }
   btn.innerHTML=
     '<div class="item-drag-handle">⠿</div>'+
-    '<div class="item-name" style="color:'+cat.text+';'+(item.fontSize||cat.fontSize?'font-size:'+(item.fontSize||cat.fontSize)+';':'')+'">'+item.name+'</div>'+
+    nameHtml+
     priceHtml+
     (item.stock>0?'<div class="item-stock">在庫:'+item.stock+'</div>':'');
   if(!editMode){
@@ -1260,10 +1423,13 @@ function isStayItem(item){
 }
 
 function getDiscountedPrice(item){
-  if(activeDiscount==='mura'){
-    if(item.cat==='cat_rental') return item.price;
-    if(item.id==='i_bbq' || item.free_mura) return 0;
-    return Math.floor(item.price/2);
+  // 年間パス昼：レンタル・空中ウォーク・ツリーハウス昼が無料（ボタン表示用）
+  if(activeDiscount==='pass_day'){
+    if(item.cat==='cat_rental' || item.cat==='cat_walk' || item.cat==='cat_tree_day') return 0;
+  }
+  // 年間パス夜：レンタル・宿泊が無料（ボタン表示用）
+  if(activeDiscount==='pass_night'){
+    if(item.cat==='cat_rental' || isStayItem(item)) return 0;
   }
   if(activeDiscount==='sou'){
     if(SOU_FREE_IDS.includes(item.id)) return 0;
@@ -1277,8 +1443,12 @@ function getDiscountedPrice(item){
   if(activeDiscount==='stay_guest' || isStayInCart()){
     if(STAY_GUEST_DISC_IDS.includes(item.id)) return item.price - STAY_GUEST_DISC;
   }
-  // 宿泊がカートに入っていればBBQ等を無料に
   if(isStayInCart() && STAY_FREE_IDS.includes(item.id)) return 0;
+  // 村民割引：activeMuraがONのとき、空中ウォーク・ツリーハウス昼が半額、BBQ無料
+  if(activeMura){
+    if(item.id==='i_bbq' || item.free_mura) return 0;
+    if(item.cat==='cat_walk' || item.cat==='cat_tree_day') return Math.floor(item.price/2);
+  }
   return item.price;
 }
 
@@ -1373,6 +1543,71 @@ function reorderCats(srcId,dstId){
   catOrder=n;sv(KEYS.catOrder,catOrder);renderPOS();
 }
 
+function toggleNextDay(mode){
+  nextDayMode=(nextDayMode===mode)?0:mode;
+  renderNextDayBtn();
+  var banner=document.getElementById('next-day-banner');
+  if(banner) banner.style.display=nextDayMode>0?'block':'none';
+  if(nextDayMode>0) updateCarryOverBanner();
+}
+
+function renderNextDayBtn(){
+  var b1=document.getElementById('next-day-btn');
+  var b2=document.getElementById('next-day2-btn');
+  if(b1){
+    if(nextDayMode===1){b1.style.background='#c0392b';b1.style.color='#fff';b1.style.borderColor='#c0392b';b1.textContent='🌙 翌日計上';}
+    else{b1.style.background='';b1.style.color='';b1.style.borderColor='';b1.textContent='🌙 翌日';}
+  }
+  if(b2){
+    if(nextDayMode===2){b2.style.background='#7d3c98';b2.style.color='#fff';b2.style.borderColor='#7d3c98';b2.textContent='🌙🌙 翌々日計上';}
+    else{b2.style.background='';b2.style.color='';b2.style.borderColor='';b2.textContent='🌙🌙 翌々日';}
+  }
+}
+
+// 翌日/翌々日計上モード中の繰越累計（直近24h以内に作成された繰越売上）
+function calcLocalCarryOver(){
+  var now=Date.now();
+  return sales.filter(function(s){
+    if(!s.nextDay) return false;
+    var ts=parseInt(String(s.id).replace('s_',''))||0;
+    return (now-ts)<86400000;
+  }).reduce(function(sum,s){return sum+(s.total||0);},0);
+}
+
+function updateCarryOverBanner(){
+  var banner=document.getElementById('next-day-banner');
+  if(!banner) return;
+  var total=calcLocalCarryOver();
+  var label=nextDayMode===2?'🌙🌙 翌々日計上モード ON':'🌙 翌日計上モード ON';
+  banner.innerHTML=label+' &nbsp;|&nbsp; 繰越累計: <strong>¥'+total.toLocaleString()+'</strong>';
+}
+
+// 前日繰越合計をGASから取得してバッジに表示（起動時・複数デバイス対応）
+async function fetchCarryOverFromGAS(){
+  var url=ld(KEYS.gas)||DEFAULT_GAS_URL;
+  if(!url) return;
+  var now=new Date();
+  var dateStr=(now.getMonth()+1)+'/'+now.getDate();
+  carryOverFetchDate=now.getFullYear()+'-'+('0'+(now.getMonth()+1)).slice(-2)+'-'+('0'+now.getDate()).slice(-2);
+  try{
+    var resp=await fetch(url+'?action=getCarryOver&date='+encodeURIComponent(dateStr),{redirect:'follow'});
+    var json=await resp.json();
+    carryOverTotal=(json&&json.total)?json.total:0;
+  }catch(e){carryOverTotal=0;}
+  renderCarryOverBadge();
+}
+
+function renderCarryOverBadge(){
+  var badge=document.getElementById('carry-over-badge');
+  if(!badge) return;
+  if(carryOverTotal>0){
+    badge.style.display='';
+    badge.textContent='前日繰越: ¥'+carryOverTotal.toLocaleString();
+  }else{
+    badge.style.display='none';
+  }
+}
+
 function toggleEditMode(){
   editMode=!editMode;
   const btn=document.getElementById('edit-btn');
@@ -1389,27 +1624,46 @@ function recalcCartPrices(){
     return item && STAY_CAT_IDS.includes(item.cat);
   });
   cart.forEach(cartItem => {
-    if(activeDiscount === 'mura'){
-      const item = items.find(i=>i.id===cartItem.id);
-      const isRental = item?.cat==='cat_rental' || cartItem.cat==='cat_rental';
-      if(isRental){ cartItem.price=cartItem.origPrice; cartItem.discounted=false; cartItem.paidLabel=''; }
-      else if(cartItem.id==='i_bbq' || cartItem.free_mura){ cartItem.price=0; cartItem.discounted=true; cartItem.paidLabel=''; }
-      else if(cartItem.muraOff){ cartItem.price=cartItem.origPrice; cartItem.discounted=false; cartItem.paidLabel=''; }
-      else{ cartItem.price=Math.floor(cartItem.origPrice/2); cartItem.discounted=true; cartItem.paidLabel=''; }
-    } else if(activeDiscount==='sou' && SOU_FREE_IDS.includes(cartItem.id)){
-      cartItem.price=0; cartItem.discounted=true; cartItem.paidLabel=paidDisplaySettings.label;
-    } else if(activeDiscount==='rakuten' && cartItem.isStay){
-      cartItem.price=0; cartItem.discounted=true; cartItem.paidLabel=paidDisplaySettings.label;
-    } else if(activeDiscount==='jalan' && cartItem.id==='i_walk1day'){
-      cartItem.price=0; cartItem.discounted=true; cartItem.paidLabel=paidDisplaySettings.label;
-    } else if((activeDiscount==='stay_guest'||stayInCart) && STAY_GUEST_DISC_IDS.includes(cartItem.id)){
-      cartItem.price = cartItem.origPrice - STAY_GUEST_DISC;
-      cartItem.discounted = true; cartItem.paidLabel='';
-    } else if(stayInCart && STAY_FREE_IDS.includes(cartItem.id)){
-      cartItem.price = 0; cartItem.discounted = true; cartItem.paidLabel='';
-    } else {
-      cartItem.price = cartItem.origPrice;
-      cartItem.discounted = false; cartItem.paidLabel='';
+    const masterItem = items.find(i=>i.id===cartItem.id);
+    const cat = masterItem ? masterItem.cat : cartItem.cat;
+    var applied = false;
+    // 年間パス昼：追加時にpassKeyが記憶されたアイテムのみ適用
+    if(cartItem.passKey==='pass_day'){
+      if(cat==='cat_rental' || cat==='cat_walk' || cat==='cat_tree_day'){
+        cartItem.price=0; cartItem.discounted=true; cartItem.paidLabel=paidDisplaySettings.label; applied=true;
+      }
+    }
+    // 年間パス夜：追加時にpassKeyが記憶されたアイテムのみ適用
+    else if(cartItem.passKey==='pass_night'){
+      if(cat==='cat_rental' || STAY_CAT_IDS.includes(cat)){
+        cartItem.price=0; cartItem.discounted=true; cartItem.paidLabel=paidDisplaySettings.label; applied=true;
+      }
+    }
+    else if(activeDiscount==='sou' && SOU_FREE_IDS.includes(cartItem.id)){
+      cartItem.price=0; cartItem.discounted=true; cartItem.paidLabel=paidDisplaySettings.label; applied=true;
+    }
+    else if(activeDiscount==='rakuten' && cartItem.isStay){
+      cartItem.price=0; cartItem.discounted=true; cartItem.paidLabel=paidDisplaySettings.label; applied=true;
+    }
+    else if(activeDiscount==='jalan' && cartItem.id==='i_walk1day'){
+      cartItem.price=0; cartItem.discounted=true; cartItem.paidLabel=paidDisplaySettings.label; applied=true;
+    }
+    if(!applied && (activeDiscount==='stay_guest'||stayInCart) && STAY_GUEST_DISC_IDS.includes(cartItem.id)){
+      cartItem.price=cartItem.origPrice-STAY_GUEST_DISC; cartItem.discounted=true; cartItem.paidLabel=''; applied=true;
+    }
+    if(!applied && stayInCart && STAY_FREE_IDS.includes(cartItem.id)){
+      cartItem.price=0; cartItem.discounted=true; cartItem.paidLabel=''; applied=true;
+    }
+    // 村民割引：muraOnが立っているアイテムのみ対象カテゴリを割引
+    if(!applied && cartItem.muraOn){
+      if(cartItem.id==='i_bbq' || cartItem.free_mura){
+        cartItem.price=0; cartItem.discounted=true; cartItem.paidLabel=''; applied=true;
+      } else if(cat==='cat_walk' || cat==='cat_tree_day'){
+        cartItem.price=Math.floor(cartItem.origPrice/2); cartItem.discounted=true; cartItem.paidLabel=''; applied=true;
+      }
+    }
+    if(!applied){
+      cartItem.price=cartItem.origPrice; cartItem.discounted=false; cartItem.paidLabel='';
     }
   });
 }
@@ -1421,11 +1675,15 @@ function addToCart(item,cat){
     openStayModal(item, cat);
     return;
   }
+  // カートに追加した時点でlastPaidハイライトをリセット
+  lastPaidSessionItems = [];
+  lastPaidTime = 0;
   const paidBadge = getPaidBadge(item);
   const price = paidBadge ? 0 : getDiscountedPrice(item);
-  const ex=cart.find(c=>c.id===item.id&&c.discounted===(price<item.price)&&!c.paidLabel===!paidBadge);
+  const newPassKey=(activeDiscount==='pass_day'||activeDiscount==='pass_night')?activeDiscount:'';
+  const ex=cart.find(c=>c.id===item.id&&c.discounted===(price<item.price)&&!c.paidLabel===!paidBadge&&(c.passKey||'')===(newPassKey));
   if(ex)ex.qty++;
-  else cart.push({id:item.id,name:item.name,origPrice:item.price,price,qty:1,discounted:price<item.price,paidLabel:paidBadge||'',free_mura:item.free_mura||false,cat:item.cat||'',catColor:cat?cat.bg:'#fff',muraOff:false});
+  else cart.push({id:item.id,name:item.name,origPrice:item.price,price,qty:1,discounted:price<item.price,paidLabel:paidBadge||'',free_mura:item.free_mura||false,cat:item.cat||'',catColor:cat?cat.bg:'#fff',muraOn:activeMura&&(item.cat==='cat_walk'||item.cat==='cat_tree_day'||item.id==='i_bbq'||!!item.free_mura),passKey:newPassKey});
   if(STAY_CAT_IDS.includes(item.cat)) recalcCartPrices();
   renderPOS();
   renderCart();showToast('✓ '+item.name);
@@ -1460,10 +1718,6 @@ function renderCart(){
               : '<span style="font-size:10px;background:#fde8e8;color:var(--red);border:1px solid #f5c0c0;border-radius:4px;padding:1px 5px;margin-left:4px;font-weight:600;">割引</span>')
           : '');
     const priceColor = item.paidLabel ? paidDisplaySettings.color : (item.discounted ? 'var(--red)' : 'var(--accent2)');
-    const canToggleMura = activeDiscount==='mura' && item.cat!=='cat_rental' && !item.free_mura && item.id!=='i_bbq';
-    const muraToggle = canToggleMura
-      ? '<button onclick="toggleMuraOff('+idx+')" style="font-size:10px;padding:2px 6px;border-radius:4px;border:1px solid '+(item.muraOff?'#ccc':'var(--red)')+';background:'+(item.muraOff?'#f5f5f5':'#fff0f0')+';color:'+(item.muraOff?'#999':'var(--red)')+';cursor:pointer;font-weight:600;white-space:nowrap;">'+(item.muraOff?'通常':'村民↓')+'</button>'
-      : '';
     div.innerHTML=
       '<div style="font-size:13px;font-weight:500;line-height:1.4;">'+item.name+discTag+'</div>'+
       '<div style="display:flex;align-items:center;gap:4px;">'+
@@ -1472,7 +1726,6 @@ function renderCart(){
           '<span style="font-size:14px;font-weight:600;min-width:20px;text-align:center;">'+item.qty+'</span>'+
           '<button onclick="chgQty('+idx+',1)" style="width:26px;height:26px;border:1px solid var(--border);border-radius:5px;background:#fff;font-size:15px;cursor:pointer;padding:0;line-height:1;">＋</button>'+
         '</div>'+
-        muraToggle+
         '<div style="font-size:14px;font-weight:700;color:'+priceColor+';">¥'+(item.price*item.qty).toLocaleString()+'</div>'+
         '<div style="color:#ccc;font-size:16px;cursor:pointer;padding:0 4px;" onclick="removeCart('+idx+')">✕</div>'+
       '</div>';
@@ -1496,7 +1749,7 @@ function clearCart(){
     // 修正モード中はeditingSaleIdを保持（タブ切り替え時に削除確認できるように）
     holds[activeHoldIdx]=null;
     sv(KEYS.holds,holds);
-    cart=[];selectedAttrs={age:[],nationality:[]};activeDiscount='';
+    cart=[];selectedAttrs={age:[],nationality:[]};activeDiscount='';activeMura=false;
     attrVisible=false;
     var ai2=document.getElementById('attr-rows-inner'),ab2=document.getElementById('toggle-attr-btn');
     if(ai2) ai2.style.display='none';
@@ -1507,7 +1760,7 @@ function clearCart(){
   editingSaleId=null;
   holds[activeHoldIdx]=null;
   sv(KEYS.holds,holds);
-  cart=[];selectedAttrs={age:[],nationality:[]};activeDiscount='';
+  cart=[];selectedAttrs={age:[],nationality:[]};activeDiscount='';activeMura=false;
   attrVisible=false;
   var ai=document.getElementById('attr-rows-inner'),ab=document.getElementById('toggle-attr-btn');
   if(ai) ai.style.display='none';
@@ -1558,7 +1811,7 @@ function confirmHold(){
   holds[activeHoldIdx]={title,cart:[...cart],attrs:{...selectedAttrs},discount:activeDiscount};
   sv(KEYS.holds,holds);
   // 保留後は新しいお客様用にクリア
-  cart=[];selectedAttrs={age:[],nationality:[]};activeDiscount='';
+  cart=[];selectedAttrs={age:[],nationality:[]};activeDiscount='';activeMura=false;
   // 次の空きスロットへ
   const next=holds.findIndex((h,i)=>h===null&&i!==activeHoldIdx);
   if(next!==-1)activeHoldIdx=next;
@@ -1583,7 +1836,7 @@ function switchHold(idx){
     // 宿泊がカートに入っていれば空中ウォーク割引を再計算
     recalcCartPrices();
   } else {
-    cart=[];selectedAttrs={age:[],nationality:[]};activeDiscount='';
+    cart=[];selectedAttrs={age:[],nationality:[]};activeDiscount='';activeMura=false;
   }
   renderCart();renderAttrs();renderDiscountBar();renderPOS();renderHoldTabs();
 }
@@ -1655,10 +1908,28 @@ function renderAttrSettings(){
 
 
 const DEFAULT_ATTRS={
-  age:['お一人','子連れ','カップル','10〜20代','30〜40代','50代','60代以上'],
+  age:['お一人','子連れ','カップル','友人同士','リピーター','10〜20代','30〜40代','50代','60代以上'],
   nationality:['アジア','台湾','中華','ヨーロッパ','オセアニア','インド','南中米','その他外国人'],
 };
 let ATTRS = ld('pos_attrs') || JSON.parse(JSON.stringify(DEFAULT_ATTRS));
+// リピーター追加マイグレーション（カップルの右）
+(function(){
+  var ag=ATTRS.age;
+  if(ag&&ag.indexOf('リピーター')===-1){
+    var cp=ag.indexOf('カップル');
+    if(cp!==-1)ag.splice(cp+1,0,'リピーター');else ag.push('リピーター');
+    sv('pos_attrs',ATTRS);
+  }
+})();
+// 友人同士追加マイグレーション（カップルの右）
+(function(){
+  var ag=ATTRS.age;
+  if(ag&&ag.indexOf('友人同士')===-1){
+    var cp=ag.indexOf('カップル');
+    if(cp!==-1)ag.splice(cp+1,0,'友人同士');else ag.push('友人同士');
+    sv('pos_attrs',ATTRS);
+  }
+})();
 
 
 // ===== 決済 =====
@@ -1671,7 +1942,8 @@ function openPayment(method){
   document.getElementById('payment-modal-amount').textContent='¥'+total.toLocaleString();
   const cs=document.getElementById('cash-change-section');
   cs.style.display=method==='cash'?'':'none';
-  if(method==='cash'){document.getElementById('cash-received').value='';document.getElementById('change-amount').textContent='¥0';}
+  if(method==='cash'){document.getElementById('cash-received').value='';document.getElementById('change-amount').textContent='¥0';setConfirmBtnReady(false);}
+  else{setConfirmBtnReady(true);}
   document.getElementById('payment-modal').classList.add('open');
 }
 
@@ -1692,6 +1964,16 @@ function calcChange(){
   const change=received-total;
   document.getElementById('change-amount').textContent=change>=0?'¥'+change.toLocaleString():'不足';
   document.getElementById('change-amount').style.color=change>=0?'var(--green)':'var(--red)';
+  setConfirmBtnReady(received>=total);
+}
+function setConfirmBtnReady(ready){
+  var btn=document.getElementById('payment-confirm-btn');
+  if(!btn) return;
+  if(ready){
+    btn.style.background='var(--accent)';btn.style.color='#fff';btn.style.borderColor='var(--accent)';btn.style.opacity='1';
+  } else {
+    btn.style.background='#fff';btn.style.color='#bbb';btn.style.borderColor='#ddd';btn.style.opacity='1';
+  }
 }
 
 function closePaymentModal(){document.getElementById('payment-modal').classList.remove('open');}
@@ -1703,11 +1985,24 @@ function confirmPayment(){
     if(received<total){showToast('⚠ 受取金額が不足しています','#c00');return;}
   }
   const isPaid = discountItems.find(d=>d.key===activeDiscount)?.type==='paid';
+  var saleDatetime;
+  if(nextDayMode>0){
+    var nd=new Date(); nd.setDate(nd.getDate()+nextDayMode); nd.setHours(8,0,0,0);
+    saleDatetime=nd.toISOString();
+  } else {
+    saleDatetime=new Date().toISOString();
+  }
+  var saleMemo = currentPayMethod==='other' ? '電子決済、伝票2枚だからレジ締め注意' : '';
+  if(nextDayMode>0){
+    var carryLabel=nextDayMode===2?'前々日繰越':'前日繰越';
+    saleMemo = saleMemo ? carryLabel+' / '+saleMemo : carryLabel;
+  }
   const record={
-    id:'s_'+Date.now(),datetime:new Date().toISOString(),
+    id:'s_'+Date.now(),datetime:saleDatetime,
     items:cart.map(i=>({...i})),total,method:currentPayMethod,
     attrs:{...selectedAttrs},discount:activeDiscount,paid:isPaid,
-    memo: currentPayMethod==='other' ? '電子決済、伝票2枚だからレジ締め注意' : '',
+    memo:saleMemo,
+    nextDay:nextDayMode,
     device:localStorage.getItem('pos_device_id')||'',
     device_name:localStorage.getItem('pos_device_name')||'',
   };
@@ -1720,6 +2015,10 @@ function confirmPayment(){
   sales.push(record);sv(KEYS.sales,sales);
   lastSaleId=record.id;
   autoSyncSale(record);
+  if(nextDayMode) updateCarryOverBanner();
+  // 決済完了後3分間、時間スロットハイライトを保持するためカートを保存
+  lastPaidSessionItems = cart.filter(function(c){ return !c.paidLabel; });
+  lastPaidTime = Date.now();
   closePaymentModal();
   const methodLabel={cash:'現金',card:'クレジットカード',other:'電子決済'}[currentPayMethod]||currentPayMethod;
   document.getElementById('done-amount').textContent='¥'+total.toLocaleString();
@@ -1727,17 +2026,38 @@ function confirmPayment(){
   holds[activeHoldIdx]=null;
   sv(KEYS.holds,holds);
   document.getElementById('payment-done').classList.add('open');
+  startPaymentDoneTimer();
 }
 
-function nextCustomer(){document.getElementById('payment-done').classList.remove('open');clearCart();}
-function closeDone(){document.getElementById('payment-done').classList.remove('open');}
+function startPaymentDoneTimer(){
+  clearPaymentDoneTimer();
+  var remaining = 180;
+  var cd = document.getElementById('done-countdown');
+  function tick(){
+    if(cd) cd.textContent = remaining + '秒後に自動で次のお客様へ';
+    if(remaining <= 0){ nextCustomer(); return; }
+    remaining--;
+    paymentDoneTimer = setTimeout(tick, 1000);
+  }
+  tick();
+}
+function clearPaymentDoneTimer(){
+  if(paymentDoneTimer){ clearTimeout(paymentDoneTimer); paymentDoneTimer=null; }
+  var cd = document.getElementById('done-countdown');
+  if(cd) cd.textContent='';
+}
+
+function nextCustomer(){clearPaymentDoneTimer();document.getElementById('payment-done').classList.remove('open');clearCart();}
+function closeDone(){clearPaymentDoneTimer();document.getElementById('payment-done').classList.remove('open');}
 function flagAndClose(){
+  clearPaymentDoneTimer();
   if(lastSaleId){const r=sales.find(s=>s.id===lastSaleId);if(r){r.flagged=true;sv(KEYS.sales,sales);}}
   document.getElementById('payment-done').classList.remove('open');
   clearCart();
 }
 
 function editLastSale(){
+  clearPaymentDoneTimer();
   const record=sales.find(s=>s.id===lastSaleId);if(!record)return;
   sales=sales.filter(s=>s.id!==lastSaleId);sv(KEYS.sales,sales);
   cart=[...record.items];selectedAttrs={...record.attrs};activeDiscount=record.discount||'';
@@ -2093,6 +2413,7 @@ function renderSales(){
     const tr=document.createElement('tr');
     if(r.flagged) tr.style.background='#fff5f5';
     tr.style.cursor='pointer';
+    if(r.nextDay) tr.style.background='#fffbf0';
     const itemStr=r.items.map(i=>i.name+(i.qty>1?'×'+i.qty:'')).join('、');
     const methodLabel={cash:'現金',card:'カード',other:'電子'}[r.method]||r.method;
     const discLabel=r.discount==='mura'?'村内半額':r.discount==='stay_guest'?'宿泊者':r.discount?r.discount:'';
@@ -2101,7 +2422,7 @@ function renderSales(){
     const attrStr=attrParts.join(' ');
     tr.innerHTML=
       '<td style="text-align:center;font-size:14px;cursor:pointer;" onclick="event.stopPropagation();quickToggleFlag(\''+r.id+'\',this)">'+(r.flagged?'🔴':'⚪')+'</td>'+
-      '<td style="white-space:nowrap;font-size:10px">'+dtToShort(r.datetime)+'</td>'+
+      '<td style="white-space:nowrap;font-size:10px">'+(r.nextDay?'<span style="color:#7a5500;font-weight:700;">🌙</span> ':'')+dtToShort(r.datetime)+'</td>'+
       '<td style="font-size:10px;min-width:160px;max-width:220px;">'+
         '<div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+itemStr+'</div>'+
         (attrStr?'<div style="font-size:9px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+attrStr+'</div>':'')+
@@ -2258,12 +2579,30 @@ function localDateStr(d){
 function updateFilterBtnState(){
   var t=localDateStr();
   var y=localDateStr(new Date(Date.now()-86400000));
+  var tm=localDateStr(new Date(Date.now()+86400000));
+  var d2=localDateStr(new Date(Date.now()+2*86400000));
   var from=document.getElementById('filter-from').value;
   var to=document.getElementById('filter-to').value;
   var tb=document.getElementById('filter-btn-today');
   var yb=document.getElementById('filter-btn-yesterday');
-  if(tb) tb.classList.toggle('active',from===t&&to===t);
-  if(yb) yb.classList.toggle('active',from===y&&to===y);
+  var tmb=document.getElementById('filter-btn-tomorrow');
+  var d2b=document.getElementById('filter-btn-day2');
+  if(tb)  tb.classList.toggle('active',from===t&&to===t);
+  if(yb)  yb.classList.toggle('active',from===y&&to===y);
+  if(tmb) tmb.classList.toggle('active',from===tm&&to===tm);
+  if(d2b) d2b.classList.toggle('active',from===d2&&to===d2);
+}
+function setFilterTomorrow(){
+  var tm=localDateStr(new Date(Date.now()+86400000));
+  document.getElementById('filter-from').value=tm;
+  document.getElementById('filter-to').value=tm;
+  updateFilterBtnState();renderSales();
+}
+function setFilterDayAfterTomorrow(){
+  var d2=localDateStr(new Date(Date.now()+2*86400000));
+  document.getElementById('filter-from').value=d2;
+  document.getElementById('filter-to').value=d2;
+  updateFilterBtnState();renderSales();
 }
 function setFilterToday(){
   var t=localDateStr();
@@ -2333,7 +2672,7 @@ function saleToRows(sale){
     var m=i.name.match(/[（(](\d+)人[）)]/);
     var persons=isF?(m?parseInt(m[1])*i.qty:i.qty):0;
     return [
-      dtStr,                                          // A: 日時（全行。ソート用）
+      isFirst ? dtStr : '',                           // A: 日時（最初の行のみ）
       isFirst?sale.total:'',                          // B: 売上合計
       i.name,                                         // C: 商品名
       catName,                                        // D: カテゴリ
@@ -2408,6 +2747,45 @@ async function syncSalesData(data, label){
 }
 // 旧関数名を維持（後方互換）
 async function syncSales(){ doSync('all'); }
+
+// 月別集計モーダル
+function openMonthlyModal(){
+  const now=new Date();
+  const prevMonth=now.getMonth()===0?12:now.getMonth();
+  const prevYear=now.getMonth()===0?now.getFullYear()-1:now.getFullYear();
+  document.getElementById('monthly-year').value=prevYear;
+  document.getElementById('monthly-month').value=prevMonth;
+  document.getElementById('monthly-modal').classList.add('open');
+}
+function closeMonthlyModal(){
+  document.getElementById('monthly-modal').classList.remove('open');
+}
+async function doMonthlySummary(){
+  const url=(ld(KEYS.gas)||DEFAULT_GAS_URL)||'';
+  if(!url){showToast('⚠ GAS URLを設定してください','#c00');closeMonthlyModal();switchTab('settings-pos');return;}
+  const year=parseInt(document.getElementById('monthly-year').value);
+  const month=parseInt(document.getElementById('monthly-month').value);
+  if(!year||!month){showToast('⚠ 年月を入力してください','#c00');return;}
+  const btn=document.getElementById('monthly-exec-btn');
+  btn.disabled=true; btn.textContent='作成中…';
+  try{
+    const d=encodeURIComponent(JSON.stringify({type:'monthly_summary',year,month}));
+    const res=await fetch(url+'?d='+d);
+    const json=await res.json();
+    closeMonthlyModal();
+    if(json.status==='ok'){
+      const name=json.data&&json.data.sheet?json.data.sheet:year+'年'+month+'月 月別集計';
+      showToast('✓ 「'+name+'」シートを作成しました',null,5000);
+    }else{
+      showToast('⚠ GASエラー: '+(json.message||'不明'),'#c00');
+    }
+  }catch(e){
+    closeMonthlyModal();
+    showToast('⚠ 通信エラー: '+e.message,'#c00');
+  }finally{
+    btn.disabled=false; btn.textContent='作成する';
+  }
+}
 
 // 決済ごとに自動送信（新規）
 async function autoSyncSale(sale){
@@ -2750,6 +3128,46 @@ function deleteItem(idx){
   showToast('✓ 削除しました');
 }
 
+// ===== 商品名部分カラー =====
+var namePartsTemp = [];
+
+function renderNamePartsEditor(){
+  var c=document.getElementById('nameparts-editor');
+  if(!c) return;
+  c.innerHTML='';
+  namePartsTemp.forEach(function(part,i){
+    var row=document.createElement('div');
+    row.style.cssText='display:flex;gap:4px;align-items:center;';
+    var txtInput=document.createElement('input');
+    txtInput.type='text';txtInput.value=part.text;txtInput.placeholder='テキスト';
+    txtInput.style.cssText='flex:1;padding:4px 6px;border:1px solid var(--border);border-radius:5px;font-size:12px;font-family:inherit;';
+    txtInput.addEventListener('input',(function(idx){return function(){namePartsTemp[idx].text=this.value;updateNameFromParts();};})(i));
+    var colorInput=document.createElement('input');
+    colorInput.type='color';colorInput.value=part.color||'#1a1a1a';
+    colorInput.style.cssText='width:36px;height:28px;border:1px solid var(--border);border-radius:5px;padding:1px;cursor:pointer;flex-shrink:0;';
+    colorInput.addEventListener('change',(function(idx){return function(){namePartsTemp[idx].color=this.value;};})(i));
+    row.appendChild(txtInput);row.appendChild(colorInput);
+    if(namePartsTemp.length>1){
+      var delBtn=document.createElement('button');
+      delBtn.type='button';delBtn.textContent='削除';
+      delBtn.style.cssText='padding:3px 7px;border:1px solid #fcc;border-radius:5px;background:#fff;color:var(--red);font-size:11px;cursor:pointer;font-family:inherit;flex-shrink:0;';
+      delBtn.addEventListener('click',(function(idx){return function(){namePartsTemp.splice(idx,1);renderNamePartsEditor();updateNameFromParts();};})(i));
+      row.appendChild(delBtn);
+    }
+    c.appendChild(row);
+  });
+}
+
+function addNamePart(){
+  namePartsTemp.push({text:'',color:'#1a1a1a'});
+  renderNamePartsEditor();
+}
+
+function updateNameFromParts(){
+  var el=document.getElementById('modal-item-name');
+  if(el) el.value=namePartsTemp.map(function(p){return p.text;}).join('');
+}
+
 function openItemModal(catId){
   updateCatSelects();
   const sel=document.getElementById('modal-item-cat');if(catId)sel.value=catId;
@@ -2760,6 +3178,8 @@ function openItemModal(catId){
   document.getElementById('item-modal-title').textContent='商品を登録';
   document.getElementById('item-modal-save-btn').textContent='追加';
   delete document.getElementById('item-modal').dataset.editIdx;
+  namePartsTemp=[{text:'',color:'#1a1a1a'}];
+  renderNamePartsEditor();
   document.getElementById('item-modal').classList.add('open');
 }
 
@@ -2771,6 +3191,8 @@ function editItem(idx){
   document.getElementById('modal-item-cat').value=item.cat;
   document.getElementById('modal-item-stock').value=item.stock||0;
   document.getElementById('modal-item-fontsize').value=item.fontSize||'';
+  namePartsTemp=item.nameParts?JSON.parse(JSON.stringify(item.nameParts)):[{text:item.name||'',color:item.nameColor||'#1a1a1a'}];
+  renderNamePartsEditor();
   document.getElementById('item-modal-title').textContent='商品を編集';
   document.getElementById('item-modal-save-btn').textContent='保存';
   document.getElementById('item-modal').dataset.editIdx=idx;
@@ -2789,12 +3211,18 @@ function saveModalItem(){
   const stock=parseInt(document.getElementById('modal-item-stock').value)||0;
   const fontSize=document.getElementById('modal-item-fontsize').value||'';
   if(!name||!price){showToast('⚠ 商品名と金額を入力してください','#c00');return;}
+  const validParts=namePartsTemp.filter(function(p){return p.text;});
+  const nameParts=validParts.length>1?validParts:null;
   const editIdx=document.getElementById('item-modal').dataset.editIdx;
   if(editIdx!==undefined&&editIdx!==''){
-    items[parseInt(editIdx)]={...items[parseInt(editIdx)],name,price,cat,stock,fontSize};
+    var updated={...items[parseInt(editIdx)],name,price,cat,stock,fontSize};
+    if(nameParts) updated.nameParts=nameParts; else delete updated.nameParts;
+    items[parseInt(editIdx)]=updated;
     showToast('✓ '+name+' を更新しました');
   } else {
-    items.push({id:'i_'+Date.now(),name,price,cat,stock,fontSize});
+    var newItem={id:'i_'+Date.now(),name,price,cat,stock,fontSize};
+    if(nameParts) newItem.nameParts=nameParts;
+    items.push(newItem);
     showToast('✓ '+name+' を追加しました');
   }
   sv(KEYS.items,items);closeItemModal();renderItemList();renderPOS();renderCatFilterTabs();
@@ -3012,10 +3440,11 @@ function selectStayPeople(n){
   const prices = pendingStayItem.stay_prices || {};
   const unitPrice = prices[n] || pendingStayItem.price;
   const totalPrice = unitPrice * n;
-  const isMura = activeDiscount === 'mura';
+  const isMura = activeMura;
   const isPaid = (activeDiscount==='rakuten'||activeDiscount==='jalan');
-  const finalPrice = isPaid ? 0 : (isMura ? Math.floor(totalPrice / 2) : totalPrice);
-  const paidLabel = isPaid ? paidDisplaySettings.label : '';
+  const stayPassKey = (activeDiscount==='pass_night')?'pass_night':'';
+  const finalPrice = (isPaid||stayPassKey) ? 0 : (isMura ? Math.floor(totalPrice / 2) : totalPrice);
+  const paidLabel = (isPaid||stayPassKey) ? paidDisplaySettings.label : '';
   const cat = pendingStayCat;
   cart.push({
     id: pendingStayItem.id + '_' + Date.now(),
@@ -3028,7 +3457,8 @@ function selectStayPeople(n){
     free_mura: false,
     isStay: true,
     cat: pendingStayItem.cat || '',
-    catColor: cat ? cat.bg : '#fff'
+    catColor: cat ? cat.bg : '#fff',
+    passKey: stayPassKey
   });
   document.getElementById('stay-modal').classList.remove('open');
   pendingStayItem = null; pendingStayCat = null;
@@ -3065,6 +3495,7 @@ function openSaleDetail(saleId){
     '<div style="font-size:10px;color:var(--text2);margin-bottom:6px;word-break:break-all;">ID: '+r.id+'</div>'+
     '<div style="background:#f9f9f9;border-radius:8px;padding:12px;font-size:13px;">'+
     '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:var(--text2);">日時</span><span>'+dtToDisplay(r.datetime)+'</span></div>'+
+    (r.nextDay?'<div style="margin-bottom:6px;background:#fff3cd;color:#7a5500;font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;text-align:center;">🌙 前日繰越（翌営業日計上）</div>':'')+
     '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:var(--text2);">支払</span><span style="font-weight:600;">'+mLabel+(r.paid?' <span style="font-size:11px;color:var(--blue);">支払済</span>':'')+'</span></div>'+
     '<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="color:var(--text2);">割引</span><span>'+discLabel+'</span></div>'+
     '<div style="border-top:1px solid var(--border);padding-top:8px;margin-bottom:8px;">'+iRows+'</div>'+
@@ -3117,9 +3548,11 @@ function deleteSaleFromDetail(){
   const ml={cash:'現金',card:'カード',other:'電子'}[r.method]||r.method;
   const is=r.items.slice(0,3).map(i=>i.name+(i.qty>1?'×'+i.qty:'')).join('、')+(r.items.length>3?'…':'');
   if(!confirm('この売上を削除しますか？\n\n'+dtToDisplay(r.datetime)+'\n'+is+'\n¥'+r.total.toLocaleString()+'（'+ml+'）\n\n※取り消せません'))return;
+  const wasNextDay=!!r.nextDay;
   const deletedId=currentDetailSaleId;
   sales=sales.filter(s=>s.id!==deletedId);
   sv(KEYS.sales,sales);autoDeleteSale(deletedId);
+  if(wasNextDay){updateCarryOverBanner();fetchCarryOverFromGAS();}
   document.getElementById('sale-detail-modal').classList.remove('open');
   renderSales();showToast('✓ 削除しました');
 }
@@ -3296,10 +3729,14 @@ function updateClocks(){
   if(c1) c1.textContent = t;
   if(c2) c2.textContent = t;
   updateTimerCountdown();
-  // 毎分施設ボタンの残り時間を更新
+  // 毎分施設ボタンの残り時間・時間スロットを更新
   if(now.getSeconds() === 0){
     const fb = document.getElementById('timer-fac-btns');
     if(fb) renderTimerFacBtns();
+    updateCatTimeSlots();
+    // 日付が変わったら繰越バッジをリセット・再取得
+    var todayStr=now.getFullYear()+'-'+('0'+(now.getMonth()+1)).slice(-2)+'-'+('0'+now.getDate()).slice(-2);
+    if(carryOverFetchDate && carryOverFetchDate!==todayStr) fetchCarryOverFromGAS();
   }
 }
 setInterval(updateClocks, 1000);
@@ -3694,6 +4131,7 @@ restoreFromIDB().then(()=>{
   if(_te) _te.value=_t;
   updateFilterBtnState();
   renderCatFilterTabs();renderPOS();renderCart();renderDiscountBar();renderAttrs();renderHoldTabs();renderSettings();renderWeatherDisplay();
+  fetchCarryOverFromGAS();
 });
 </script>
 </body>
