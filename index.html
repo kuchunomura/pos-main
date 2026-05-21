@@ -559,6 +559,17 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
     <input type="file" id="import-file-input" accept=".json,.txt" style="display:none;">
   </div>
 
+  <!-- IndexedDB復元 -->
+  <div class="settings-section" style="border:2px solid #f0ad4e;">
+    <h3 style="color:#b8860b;">🔁 IndexedDB から復元</h3>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.7;">
+      売上・設定データをブラウザ内バックアップ（IndexedDB）から復元します。<br>
+      アプリの誤操作でlocalStorageが消えた場合に使用してください。<br>
+      復元後はページが再読み込みされます。
+    </div>
+    <button class="btn-primary2" style="background:#b8860b;color:#fff;" onclick="idbRestore()">🔁 IndexedDBから復元する</button>
+  </div>
+
   <!-- データリセット -->
   <div class="settings-section" style="border:2px solid #f5c0c0;">
     <h3 style="color:var(--red);">🔄 データリセット</h3>
@@ -791,6 +802,13 @@ async function restoreFromIDB(){
       req.onerror=()=>res();
     })));
   }catch(e){}
+}
+
+async function idbRestore(){
+  if(!confirm('IndexedDBから売上・設定データを復元します。\n復元後にページが再読み込みされます。\nよろしいですか？')) return;
+  await restoreFromIDB();
+  showToast('✅ 復元しました。再読み込みします...');
+  setTimeout(()=>location.reload(), 1500);
 }
 
 // ===== デフォルトカテゴリー =====

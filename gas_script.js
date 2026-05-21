@@ -399,6 +399,14 @@ function runMonthlySummary() {
   createMonthlySummary(year, month);
 }
 
+// シート名一覧をログに出力してデバッグ確認用（GASエディタから手動実行）
+function debugSheetNames() {
+  var ss = SpreadsheetApp.openById(SS_ID);
+  var sheets = ss.getSheets();
+  var names = sheets.map(function(s){ return s.getName(); });
+  Logger.log(names.join('\n'));
+}
+
 // GASの「トリガー」画面で一度だけ実行するとタイマーが登録される
 function setupMonthlyTrigger() {
   var triggers = ScriptApp.getProjectTriggers();
@@ -419,11 +427,12 @@ function createMonthlySummary(year, month) {
   var ss = SpreadsheetApp.openById(SS_ID);
   var sheets = ss.getSheets();
 
-  // 該当月のシートを収集（"M/D売上" パターン）
+  // 該当月のシートを収集
+  // 対応形式: "M/D売上" / "YYYY/M/D売上" / "M/D 売上"（スペースあり）
   var monthSheets = [];
   for (var s = 0; s < sheets.length; s++) {
     var name = sheets[s].getName();
-    var match = name.match(/^(\d+)\/(\d+)売上$/);
+    var match = name.match(/^(?:\d{4}\/)?(\d+)\/(\d+)[^0-9\/]*売上$/);
     if (match && parseInt(match[1]) === month) {
       monthSheets.push({ sheet: sheets[s], day: parseInt(match[2]) });
     }
