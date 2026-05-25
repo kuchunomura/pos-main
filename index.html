@@ -2795,9 +2795,9 @@ async function syncSalesData(data, label){
   try{
     var isAll=label==='全件';
     if(isAll){
-      // 全件は1回のPOSTで一括送信
+      // 全件は1回のPOSTで一括送信（merge: IDで削除→追加、他デバイスのデータを消さない）
       var allRows=data.map(function(s){return saleToRows(s);});
-      await gasPost(url,{type:'bulk_sync',clear:true,sales:allRows});
+      await gasPost(url,{type:'bulk_merge',sales:allRows});
     } else {
       for(var i=0;i<data.length;i++){
         await gasGet(url,{type:'add_rows',rows:saleToRows(data[i])});

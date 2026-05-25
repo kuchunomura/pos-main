@@ -15,6 +15,9 @@ const NAT_COL     = 27; // AA列: 国籍別
 
 function doGet(e) {
   try {
+    if (e && e.parameter && e.parameter.action === 'getCarryOver') {
+      return getCarryOverTotal(e.parameter.date || '');
+    }
     var d = (e && e.parameter && e.parameter.d) ? JSON.parse(decodeURIComponent(e.parameter.d)) : null;
     if (!d) return ok();
     if (d.type === 'test') return ok();
@@ -52,6 +55,29 @@ function ok() {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+// 前日繰越合計を返す（GETリクエスト用）
+function getCarryOverTotal(dateStr) {
+  var total = 0;
+  try {
+    var ss = SpreadsheetApp.openById(SS_ID);
+    var sheet = ss.getSheetByName(dateStr + '売上');
+    if (sheet) {
+      var lastRow = sheet.getLastRow();
+      if (lastRow >= 4) {
+        var bVals = sheet.getRange(4, 2,  lastRow - 3, 1).getValues();
+        var nVals = sheet.getRange(4, 14, lastRow - 3, 1).getValues();
+        for (var i = 0; i < bVals.length; i++) {
+          if (bVals[i][0] && String(nVals[i][0]).indexOf('繰越') !== -1) {
+            total += Number(bVals[i][0]) || 0;
+          }
+        }
+      }
+    }
+  } catch(err) {}
+  return ContentService.createTextOutput(JSON.stringify({status:'ok', total: total}))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
 function handleRequest(data) {
   var type = data.type;
   if      (type === 'add_rows')        addRows(data.rows);
@@ -63,6 +89,18 @@ function handleRequest(data) {
     if (data.clear) clearSheets();
     var sales = data.sales || [];
     for (var i = 0; i < sales.length; i++) { if (sales[i] && sales[i].length) addRows(sales[i]); }
+  }
+  else if (type === 'bulk_merge') {
+    var ss = SpreadsheetApp.openById(SS_ID);
+    var sheets = ss.getSheets();
+    var bSales = data.sales || [];
+    for (var i = 0; i < bSales.length; i++) {
+      var bRows = bSales[i];
+      if (!bRows || !bRows.length) continue;
+      var bId = String(bRows[0][14]);
+      if (bId) { for (var j = 0; j < sheets.length; j++) deleteRowsFromSheet(sheets[j], bId); }
+    }
+    for (var i = 0; i < bSales.length; i++) { if (bSales[i] && bSales[i].length) addRows(bSales[i]); }
   }
   return null;
 }
@@ -144,6 +182,14 @@ function setupCashInputRow(sheet) {
   sheet.getRange(2, 4).setValue('対10万差額').setFontWeight('bold');
   sheet.getRange(2, 5).setFormula('=IF(B2="","",B2-100000)');
   sheet.getRange(2, 5).setNumberFormat('+#,##0;-#,##0;0').setFontColor('#B22222').setFontWeight('bold');
+  // G2: クレ+電子ラベル, H2: 合計金額
+  sheet.getRange(2, 7).setValue('クレ+電子').setFontWeight('bold').setHorizontalAlignment('center');
+  sheet.getRange(2, 8).setFormula('=SUMIF(J4:J,"クレジットカード",B4:B)+SUMIF(J4:J,"電子決済",B4:B)');
+  sheet.getRange(2, 8).setNumberFormat('#,##0').setFontWeight('bold').setHorizontalAlignment('center').setBackground('#e8e4ff');
+  // K2: 繰越合計ラベル, L2: SUMIF（繰越を含む行の売上合計）
+  sheet.getRange(2, 11).setValue('繰越合計').setFontWeight('bold').setHorizontalAlignment('center').setBackground('#fff3cd');
+  sheet.getRange(2, 12).setFormula('=SUMIF(N4:N,"*繰越*",B4:B)');
+  sheet.getRange(2, 12).setNumberFormat('#,##0').setFontWeight('bold').setHorizontalAlignment('center').setBackground('#fff3cd');
 }
 
 // ==================== 行操作 ====================
@@ -163,7 +209,7 @@ function addRows(rows) {
   sheet.getRange(startRow, 1, rows.length, colCount).setHorizontalAlignment('center');
 
   for (var i = 0; i < rows.length; i++) {
-    applyPaymentColors(sheet, startRow + i, rows[i][9]); // J列(index9): 支払方法
+    applyPaymentColors(sheet, startRow + i, rows[i][9], rows[i][13]); // J列: 支払方法, N列: メモ
   }
 
   applyGroupBorders(sheet, startRow, rows.length, colCount);
@@ -268,12 +314,16 @@ function applyGroupBorders(sheet, startRow, rowCount, colCount) {
   range.setBorder(true, true, true, true, null,  null, '#333333', SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
 }
 
-function applyPaymentColors(sheet, row, payment) {
-  if (payment === 'クレジットカード') {
-    sheet.getRange(row, 1, 1, 16).setBackground('#f0f8ff');
+function applyPaymentColors(sheet, row, payment, memo) {
+  var bg = '';
+  if (String(memo || '').indexOf('繰越') !== -1) {
+    bg = '#fff3cd';
+  } else if (payment === 'クレジットカード') {
+    bg = '#f0f8ff';
   } else if (payment === '電子決済') {
-    sheet.getRange(row, 1, 1, 16).setBackground('#fdf5ff');
+    bg = '#fdf5ff';
   }
+  if (bg) sheet.getRange(row, 1, 1, 16).setBackground(bg);
 }
 
 // ==================== 集計テーブル ====================
@@ -452,6 +502,8 @@ function createMonthlySummary(year, month) {
   var ageMap   = {};
   var natMap   = {};
   var txSeen   = {};
+  var mura     = {count:0, people:0, total:0};
+  var pass     = {count:0, people:0, total:0};
   var grandTotal = 0, grandCount = 0, grandPeople = 0;
 
   for (var si = 0; si < monthSheets.length; si++) {
@@ -510,6 +562,19 @@ function createMonthlySummary(year, month) {
         if (!discMap[dKey]) discMap[dKey] = {count:0, total:0};
         discMap[dKey].count += 1;
         discMap[dKey].total += amount;
+
+        // 村民
+        if (disc === 'mura') {
+          mura.count++;
+          mura.people += people;
+          mura.total  += amount;
+        }
+        // 年間パス
+        if (disc === 'pass_day' || disc === 'pass_night') {
+          pass.count++;
+          pass.people += people;
+          pass.total  += amount;
+        }
 
         // 年齢層別
         if (ageStr && ageStr !== '') {
@@ -637,6 +702,26 @@ function createMonthlySummary(year, month) {
     row++;
   }
   row++;
+
+  // ── 村民割引 ──
+  secHead('【村民割引】', 3);
+  colHead(['','件数','人数']);
+  out.getRange(row,1,1,3).setValues([['件数 / 人数', mura.count, mura.people]]).setHorizontalAlignment('center');
+  row++;
+  out.getRange(row,1,1,2).setValues([['売上合計', mura.total]]);
+  out.getRange(row,2).setNumberFormat('#,##0');
+  out.getRange(row,1,1,2).setHorizontalAlignment('center');
+  row += 2;
+
+  // ── 年間パス ──
+  secHead('【年間パス】', 3);
+  colHead(['','件数','人数']);
+  out.getRange(row,1,1,3).setValues([['件数 / 人数', pass.count, pass.people]]).setHorizontalAlignment('center');
+  row++;
+  out.getRange(row,1,1,2).setValues([['売上合計', pass.total]]);
+  out.getRange(row,2).setNumberFormat('#,##0');
+  out.getRange(row,1,1,2).setHorizontalAlignment('center');
+  row += 2;
 
   // ── 年齢層別 ──
   secHead('【年齢層別】', 3);
