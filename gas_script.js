@@ -59,6 +59,11 @@ function handleRequest(data) {
   else if (type === 'replace_rows')    replaceRows(data.sale_id, data.rows);
   else if (type === 'clear_sheets')    clearSheets();
   else if (type === 'monthly_summary') return { sheet: createMonthlySummary(data.year, data.month) };
+  else if (type === 'bulk_sync') {
+    if (data.clear) clearSheets();
+    var sales = data.sales || [];
+    for (var i = 0; i < sales.length; i++) { if (sales[i] && sales[i].length) addRows(sales[i]); }
+  }
   return null;
 }
 

@@ -2776,10 +2776,14 @@ function doSync(mode){
   syncSalesData(data, mode==='all'?'全件':mode==='today'?'今日':mode==='yesterday'?'昨日':'絞込');
 }
 
-// GETでデータ送信（POSTリダイレクト問題を回避）
+// GETでデータ送信（小データ用）
 async function gasGet(url, data){
   var qs='?d='+encodeURIComponent(JSON.stringify(data));
   await fetch(url+qs,{method:'GET',mode:'no-cors'});
+}
+// POSTで一括送信（全件同期用）
+async function gasPost(url, data){
+  await fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(data)});
 }
 
 // 実際の同期処理
@@ -2791,11 +2795,13 @@ async function syncSalesData(data, label){
   try{
     var isAll=label==='全件';
     if(isAll){
-      await gasGet(url,{type:'clear_sheets'});
-    }
-    for(var i=0;i<data.length;i++){
-      var rows=saleToRows(data[i]);
-      await gasGet(url,{type:'add_rows',rows:rows});
+      // 全件は1回のPOSTで一括送信
+      var allRows=data.map(function(s){return saleToRows(s);});
+      await gasPost(url,{type:'bulk_sync',clear:true,sales:allRows});
+    } else {
+      for(var i=0;i<data.length;i++){
+        await gasGet(url,{type:'add_rows',rows:saleToRows(data[i])});
+      }
     }
     showToast('✓ '+label+'を同期しました（'+data.length+'件）',null,4000);
   }catch(e){showToast('⚠ 通信エラー: '+e.message,'#c00');}
