@@ -764,7 +764,7 @@ const APP_VERSION = 256;
 const APP_BUILD_DATE = '2026/05/25';
 
 // ===== ストレージ =====
-const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwO3nrFBG7gDCwbRALgqReIO4Axyfm5mjfgIk9VLyh5o80_qSx8y70SqtYkuCtCpe8BXA/exec';
+const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
 const KEYS = {items:'pos_items',sales:'pos_sales',gas:'pos_gas',cats:'pos_cats',itemOrder:'pos_item_order',catOrder:'pos_cat_order',sites:'pos_sites',discounts:'pos_discounts',attrs:'pos_attrs',holds:'pos_holds',deviceId:'pos_device_id'};
 // デバイスID自動生成（初回のみ）
 (function(){var d=localStorage.getItem('pos_device_id');if(!d){d=Math.random().toString(36).slice(2,6).toUpperCase();localStorage.setItem('pos_device_id',d);}})();
@@ -947,7 +947,7 @@ const DEFAULT_ITEMS = [
 ];
 
 // test用URLが残っている場合はmain用URLに強制置換
-const OLD_TEST_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
+const OLD_TEST_GAS_URL='https://script.google.com/macros/s/AKfycbwO3nrFBG7gDCwbRALgqReIO4Axyfm5mjfgIk9VLyh5o80_qSx8y70SqtYkuCtCpe8BXA/exec';
 if(ld(KEYS.gas)===OLD_TEST_GAS_URL) sv(KEYS.gas, DEFAULT_GAS_URL);
 if(!ld(KEYS.gas)) sv(KEYS.gas, DEFAULT_GAS_URL);
 let cats = ld(KEYS.cats) || DEFAULT_CATS;
