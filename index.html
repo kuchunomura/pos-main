@@ -946,7 +946,9 @@ const DEFAULT_ITEMS = [
   {id:'i_b20', name:'寝袋（冬用）',        price:1000,cat:'cat_rental',stock:2, free_mura:false},
 ];
 
-// 未設定時のみデフォルトURLを適用
+// test用URLが残っている場合はmain用URLに強制置換
+const OLD_TEST_GAS_URL='https://script.google.com/macros/s/AKfycbwO3nrFBG7gDCwbRALgqReIO4Axyfm5mjfgIk9VLyh5o80_qSx8y70SqtYkuCtCpe8BXA/exec';
+if(ld(KEYS.gas)===OLD_TEST_GAS_URL) sv(KEYS.gas, DEFAULT_GAS_URL);
 if(!ld(KEYS.gas)) sv(KEYS.gas, DEFAULT_GAS_URL);
 let cats = ld(KEYS.cats) || DEFAULT_CATS;
 // cat_uketsukeをcat_petの直後に移動（localStorage古い順序を修正）
