@@ -55,6 +55,12 @@ function ok() {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+function writeSyncStatus(ss, msg) {
+  var s = ss.getSheetByName('同期ログ') || ss.insertSheet('同期ログ');
+  s.getRange(1, 1).setValue(msg);
+  SpreadsheetApp.flush();
+}
+
 // 前日繰越合計を返す（GETリクエスト用）
 function getCarryOverTotal(dateStr) {
   var total = 0;
@@ -94,17 +100,25 @@ function handleRequest(data) {
     var ss = SpreadsheetApp.openById(SS_ID);
     var sheets = ss.getSheets();
     var bSales = data.sales || [];
+    var dateLabel = (bSales.length > 0 && bSales[0] && bSales[0].length > 0) ? sheetNameFromRows(bSales[0]) : '同期';
+    writeSyncStatus(ss, '🔄 ' + dateLabel + ' 削除中...');
     for (var i = 0; i < bSales.length; i++) {
       var bRows = bSales[i];
       if (!bRows || !bRows.length) continue;
       var bId = String(bRows[0][14]);
       if (bId) { for (var j = 0; j < sheets.length; j++) deleteRowsFromSheet(sheets[j], bId); }
     }
+    writeSyncStatus(ss, '🔄 ' + dateLabel + ' 書込中...');
     for (var i = 0; i < bSales.length; i++) { if (bSales[i] && bSales[i].length) addRows(bSales[i]); }
+    writeSyncStatus(ss, '✅ ' + dateLabel + ' 完了 ' + Utilities.formatDate(new Date(), 'Asia/Tokyo', 'HH:mm:ss'));
     sortSheetsByDate(SpreadsheetApp.openById(SS_ID));
   }
   else if (type === 'get_all_sales') {
-    return { rows: getAllSalesRows() };
+    var ssLog = SpreadsheetApp.openById(SS_ID);
+    writeSyncStatus(ssLog, '🔄 全データ読込中...');
+    var rows = getAllSalesRows();
+    writeSyncStatus(ssLog, '✅ 読込完了 ' + rows.length + '行 ' + Utilities.formatDate(new Date(), 'Asia/Tokyo', 'HH:mm:ss'));
+    return { rows: rows };
   }
   return null;
 }
