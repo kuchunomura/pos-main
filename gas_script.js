@@ -101,8 +101,53 @@ function handleRequest(data) {
       if (bId) { for (var j = 0; j < sheets.length; j++) deleteRowsFromSheet(sheets[j], bId); }
     }
     for (var i = 0; i < bSales.length; i++) { if (bSales[i] && bSales[i].length) addRows(bSales[i]); }
+    sortSheetsByDate(SpreadsheetApp.openById(SS_ID));
+  }
+  else if (type === 'get_all_sales') {
+    return { rows: getAllSalesRows() };
   }
   return null;
+}
+
+function getAllSalesRows() {
+  var ss = SpreadsheetApp.openById(SS_ID);
+  var sheets = ss.getSheets();
+  var allRows = [];
+  for (var s = 0; s < sheets.length; s++) {
+    var name = sheets[s].getName();
+    if (name.indexOf('月別集計') !== -1) continue;
+    if (!name.match(/売上$/)) continue;
+    var lastRow = sheets[s].getLastRow();
+    if (lastRow < 4) continue;
+    var rows = sheets[s].getRange(4, 1, lastRow - 3, 16).getValues();
+    for (var i = 0; i < rows.length; i++) allRows.push(rows[i]);
+  }
+  return allRows;
+}
+
+function sortSheetsByDate(ss) {
+  var sheets = ss.getSheets();
+  var dated = [], other = [];
+  for (var i = 0; i < sheets.length; i++) {
+    var name = sheets[i].getName();
+    var m = name.match(/^(?:(\d{4})\/)?(\d+)\/(\d+)/);
+    if (m) {
+      var yr = m[1] ? parseInt(m[1]) : new Date().getFullYear();
+      dated.push({ sheet: sheets[i], key: yr * 10000 + parseInt(m[2]) * 100 + parseInt(m[3]) });
+    } else {
+      other.push(sheets[i]);
+    }
+  }
+  dated.sort(function(a, b) { return b.key - a.key; }); // 新しい日付が前
+  var pos = 1;
+  for (var i = 0; i < dated.length; i++) {
+    ss.setActiveSheet(dated[i].sheet);
+    ss.moveActiveSheet(pos++);
+  }
+  for (var i = 0; i < other.length; i++) {
+    ss.setActiveSheet(other[i]);
+    ss.moveActiveSheet(pos++);
+  }
 }
 
 // ==================== シート名 ====================
@@ -216,6 +261,7 @@ function addRows(rows) {
   SpreadsheetApp.flush();
   setDataColumnWidths(sheet);
   updateSummary(sheet);
+  sortSheetsByDate(ss);
 }
 
 function replaceRows(saleId, rows) {

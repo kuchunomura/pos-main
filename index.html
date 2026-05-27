@@ -763,8 +763,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 260;
-const APP_BUILD_DATE = '2026/05/27 13:30';
+const APP_VERSION = 261;
+const APP_BUILD_DATE = '2026/05/27 14:15';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
@@ -2791,11 +2791,11 @@ async function syncSalesData(data, label){
   const url=(ld(KEYS.gas)||DEFAULT_GAS_URL)||'';
   if(!url){showToast('⚠ GAS URLを設定してください','#c00');switchTab('settings-pos');return;}
   if(!data.length){showToast('⚠ 対象データがありません','#c00');return;}
-  showToast(label+'を同期中...',null,15000);
+  showToast(label+'を同期中...',null,30000);
   try{
+    // Step1: push
     var isAll=label==='全件';
     if(isAll){
-      // 全件は1回のPOSTで一括送信（merge: IDで削除→追加、他デバイスのデータを消さない）
       var allRows=data.map(function(s){return saleToRows(s);});
       await gasPost(url,{type:'bulk_merge',sales:allRows});
     } else {
@@ -2803,8 +2803,74 @@ async function syncSalesData(data, label){
         await gasGet(url,{type:'add_rows',rows:saleToRows(data[i])});
       }
     }
-    showToast('✓ '+label+'を同期しました（'+data.length+'件）',null,4000);
+    // Step2: pull（GAS全件取得 → マージ）
+    var qs='?d='+encodeURIComponent(JSON.stringify({type:'get_all_sales'}));
+    var res=await fetch(url+qs,{method:'GET',redirect:'follow'});
+    var json=await res.json();
+    if(json.status==='ok' && json.data && Array.isArray(json.data.rows)){
+      var remoteSales=rowsToSales(json.data.rows);
+      var added=mergeSalesFromGas(remoteSales);
+      renderSales();
+      showToast('✓ '+label+'同期完了（'+added+'件取得）',null,4000);
+    } else {
+      showToast('✓ '+label+'を同期しました（'+data.length+'件）',null,4000);
+    }
   }catch(e){showToast('⚠ 通信エラー: '+e.message,'#c00');}
+}
+
+// "M/DD (曜) HH:MM" → ISO文字列
+function parseSaleDateStr(s) {
+  var m=String(s).match(/(\d+)\/(\d+)[^\d]*(\d+):(\d+)/);
+  if(!m) return new Date().toISOString();
+  var mo=parseInt(m[1]),dy=parseInt(m[2]),h=parseInt(m[3]),mi=parseInt(m[4]);
+  var now=new Date(),yr=now.getFullYear();
+  if(mo>now.getMonth()+1) yr--;
+  return new Date(yr,mo-1,dy,h,mi).toISOString();
+}
+
+function rowsToSales(rows){
+  var groups={},order=[];
+  for(var i=0;i<rows.length;i++){
+    var r=rows[i],id=String(r[14]);
+    if(!id||id==='undefined'||id==='') continue;
+    if(!groups[id]){groups[id]=[];order.push(id);}
+    groups[id].push(r);
+  }
+  var mRev={'現金':'cash','クレジットカード':'card','電子決済':'other'};
+  var result=[];
+  for(var j=0;j<order.length;j++){
+    var id=order[j],rList=groups[id],first=rList[0];
+    var ageStr=String(first[10]||''),natStr=String(first[11]||'');
+    result.push({
+      id:id,
+      datetime:parseSaleDateStr(String(first[0]||'')),
+      total:Number(first[1])||0,
+      items:rList.map(function(r){return {id:'gs_'+r[2],name:String(r[2]||''),cat:'',qty:Number(r[4])||1,price:Number(r[5])||0,origPrice:Number(r[5])||0};}),
+      discount:String(first[8]||''),
+      method:mRev[String(first[9])]||String(first[9]||''),
+      attrs:{age:ageStr?ageStr.split('・').filter(Boolean):[],nationality:natStr?natStr.split('・').filter(Boolean):[]},
+      memo:String(first[13]||''),
+      device_name:String(first[15]||''),
+      _from_gas:true
+    });
+  }
+  return result;
+}
+
+function mergeSalesFromGas(remoteSales){
+  var local=ld(KEYS.sales)||[];
+  var localIds={};
+  local.forEach(function(s){localIds[s.id]=true;});
+  var added=0;
+  remoteSales.forEach(function(s){
+    if(!localIds[s.id]){local.push(s);added++;}
+  });
+  if(added>0){
+    local.sort(function(a,b){return new Date(b.datetime)-new Date(a.datetime);});
+    sv(KEYS.sales,local);
+    sales=local;
+  }
+  return added;
 }
 // 旧関数名を維持（後方互換）
 async function syncSales(){ doSync('all'); }
