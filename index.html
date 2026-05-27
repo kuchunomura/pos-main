@@ -18,7 +18,8 @@
   --shadow:0 2px 8px rgba(0,0,0,0.10);
 }
 body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);height:100dvh;overflow:hidden;font-size:14px;touch-action:manipulation;}
-.tabbar{display:flex;background:var(--accent);height:44px;align-items:stretch;}
+.tabbar{display:flex;background:var(--accent);height:44px;align-items:stretch;position:relative;}
+#tabbar-version{position:absolute;right:3px;bottom:2px;font-size:8px;color:rgba(255,255,255,0.45);pointer-events:none;line-height:1;white-space:nowrap;}
 .tabbar button{flex:1;border:none;background:none;color:rgba(255,255,255,0.7);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;border-bottom:3px solid transparent;padding:0 2px;}
 .tabbar button.active{color:#fff;border-bottom:3px solid var(--accent3);}
 .tab-content{display:none;height:calc(100dvh - 44px);overflow:hidden;}
@@ -186,6 +187,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
   <button onclick="switchTab('timer')">⏱時間</button>
   <button onclick="switchTab('sales')">📊売上</button>
   <button onclick="switchTab('settings-pos')">⚙️設定</button>
+  <span id="tabbar-version"></span>
 </div>
 
 <!-- ===== POSタブ ===== -->
@@ -763,8 +765,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 262;
-const APP_BUILD_DATE = '2026/05/27 16:30';
+const APP_VERSION = 263;
+const APP_BUILD_DATE = '2026/05/27 16:45';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
@@ -2986,11 +2988,14 @@ function initDeviceNameField(){
 }
 function initVersionInfo(){
   var b=document.getElementById('pos-version-info');
-  if(!b) return;
-  var typeColor=APP_VERSION_TYPE==='main'?'var(--accent)':'var(--accent2)';
-  var typeLabel=APP_VERSION_TYPE==='main'?'main版':'TEST版';
-  b.innerHTML='<div style="font-size:12px;color:var(--accent);font-weight:700;">POSレジ ver.'+APP_VERSION+'</div>'
-    +'<div style="font-size:11px;color:var(--text2);margin-top:2px;">更新: '+APP_BUILD_DATE+' &nbsp;|&nbsp; <span style="color:'+typeColor+';font-weight:600;">'+typeLabel+'</span></div>';
+  if(b){
+    var typeColor=APP_VERSION_TYPE==='main'?'var(--accent)':'var(--accent2)';
+    var typeLabel=APP_VERSION_TYPE==='main'?'main版':'TEST版';
+    b.innerHTML='<div style="font-size:12px;color:var(--accent);font-weight:700;">POSレジ ver.'+APP_VERSION+'</div>'
+      +'<div style="font-size:11px;color:var(--text2);margin-top:2px;">更新: '+APP_BUILD_DATE+' &nbsp;|&nbsp; <span style="color:'+typeColor+';font-weight:600;">'+typeLabel+'</span></div>';
+  }
+  var tv=document.getElementById('tabbar-version');
+  if(tv) tv.textContent='v'+APP_VERSION+' '+APP_BUILD_DATE;
 }
 function savePosGasUrl(){
   const el=document.getElementById('pos-gas-url');
