@@ -330,7 +330,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
     <h2>📊 売上管理</h2>
     <button class="btn-sm2" onclick="exportCSV()">📥 CSV</button>
     <div style="position:relative;display:inline-block;">
-      <button class="btn-sm2 primary" onclick="toggleSyncMenu(event)">📊 同期 ▾</button>
+      <button class="btn-sm2 primary" onclick="toggleSyncMenu(event)">📊 同期+取得 ▾</button>
       <div id="sync-menu" style="display:none;position:absolute;right:0;top:32px;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);z-index:300;min-width:110px;padding:4px 0;">
         <button onclick="doSync('today')" style="display:block;width:100%;padding:8px 14px;border:none;background:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;">今日分</button>
         <button onclick="doSync('yesterday')" style="display:block;width:100%;padding:8px 14px;border:none;background:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;">昨日分</button>
@@ -763,8 +763,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 257;
-const APP_BUILD_DATE = '2026/05/25';
+const APP_VERSION = 259;
+const APP_BUILD_DATE = '2026/05/27 12:45';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
