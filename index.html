@@ -765,8 +765,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 267;
-const APP_BUILD_DATE = '2026/05/27 20:42';
+const APP_VERSION = 268;
+const APP_BUILD_DATE = '2026/05/27 21:34';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
@@ -2794,27 +2794,17 @@ async function syncSalesData(data, label){
   var syncBtn=document.getElementById('sync-btn');
   if(syncBtn){syncBtn.textContent='⏳ 同期中...';syncBtn.disabled=true;}
   try{
-    // Step1: push（日付別に進捗表示しながら送信）
-    var isAll=label==='全件';
-    if(isAll){
-      var grouped={},groupOrder=[];
-      data.forEach(function(s){
-        var dt=new Date(s.datetime);
-        var dl=isNaN(dt)?'?':(dt.getMonth()+1)+'/'+dt.getDate();
-        if(!grouped[dl]){grouped[dl]=[];groupOrder.push(dl);}
-        grouped[dl].push(saleToRows(s));
-      });
-      for(var i=0;i<groupOrder.length;i++){
-        if(syncBtn) syncBtn.textContent='⏳ '+groupOrder[i]+' 同期中 ('+(i+1)+'/'+groupOrder.length+'日)';
-        await gasPost(url,{type:'bulk_merge',sales:grouped[groupOrder[i]]});
-      }
-    } else {
-      for(var i=0;i<data.length;i++){
-        var dt2=new Date(data[i].datetime);
-        var dl2=isNaN(dt2)?'?':(dt2.getMonth()+1)+'/'+dt2.getDate();
-        if(syncBtn) syncBtn.textContent='⏳ '+dl2+' 同期中 ('+(i+1)+'/'+data.length+'件)';
-        await gasGet(url,{type:'add_rows',rows:saleToRows(data[i])});
-      }
+    // Step1: push（全モード共通・日付別bulk_mergeで重複排除）
+    var grouped={},groupOrder=[];
+    data.forEach(function(s){
+      var dt=new Date(s.datetime);
+      var dl=isNaN(dt)?'?':(dt.getMonth()+1)+'/'+dt.getDate();
+      if(!grouped[dl]){grouped[dl]=[];groupOrder.push(dl);}
+      grouped[dl].push(saleToRows(s));
+    });
+    for(var i=0;i<groupOrder.length;i++){
+      if(syncBtn) syncBtn.textContent='⏳ '+groupOrder[i]+' 同期中 ('+(i+1)+'/'+groupOrder.length+'日)';
+      await gasPost(url,{type:'bulk_merge',sales:grouped[groupOrder[i]]});
     }
     // Step2: pull（GAS全件取得 → マージ）
     if(syncBtn) syncBtn.textContent='⏳ 全データ取得中...';
