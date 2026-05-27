@@ -545,17 +545,33 @@ function onOpen() {
 }
 
 function promptMonthlySummary() {
-  var ui = SpreadsheetApp.getUi();
   var now = new Date();
-  var defaultVal = now.getFullYear() + '/' + (now.getMonth() + 1);
-  var response = ui.prompt('月別集計', '年月を入力 (例: ' + defaultVal + ')', ui.ButtonSet.OK_CANCEL);
-  if (response.getSelectedButton() !== ui.Button.OK) return;
-  var input = response.getResponseText().trim();
-  var m = input.match(/(\d{4})[\/\-](\d{1,2})/);
-  if (!m) { ui.alert('形式が正しくありません (例: 2026/5)'); return; }
-  var year = parseInt(m[1]), month = parseInt(m[2]);
-  var sheetName = createMonthlySummary(year, month);
-  ui.alert('完了: ' + sheetName + ' を作成しました');
+  var btns = '';
+  for (var i = 0; i < 6; i++) {
+    var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    var y = d.getFullYear(), m = d.getMonth() + 1;
+    btns += '<button class="mb" onclick="run(' + y + ',' + m + ')">' + y + '年' + m + '月</button>';
+  }
+  var html = '<style>'
+    + 'body{font-family:sans-serif;padding:12px;margin:0;}'
+    + '.mb{display:block;width:100%;padding:11px;margin:5px 0;font-size:14px;cursor:pointer;border:1px solid #bbb;border-radius:6px;background:#f8f9fa;text-align:left;}'
+    + '.mb:hover{background:#e8f0e0;border-color:#2d5016;}'
+    + '#res{margin-top:10px;font-weight:bold;min-height:20px;color:#2d5016;}'
+    + '#cls{display:block;width:100%;padding:9px;margin-top:8px;font-size:13px;cursor:pointer;border:1px solid #ccc;border-radius:6px;background:#eee;}'
+    + '</style>'
+    + btns
+    + '<div id="res"></div>'
+    + '<button id="cls" onclick="google.script.host.close()">閉じる</button>'
+    + '<script>function run(y,m){'
+    + 'document.getElementById("res").textContent="⏳ 集計中...";'
+    + 'google.script.run'
+    + '.withSuccessHandler(function(s){document.getElementById("res").textContent="✅ "+s+" 作成完了";})'
+    + '.withFailureHandler(function(e){document.getElementById("res").textContent="❌ "+e.message;})'
+    + '.createMonthlySummary(y,m);'
+    + '}<\/script>';
+  SpreadsheetApp.getUi().showModalDialog(
+    HtmlService.createHtmlOutput(html).setWidth(260).setHeight(430), '📅 月別集計'
+  );
 }
 
 function debugDiscValues(yearMonth) {
