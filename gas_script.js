@@ -86,7 +86,7 @@ function getCarryOverTotal(dateStr) {
 
 function handleRequest(data) {
   var type = data.type;
-  if      (type === 'add_rows')        addRows(data.rows);
+  if      (type === 'add_rows')        addRowsWithCheck(data.rows);
   else if (type === 'delete_rows')     deleteRows(data.sale_id);
   else if (type === 'replace_rows')    replaceRows(data.sale_id, data.rows);
   else if (type === 'clear_sheets')    clearSheets();
@@ -137,6 +137,53 @@ function getAllSalesRows() {
     for (var i = 0; i < rows.length; i++) allRows.push(rows[i]);
   }
   return allRows;
+}
+
+// 同じ売上IDが既に存在する場合はスキップ（重複防止）
+function addRowsWithCheck(rows) {
+  if (!rows || !rows.length) return;
+  var saleId = String(rows[0][14] || '');
+  if (!saleId || saleId === 'undefined') { addRows(rows); return; }
+  var ss = SpreadsheetApp.openById(SS_ID);
+  var sheets = ss.getSheets();
+  for (var i = 0; i < sheets.length; i++) {
+    var lastRow = sheets[i].getLastRow();
+    if (lastRow < 4) continue;
+    var idVals = sheets[i].getRange(4, 15, lastRow - 3, 1).getValues();
+    for (var j = 0; j < idVals.length; j++) {
+      if (String(idVals[j][0]) === saleId) return;
+    }
+  }
+  addRows(rows);
+}
+
+// 全シートの重複行（同じ売上ID）を削除（初出のみ残す）
+function cleanDuplicates() {
+  var ss = SpreadsheetApp.openById(SS_ID);
+  var sheets = ss.getSheets();
+  var seen = {};
+  var totalDeleted = 0;
+  for (var i = 0; i < sheets.length; i++) {
+    var sheet = sheets[i];
+    var name = sheet.getName();
+    if (name.indexOf('月別集計') !== -1) continue;
+    var lastRow = sheet.getLastRow();
+    if (lastRow < 4) continue;
+    var idVals = sheet.getRange(4, 15, lastRow - 3, 1).getValues();
+    var toDelete = [];
+    for (var j = 0; j < idVals.length; j++) {
+      var id = String(idVals[j][0] || '');
+      if (!id || id === 'undefined') continue;
+      if (seen[id]) { toDelete.push(4 + j); } else { seen[id] = true; }
+    }
+    for (var k = toDelete.length - 1; k >= 0; k--) {
+      sheet.deleteRow(toDelete[k]);
+      totalDeleted++;
+    }
+    if (toDelete.length > 0) updateSummary(sheet);
+  }
+  Logger.log('cleanDuplicates: ' + totalDeleted + '行削除');
+  return totalDeleted;
 }
 
 function sortSheetsByDate(ss) {
@@ -748,7 +795,7 @@ function colLetter(n) {
 
 // 月別集計シートを作成して返す
 function createMonthlySummary(year, month) {
-  var ss = SpreadsheetApp.openById(SS_ID);
+  var ss = SpreadsheetApp.getActiveSpreadsheet() || SpreadsheetApp.openById(SS_ID);
   var sheets = ss.getSheets();
 
   var monthSheets=[];
