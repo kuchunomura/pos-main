@@ -768,8 +768,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 271;
-const APP_BUILD_DATE = '2026/05/28 13:19';
+const APP_VERSION = 272;
+const APP_BUILD_DATE = '2026/05/28 14:10';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
@@ -2075,7 +2075,7 @@ function confirmPayment(){
   lastSaleId=record.id;
   autoSyncSale(record).then(function(ok){
     var s=sales.find(function(x){return x.id===record.id;});
-    if(s){s.syncStatus=ok?'ok':'fail';sv(KEYS.sales,sales);}
+    if(s){s.syncStatus=ok?'ok':'fail';sv(KEYS.sales,sales);renderSales();}
   });
   if(nextDayMode) updateCarryOverBanner();
   // 決済完了後3分間、時間スロットハイライトを保持するためカートを保存
@@ -2556,7 +2556,7 @@ function deleteSaleFromDetail(){
   if(!confirm('この売上を削除しますか？\n\n' + dtToDisplay(r.datetime) + '\n' + itemStr + '\n¥' + r.total.toLocaleString() + '（' + methodLabel + '）\n\n※この操作は取り消せません')) return;
   const deletedId=currentDetailSaleId;
   sales=sales.filter(s=>s.id!==deletedId);
-  sv(KEYS.sales,sales);
+  sv(KEYS.sales,sales);saveSnapshotToIDB();
   autoDeleteSale(deletedId);
   document.getElementById('sale-detail-modal').classList.remove('open');
   renderSales();
@@ -2588,7 +2588,7 @@ function confirmDeleteAndSwitch(){
   var id=editingSaleId;
   if(id){
     sales=sales.filter(function(s){return s.id!==id;});
-    sv(KEYS.sales,sales);
+    sv(KEYS.sales,sales);saveSnapshotToIDB();
     autoDeleteSale(id);
     editingSaleId=null;
   }
@@ -3741,7 +3741,7 @@ function deleteSaleFromDetail(){
   const wasNextDay=!!r.nextDay;
   const deletedId=currentDetailSaleId;
   sales=sales.filter(s=>s.id!==deletedId);
-  sv(KEYS.sales,sales);autoDeleteSale(deletedId);
+  sv(KEYS.sales,sales);saveSnapshotToIDB();autoDeleteSale(deletedId);
   if(wasNextDay){updateCarryOverBanner();fetchCarryOverFromGAS();}
   document.getElementById('sale-detail-modal').classList.remove('open');
   renderSales();showToast('✓ 削除しました');
