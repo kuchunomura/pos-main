@@ -765,8 +765,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 268;
-const APP_BUILD_DATE = '2026/05/27 21:34';
+const APP_VERSION = 269;
+const APP_BUILD_DATE = '2026/05/28 12:08';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
@@ -2059,6 +2059,7 @@ function confirmPayment(){
     nextDay:nextDayMode,
     device:localStorage.getItem('pos_device_id')||'',
     device_name:localStorage.getItem('pos_device_name')||'',
+    syncStatus:'pending',
   };
   // カートで修正中だった場合、元の売上を削除してGASにも反映
   if(editingSaleId){
@@ -2069,7 +2070,10 @@ function confirmPayment(){
   sales.push(record);sv(KEYS.sales,sales);
   saveSnapshotToIDB();
   lastSaleId=record.id;
-  autoSyncSale(record);
+  autoSyncSale(record).then(function(ok){
+    var s=sales.find(function(x){return x.id===record.id;});
+    if(s){s.syncStatus=ok?'ok':'fail';sv(KEYS.sales,sales);}
+  });
   if(nextDayMode) updateCarryOverBanner();
   // 決済完了後3分間、時間スロットハイライトを保持するためカートを保存
   lastPaidSessionItems = cart.filter(function(c){ return !c.paidLabel; });
@@ -2477,7 +2481,7 @@ function renderSales(){
     const attrStr=attrParts.join(' ');
     tr.innerHTML=
       '<td style="text-align:center;font-size:14px;cursor:pointer;" onclick="event.stopPropagation();quickToggleFlag(\''+r.id+'\',this)">'+(r.flagged?'🔴':'⚪')+'</td>'+
-      '<td style="white-space:nowrap;font-size:10px">'+(r.nextDay?'<span style="color:#7a5500;font-weight:700;">🌙</span> ':'')+dtToShort(r.datetime)+(r.device_name?'<div style="font-size:9px;color:var(--text2);margin-top:1px;">📱'+r.device_name+'</div>':'')+'</td>'+
+      '<td style="white-space:nowrap;font-size:10px">'+(r.nextDay?'<span style="color:#7a5500;font-weight:700;">🌙</span> ':'')+dtToShort(r.datetime)+(r.device_name?'<div style="font-size:9px;color:var(--text2);margin-top:1px;">📱'+r.device_name+'</div>':'')+(r.syncStatus==='ok'?'<div style="font-size:9px;margin-top:2px;"><span style="background:#27ae60;color:#fff;padding:1px 6px;border-radius:8px;font-weight:600;">同期済</span></div>':r.syncStatus==='fail'?'<div style="font-size:9px;margin-top:2px;"><span style="background:#c0392b;color:#fff;padding:1px 6px;border-radius:8px;font-weight:600;">要再送</span> <button onclick="event.stopPropagation();retrySyncSale(\''+r.id+'\')" style="font-size:9px;background:#c0392b;color:#fff;border:none;border-radius:4px;padding:1px 6px;cursor:pointer;font-family:inherit;">再送</button></div>':r.syncStatus==='pending'?'<div style="font-size:9px;color:#999;margin-top:2px;">送信中...</div>':'')+'</td>'+
       '<td style="font-size:10px;min-width:160px;max-width:220px;">'+
         '<div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+itemStr+'</div>'+
         (attrStr?'<div style="font-size:9px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+attrStr+'</div>':'')+
@@ -2927,26 +2931,48 @@ async function doMonthlySummary(){
 
 // 決済ごとに自動送信（新規）
 async function autoSyncSale(sale){
-  const url=DEFAULT_GAS_URL;
-  if(!url) return;
-  try{ await gasGet(url,{type:'add_rows',rows:saleToRows(sale)}); }catch(e){}
+  const url=ld(KEYS.gas)||DEFAULT_GAS_URL;
+  if(!url) return false;
+  try{
+    var qs='?d='+encodeURIComponent(JSON.stringify({type:'add_rows',rows:saleToRows(sale)}));
+    var res=await fetch(url+qs,{method:'GET',redirect:'follow'});
+    var json=await res.json();
+    return json.status==='ok';
+  }catch(e){ return false; }
 }
 
 // ポップアップで変更した売上を再送（replace）
 async function autoSyncUpdatedSale(sale){
-  const url=DEFAULT_GAS_URL;
+  const url=ld(KEYS.gas)||DEFAULT_GAS_URL;
   if(!url) return;
   try{
-    await gasGet(url,{type:'replace_rows',sale_id:sale.id,rows:saleToRows(sale)});
-  }catch(e){showToast('⚠ GAS同期エラー: '+e.message,'#c00',6000);}
+    var qs='?d='+encodeURIComponent(JSON.stringify({type:'replace_rows',sale_id:sale.id,rows:saleToRows(sale)}));
+    var res=await fetch(url+qs,{method:'GET',redirect:'follow'});
+    var json=await res.json();
+    var s=sales.find(function(x){return x.id===sale.id;});
+    if(s){s.syncStatus=json.status==='ok'?'ok':'fail';sv(KEYS.sales,sales);renderSales();}
+  }catch(e){
+    var s=sales.find(function(x){return x.id===sale.id;});
+    if(s){s.syncStatus='fail';sv(KEYS.sales,sales);renderSales();}
+    showToast('⚠ GAS同期エラー: '+e.message,'#c00',6000);
+  }
 }
 
 async function autoDeleteSale(saleId){
-  const url=DEFAULT_GAS_URL;
+  const url=ld(KEYS.gas)||DEFAULT_GAS_URL;
   if(!url) return;
   try{
-    await gasGet(url,{type:'delete_rows',sale_id:saleId});
+    var qs='?d='+encodeURIComponent(JSON.stringify({type:'delete_rows',sale_id:saleId}));
+    await fetch(url+qs,{method:'GET',redirect:'follow'});
   }catch(e){}
+}
+
+async function retrySyncSale(id){
+  var s=sales.find(function(x){return x.id===id;});
+  if(!s) return;
+  s.syncStatus='pending';sv(KEYS.sales,sales);renderSales();
+  var ok=await autoSyncSale(s);
+  s.syncStatus=ok?'ok':'fail';sv(KEYS.sales,sales);renderSales();
 }
 
 // GAS接続テスト
@@ -2987,6 +3013,24 @@ function initDeviceNameField(){
   if(el) el.value=dname;
   if(curr) curr.textContent=dname?'現在の端末名: '+dname:'（未設定）';
 }
+async function checkAppVersion(){
+  try{
+    var base=location.origin+location.pathname.split('/').slice(0,-1).join('/')+'/';
+    var res=await fetch(base+'version.json?_='+Date.now(),{cache:'no-store'});
+    var json=await res.json();
+    if(json.v&&json.v>APP_VERSION){
+      var bar=document.createElement('div');
+      bar.style.cssText='position:fixed;top:44px;left:0;right:0;z-index:9999;background:#2d5016;color:#fff;padding:8px 14px;font-size:13px;display:flex;align-items:center;gap:10px;';
+      bar.innerHTML='新しいバージョン v'+json.v+' があります '
+        +'<button onclick="window.location.href=location.pathname+\'?v='+json.v+'\'" '
+        +'style="background:#fff;color:#2d5016;border:none;border-radius:4px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;">更新する</button>'
+        +'<button onclick="this.parentElement.remove()" '
+        +'style="background:none;border:none;color:rgba(255,255,255,0.7);font-size:18px;cursor:pointer;margin-left:auto;">×</button>';
+      document.body.appendChild(bar);
+    }
+  }catch(e){}
+}
+
 function initVersionInfo(){
   var b=document.getElementById('pos-version-info');
   if(b){
@@ -3682,6 +3726,7 @@ function toggleSaleFlag(){
 function saveSaleChanges(){
   const r=sales.find(s=>s.id===currentDetailSaleId);if(!r)return;
   r.memo=document.getElementById('sale-detail-memo').value;
+  r.syncStatus='pending';
   sv(KEYS.sales,sales);autoSyncUpdatedSale(r);renderSales();showToast('✓ 保存しました');
 }
 function deleteSaleFromDetail(){
@@ -4272,7 +4317,7 @@ restoreFromIDB().then(()=>{
   if(_fe) _fe.value=_t;
   if(_te) _te.value=_t;
   updateFilterBtnState();
-  renderCatFilterTabs();renderPOS();renderCart();renderDiscountBar();renderAttrs();renderHoldTabs();renderSettings();renderWeatherDisplay();initVersionInfo();
+  renderCatFilterTabs();renderPOS();renderCart();renderDiscountBar();renderAttrs();renderHoldTabs();renderSettings();renderWeatherDisplay();initVersionInfo();checkAppVersion();
   fetchCarryOverFromGAS();
 });
 </script>
