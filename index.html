@@ -542,9 +542,9 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
     <button class="btn-primary2" onclick="savePaidDisplaySettings()">保存</button>
   </div>
 
-  <!-- GAS連携 -->
+  <!-- GAS URL -->
   <div class="settings-section">
-    <h3>📊 スプレッドシート連携</h3>
+    <h3>📊 スプレッドシート連携 - GAS URL</h3>
     <div id="gas-url-status" style="font-size:12px;padding:6px 10px;background:#f5f5f5;border-radius:6px;margin-bottom:8px;line-height:1.7;"></div>
     <div class="form-row" style="margin-bottom:8px;">
       <label>GAS URLを選択して適用</label>
@@ -554,16 +554,18 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
       </select>
     </div>
     <div class="form-row"><label>GAS WebアプリURL（直接入力）</label><input type="text" id="pos-gas-url" placeholder="https://script.google.com/macros/s/..."></div>
-    <div class="form-row" style="margin-top:10px;">
-      <label>端末名（スプレッドシートに表示）</label>
-      <input type="text" id="pos-device-name" placeholder="例：レジ1、カウンター" style="width:100%;padding:10px;font-size:15px;box-sizing:border-box;margin-bottom:8px;">
-      <button class="btn-primary2" onclick="saveDeviceName()" style="width:100%;padding:10px;font-size:14px;">保存</button>
-      <div id="pos-device-name-current" style="margin-top:10px;font-size:14px;font-weight:700;color:var(--accent);"></div>
-    </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
       <button class="btn-primary2" onclick="savePosGasUrl()">URLを保存</button>
       <button class="btn-sm2" style="background:#2d5016;color:#fff;padding:8px 14px;" onclick="testGasConnection()">🔗 接続テスト</button>
     </div>
+  </div>
+
+  <!-- 端末名 -->
+  <div class="settings-section">
+    <h3>📱 端末名（スプレッドシートに表示）</h3>
+    <input type="text" id="pos-device-name" placeholder="例：レジ1、カウンター" style="width:100%;padding:10px;font-size:15px;box-sizing:border-box;margin-bottom:8px;border:1px solid var(--border);border-radius:8px;font-family:inherit;">
+    <button class="btn-primary2" onclick="saveDeviceName()" style="width:100%;padding:10px;font-size:14px;">保存</button>
+    <div id="pos-device-name-current" style="margin-top:10px;font-size:14px;font-weight:700;color:var(--accent);"></div>
   </div>
 
 
@@ -780,8 +782,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 282;
-const APP_BUILD_DATE = '2026/05/30 21:08';
+const APP_VERSION = 283;
+const APP_BUILD_DATE = '2026/05/30 21:10';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
