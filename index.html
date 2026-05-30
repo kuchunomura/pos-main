@@ -768,8 +768,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 276;
-const APP_BUILD_DATE = '2026/05/30 12:29';
+const APP_VERSION = 277;
+const APP_BUILD_DATE = '2026/05/30 12:44';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
@@ -2483,7 +2483,7 @@ function renderSales(){
     const attrStr=attrParts.join(' ');
     tr.innerHTML=
       '<td style="text-align:center;font-size:14px;cursor:pointer;" onclick="event.stopPropagation();quickToggleFlag(\''+r.id+'\',this)">'+(r.flagged?'🔴':'⚪')+'</td>'+
-      '<td style="white-space:nowrap;font-size:10px">'+(r.nextDay?'<span style="color:#7a5500;font-weight:700;">🌙</span> ':'')+dtToShort(r.datetime)+(r.device_name?'<div style="font-size:9px;color:var(--text2);margin-top:1px;">📱'+r.device_name+'</div>':'')+(r.syncStatus==='ok'?'<div style="font-size:9px;margin-top:2px;"><span style="background:#27ae60;color:#fff;padding:1px 6px;border-radius:8px;font-weight:600;">同期済</span></div>':r.syncStatus==='fail'?'<div style="font-size:9px;margin-top:2px;"><span style="background:#c0392b;color:#fff;padding:1px 6px;border-radius:8px;font-weight:600;">要再送</span> <button onclick="event.stopPropagation();retrySyncSale(\''+r.id+'\')" style="font-size:9px;background:#c0392b;color:#fff;border:none;border-radius:4px;padding:1px 6px;cursor:pointer;font-family:inherit;">再送</button></div>':r.syncStatus==='pending'?'<div style="font-size:9px;color:#999;margin-top:2px;">送信中...</div>':'')+'</td>'+
+      '<td style="white-space:nowrap;font-size:10px">'+(r.nextDay?'<span style="color:#7a5500;font-weight:700;">🌙</span> ':'')+dtToShort(r.datetime)+(r.device_name?'<div style="font-size:9px;color:var(--text2);margin-top:1px;">📱'+r.device_name+'</div>':'')+(r.syncStatus==='ok'?'<div style="font-size:9px;margin-top:2px;"><span style="background:#27ae60;color:#fff;padding:1px 6px;border-radius:8px;font-weight:600;">同期済</span></div>':r.syncStatus==='fail'?'<div style="font-size:9px;margin-top:2px;"><span style="background:#c0392b;color:#fff;padding:1px 6px;border-radius:8px;font-weight:600;">要再送</span><button onclick="event.stopPropagation();retrySyncSale(\''+r.id+'\')" style="font-size:9px;background:#c0392b;color:#fff;border:none;border-radius:4px;padding:1px 6px;cursor:pointer;font-family:inherit;margin-left:8px;">再送</button></div>':r.syncStatus==='pending'?'<div style="font-size:9px;color:#999;margin-top:2px;">送信中...</div>':'')+'</td>'+
       '<td style="font-size:10px;min-width:160px;max-width:220px;">'+
         '<div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+itemStr+'</div>'+
         (attrStr?'<div style="font-size:9px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+attrStr+'</div>':'')+
@@ -4280,10 +4280,10 @@ restoreFromIDB().then(()=>{
   items = ld(KEYS.items) || DEFAULT_ITEMS;
   discountItems = ld(KEYS.discounts) || DEFAULT_DISCOUNTS;
   sales = ld(KEYS.sales) || [];
-  // 起動時にpendingのまま残った同期は失敗扱い（再送ボタンを表示）
+  // 起動時にpendingのまま残った同期はバッジ消去（結果不明のため要再送にしない）
   var hasPending=false;
-  sales.forEach(function(s){if(s.syncStatus==='pending'){s.syncStatus='fail';hasPending=true;}});
-  if(hasPending) sv(KEYS.sales,sales);
+  sales.forEach(function(s){if(s.syncStatus==='pending'){s.syncStatus='';hasPending=true;}});
+  if(hasPending){sv(KEYS.sales,sales);saveSnapshotToIDB();}
   siteNames = ld(KEYS.sites) || {};
   ATTRS = ld('pos_attrs') || JSON.parse(JSON.stringify(DEFAULT_ATTRS));
   holds = ld(KEYS.holds) || [null,null,null,null,null,null,null,null,null,null];
