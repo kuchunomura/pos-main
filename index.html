@@ -528,7 +528,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
   </div>
 
   <!-- 支払済み表示設定 -->
-  <div class="settings-section">
+  <div class="settings-section" style="display:none;">
     <h3>✅ 支払済み表示設定（楽天・じゃらん・SOU）</h3>
     <div class="form-row">
       <label>バッジ文言（例：支払済、事前決済）</label>
@@ -572,9 +572,11 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
   <!-- データ エクスポート/インポート -->
   <div class="settings-section" id="pos-export-import">
     <h3>📤 データ バックアップ・引き継ぎ</h3>
-    <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.7;">
-      商品・設定・売上・保留を1ファイルにまとめてエクスポート。<br>
-      別デバイスにインポートすると売上・保留は<strong>追加</strong>（重複なし）、設定は上書きされます。
+    <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.8;">
+      売上・商品・設定データをファイルに書き出して保存します。<br>
+      機種変更や別のタブレット・スマホに引き継ぐときに使ってください。<br><br>
+      <strong>エクスポート</strong>：データをファイルに保存（その場でダウンロード）<br>
+      <strong>インポート</strong>：保存したファイルを読み込む。売上・保留は追加（重複なし）、商品・設定は上書き。
     </div>
     <button class="btn-primary2" onclick="exportSettings()" style="margin-bottom:8px;">📤 全データをエクスポート</button>
     <button class="btn-primary2" style="background:#2471a3;" onclick="triggerImport()">📥 インポート（ファイルを選択）</button>
@@ -583,29 +585,31 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 
   <!-- IndexedDB復元 -->
   <div class="settings-section" style="border:2px solid #f0ad4e;">
-    <h3 style="color:#b8860b;">🔁 IndexedDB から復元</h3>
-    <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.7;">
-      売上・設定データをブラウザ内バックアップ（IndexedDB）から復元します。<br>
-      アプリの誤操作でlocalStorageが消えた場合に使用してください。<br>
-      復元後はページが再読み込みされます。
+    <h3 style="color:#b8860b;">🔁 自動バックアップから復元</h3>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.8;">
+      アプリは売上・設定データを端末内の2か所に自動保存しています。<br>
+      万が一データが消えたとき、もう一方のバックアップから復元できます。<br><br>
+      <strong>⚠️ キャッシュ削除について</strong><br>
+      ブラウザの「キャッシュされた画像とファイル」を削除しても売上データは消えません。<br>
+      ただし「Cookieとサイトデータ」を削除すると両方消えるため復元できなくなります。<br><br>
+      復元後はアプリが自動で再読み込みされます。
     </div>
-    <button class="btn-primary2" style="background:#b8860b;color:#fff;" onclick="idbRestore()">🔁 IndexedDBから復元する</button>
+    <button class="btn-primary2" style="background:#b8860b;color:#fff;" onclick="idbRestore()">🔁 バックアップから復元する</button>
   </div>
 
   <!-- データリセット -->
   <div class="settings-section" style="border:2px solid #f5c0c0;">
-    <h3 style="color:var(--red);">🔄 データリセット</h3>
+    <h3 style="color:var(--red);">🔄 商品・設定をリセット</h3>
     <div style="background:#fff8f8;border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px;line-height:1.8;color:#555;">
-      <div style="font-weight:700;margin-bottom:4px;">📌 リセットとは？</div>
-      選択した項目をアプリの初期設定（コードに書かれたデフォルト値）に戻します。<br>
-      宿泊カテゴリーの4分割や、ハンモックの人数変更など、<br>
-      新しいデフォルト設定を反映したいときに使います。
+      <div style="font-weight:700;margin-bottom:4px;">📌 何をするの？</div>
+      アプリに最初から入っている商品・カテゴリー・割引設定に戻します。<br>
+      アプリを更新して新しい商品や設定が追加されたとき、<br>
+      「反映されていない」と感じたらこれを使ってください。
     </div>
     <div style="background:#fde8e8;border-radius:8px;padding:10px;margin-bottom:12px;font-size:12px;line-height:1.8;color:var(--red);">
-      <div style="font-weight:700;margin-bottom:4px;">⚠️ 注意</div>
-      ・リセットした項目は<strong>元に戻せません</strong><br>
-      ・手動で追加・変更した商品や設定は<strong>すべて消えます</strong><br>
-      ・売上データ・GAS URLはリセット対象外です
+      <div style="font-weight:700;margin-bottom:4px;">⚠️ 注意（元に戻せません）</div>
+      ・手動で追加・変更した商品名・価格・設定は<strong>すべて消えます</strong><br>
+      ・売上データ・GAS URLは消えません
     </div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
       <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
@@ -782,8 +786,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 283;
-const APP_BUILD_DATE = '2026/05/30 21:10';
+const APP_VERSION = 284;
+const APP_BUILD_DATE = '2026/05/30 21:26';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
@@ -3803,6 +3807,9 @@ function executeReset(){
   if(rC){cats=DEFAULT_CATS.map(c=>({...c}));sv(KEYS.cats,cats);}
   if(rI){items=DEFAULT_ITEMS.map(i=>({...i}));sv(KEYS.items,items);}
   if(rD){discountItems=DEFAULT_DISCOUNTS.map(d=>({...d}));sv(KEYS.discounts,discountItems);}
+  document.getElementById('reset-cats').checked=false;
+  document.getElementById('reset-items').checked=false;
+  document.getElementById('reset-discounts').checked=false;
   renderSettings();renderPOS();renderDiscountBar();
   showToast('✓ リセットしました');
 }
