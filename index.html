@@ -791,8 +791,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 285;
-const APP_BUILD_DATE = '2026/05/30 21:38';
+const APP_VERSION = 286;
+const APP_BUILD_DATE = '2026/05/30 21:55';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
@@ -3772,6 +3772,7 @@ function openSaleDetail(saleId){
   }
   document.getElementById('sale-detail-modal').classList.add('open');
 }
+var _attrSyncTimer=null;
 function setSaleDetailAttr(key,val){
   const r=sales.find(s=>s.id===currentDetailSaleId);if(!r)return;
   if(!r.attrs) r.attrs={};
@@ -3780,8 +3781,14 @@ function setSaleDetailAttr(key,val){
   const idx=r.attrs[key].indexOf(val);
   if(idx===-1) r.attrs[key].push(val); else r.attrs[key].splice(idx,1);
   sv(KEYS.sales,sales);
-  autoSyncUpdatedSale(r);
   openSaleDetail(currentDetailSaleId);
+  // 連続タップ時の重複同期を防ぐデバウンス（600ms）
+  if(_attrSyncTimer) clearTimeout(_attrSyncTimer);
+  _attrSyncTimer=setTimeout(function(){
+    var r2=sales.find(function(s){return s.id===currentDetailSaleId;});
+    if(r2) autoSyncUpdatedSale(r2);
+    _attrSyncTimer=null;
+  },600);
 }
 function toggleSaleFlag(){
   const r=sales.find(s=>s.id===currentDetailSaleId);if(!r)return;
