@@ -426,7 +426,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
       <span id="sales-app-type-label" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:var(--accent2);color:#fff;"></span>
       <button class="btn-sm2" onclick="window.open(SS_URL_TEST,'_blank')" style="font-size:10px;padding:3px 8px;background:#e8f4fd;color:#2471a3;border-color:#a0c8e8;">📊 testシート</button>
       <button class="btn-sm2" onclick="window.open(SS_URL_MAIN,'_blank')" style="font-size:10px;padding:3px 8px;background:#f0f4e8;color:#2d5016;border-color:#a0c870;">📊 mainシート</button>
-      <button class="btn-sm2" onclick="window.open(SS_URL_MANUAL,'_blank')" style="font-size:10px;padding:3px 8px;background:#fff9c4;color:#7a5500;border-color:#d4b040;">📊 手動集計SS</button>
+      <button class="btn-sm2" onclick="window.open(SS_URL_MANUAL,'_blank')" style="font-size:10px;padding:3px 8px;background:#fff9c4;color:#7a5500;border-color:#d4b040;">📊 手動集計シート</button>
     </div>
     <div class="summary-cards" style="margin-bottom:10px;">
       <div class="summary-card"><div class="sc-label">売上合計</div><div class="sc-value" id="sc-total">¥0</div></div>
@@ -447,7 +447,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <!-- ===== 設定タブ ===== -->
 <div class="tab-content" id="tab-settings-pos">
   <!-- バージョン情報 -->
-  <div class="settings-section" id="pos-version-info" style="background:#f0f4e8;padding:10px 14px;">
+  <div class="settings-section" id="pos-version-info" style="background:#f0f4e8;padding:10px 50px 10px 14px;">
     <div style="font-size:12px;color:var(--accent);font-weight:700;">POSレジ ver.-</div>
     <div style="font-size:11px;color:var(--text2);margin-top:2px;">確認中... &nbsp;|&nbsp; <span style="color:var(--accent);font-weight:600;">main版</span></div>
   </div>
@@ -780,8 +780,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 281;
-const APP_BUILD_DATE = '2026/05/30 20:53';
+const APP_VERSION = 282;
+const APP_BUILD_DATE = '2026/05/30 21:08';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
