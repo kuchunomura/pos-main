@@ -768,8 +768,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 275;
-const APP_BUILD_DATE = '2026/05/30 10:31';
+const APP_VERSION = 276;
+const APP_BUILD_DATE = '2026/05/30 12:29';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
@@ -2074,7 +2074,7 @@ function confirmPayment(){
   lastSaleId=record.id;
   autoSyncSale(record).then(function(ok){
     var s=sales.find(function(x){return x.id===record.id;});
-    if(s){s.syncStatus=ok?'ok':'fail';sv(KEYS.sales,sales);renderSales();}
+    if(s){s.syncStatus=ok?'ok':'fail';sv(KEYS.sales,sales);saveSnapshotToIDB();renderSales();}
   });
   if(nextDayMode) updateCarryOverBanner();
   // 決済完了後3分間、時間スロットハイライトを保持するためカートを保存
@@ -4280,6 +4280,10 @@ restoreFromIDB().then(()=>{
   items = ld(KEYS.items) || DEFAULT_ITEMS;
   discountItems = ld(KEYS.discounts) || DEFAULT_DISCOUNTS;
   sales = ld(KEYS.sales) || [];
+  // 起動時にpendingのまま残った同期は失敗扱い（再送ボタンを表示）
+  var hasPending=false;
+  sales.forEach(function(s){if(s.syncStatus==='pending'){s.syncStatus='fail';hasPending=true;}});
+  if(hasPending) sv(KEYS.sales,sales);
   siteNames = ld(KEYS.sites) || {};
   ATTRS = ld('pos_attrs') || JSON.parse(JSON.stringify(DEFAULT_ATTRS));
   holds = ld(KEYS.holds) || [null,null,null,null,null,null,null,null,null,null];
