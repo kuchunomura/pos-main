@@ -423,6 +423,10 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
       <input type="date" id="filter-to" onchange="updateFilterBtnState()">
       <button class="btn-sm2" onclick="updateFilterBtnState();renderSales()">絞込</button>
       <button class="btn-sm2" onclick="clearFilter()">全件</button>
+      <span id="sales-app-type-label" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:var(--accent2);color:#fff;"></span>
+      <button class="btn-sm2" onclick="window.open(SS_URL_TEST,'_blank')" style="font-size:10px;padding:3px 8px;background:#e8f4fd;color:#2471a3;border-color:#a0c8e8;">📊 testシート</button>
+      <button class="btn-sm2" onclick="window.open(SS_URL_MAIN,'_blank')" style="font-size:10px;padding:3px 8px;background:#f0f4e8;color:#2d5016;border-color:#a0c870;">📊 mainシート</button>
+      <button class="btn-sm2" onclick="window.open(SS_URL_MANUAL,'_blank')" style="font-size:10px;padding:3px 8px;background:#fff9c4;color:#7a5500;border-color:#d4b040;">📊 手動集計SS</button>
     </div>
     <div class="summary-cards" style="margin-bottom:10px;">
       <div class="summary-card"><div class="sc-label">売上合計</div><div class="sc-value" id="sc-total">¥0</div></div>
@@ -541,7 +545,15 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
   <!-- GAS連携 -->
   <div class="settings-section">
     <h3>📊 スプレッドシート連携</h3>
-    <div class="form-row"><label>GAS WebアプリURL</label><input type="text" id="pos-gas-url" placeholder="https://script.google.com/macros/s/..."></div>
+    <div id="gas-url-status" style="font-size:12px;padding:6px 10px;background:#f5f5f5;border-radius:6px;margin-bottom:8px;line-height:1.7;"></div>
+    <div class="form-row" style="margin-bottom:8px;">
+      <label>GAS URLを選択して適用</label>
+      <select id="gas-url-select" onchange="applyGasUrlFromSelect()" style="width:100%;padding:10px;font-size:14px;border:1px solid var(--border);border-radius:8px;font-family:inherit;">
+        <option value="test">test用 GAS URL</option>
+        <option value="main">main用 GAS URL</option>
+      </select>
+    </div>
+    <div class="form-row"><label>GAS WebアプリURL（直接入力）</label><input type="text" id="pos-gas-url" placeholder="https://script.google.com/macros/s/..."></div>
     <div class="form-row" style="margin-top:10px;">
       <label>端末名（スプレッドシートに表示）</label>
       <input type="text" id="pos-device-name" placeholder="例：レジ1、カウンター" style="width:100%;padding:10px;font-size:15px;box-sizing:border-box;margin-bottom:8px;">
@@ -768,11 +780,16 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 279;
-const APP_BUILD_DATE = '2026/05/30 13:17';
+const APP_VERSION = 280;
+const APP_BUILD_DATE = '2026/05/30 19:23';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
+const GAS_URL_TEST='https://script.google.com/macros/s/AKfycbwO3nrFBG7gDCwbRALgqReIO4Axyfm5mjfgIk9VLyh5o80_qSx8y70SqtYkuCtCpe8BXA/exec';
+const GAS_URL_MAIN='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
+const SS_URL_TEST='https://docs.google.com/spreadsheets/d/1mVw1DN78bVr5SiWCUDZ2HlVhalgwH4bzi3UnlS1uTFY';
+const SS_URL_MAIN='https://docs.google.com/spreadsheets/d/13AgulTcqyxRZLF9nejl2TJ3qqpLKlrFprlPX25fU-kg';
+const SS_URL_MANUAL='https://docs.google.com/spreadsheets/d/1-lTMbMmDalY4PXqMAydrZn3SdW-a_A-6G6l8JzepPug';
 const KEYS = {items:'pos_items',sales:'pos_sales',gas:'pos_gas',cats:'pos_cats',itemOrder:'pos_item_order',catOrder:'pos_cat_order',sites:'pos_sites',discounts:'pos_discounts',attrs:'pos_attrs',holds:'pos_holds',deviceId:'pos_device_id'};
 // デバイスID自動生成（初回のみ）
 (function(){var d=localStorage.getItem('pos_device_id');if(!d){d=Math.random().toString(36).slice(2,6).toUpperCase();localStorage.setItem('pos_device_id',d);}})();
@@ -3037,6 +3054,34 @@ function initVersionInfo(){
   }
   var tv=document.getElementById('tabbar-version');
   if(tv) tv.textContent='v'+APP_VERSION+' '+APP_BUILD_DATE+' | '+(APP_VERSION_TYPE==='main'?'main版':'test版');
+  updateGasUrlStatus();
+}
+function getGasUrlType(url){
+  if(!url) return '不明';
+  if(url===GAS_URL_TEST) return 'test用';
+  if(url===GAS_URL_MAIN) return 'main用';
+  return '不明';
+}
+function updateGasUrlStatus(){
+  var url=ld(KEYS.gas)||DEFAULT_GAS_URL;
+  var urlType=getGasUrlType(url);
+  var appType=APP_VERSION_TYPE;
+  var isCorrect=(appType==='test'&&urlType==='test用')||(appType==='main'&&urlType==='main用');
+  var el=document.getElementById('gas-url-status');
+  if(el) el.innerHTML='このアプリ: <b>'+appType+'版</b>　GAS URL: <b style="color:'+(isCorrect?'#27ae60':'#c0392b')+'">'+urlType+(isCorrect?' ✓':' ⚠')+'</b>';
+  var sel=document.getElementById('gas-url-select');
+  if(sel) sel.value=(urlType==='main用')?'main':'test';
+  var appLabel=document.getElementById('sales-app-type-label');
+  if(appLabel) appLabel.textContent=appType+'版';
+}
+function applyGasUrlFromSelect(){
+  var sel=document.getElementById('gas-url-select');
+  var url=sel.value==='main'?GAS_URL_MAIN:GAS_URL_TEST;
+  sv(KEYS.gas,url);
+  var gasEl=document.getElementById('pos-gas-url');
+  if(gasEl) gasEl.value=url;
+  updateGasUrlStatus();
+  showToast('✅ GAS URLを'+sel.value+'用に変更しました',null,3000);
 }
 function savePosGasUrl(){
   const el=document.getElementById('pos-gas-url');
@@ -3044,6 +3089,7 @@ function savePosGasUrl(){
   const url=el.value.trim();
   if(!url){showToast('⚠ URLを入力してください','#c00');return;}
   sv(KEYS.gas,url);
+  updateGasUrlStatus();
   showToast('✅ GAS URLを保存しました',null,4000);
 }
 
@@ -3052,6 +3098,7 @@ function renderSettings(){
   renderCatMgmt();renderItemList();
   const agEl=document.getElementById('agreement-content'); if(agEl) agEl.value=ld(KEYS.agree)||'';
   const gasEl=document.getElementById('pos-gas-url'); if(gasEl) gasEl.value=(ld(KEYS.gas)||DEFAULT_GAS_URL)||DEFAULT_GAS_URL;
+  updateGasUrlStatus();
   renderAttrSettings();
   renderDiscountSettingsList();
   renderTimerFacSettings();
