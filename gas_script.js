@@ -330,9 +330,13 @@ function addRows(rows) {
 function replaceRows(saleId, rows) {
   if (!saleId) return;
   var ss = SpreadsheetApp.openById(SS_ID);
-  var sheets = ss.getSheets();
-  for (var i = 0; i < sheets.length; i++) {
-    deleteRowsFromSheet(sheets[i], saleId);
+  if (rows && rows.length) {
+    var sheetName = sheetNameFromRows(rows);
+    var sheet = ss.getSheetByName(sheetName);
+    if (sheet) deleteRowsFromSheet(sheet, saleId);
+  } else {
+    var sheets = ss.getSheets();
+    for (var i = 0; i < sheets.length; i++) deleteRowsFromSheet(sheets[i], saleId);
   }
   if (rows && rows.length) addRows(rows);
 }
