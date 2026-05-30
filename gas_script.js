@@ -329,16 +329,22 @@ function addRows(rows) {
 
 function replaceRows(saleId, rows) {
   if (!saleId) return;
-  var ss = SpreadsheetApp.openById(SS_ID);
-  if (rows && rows.length) {
-    var sheetName = sheetNameFromRows(rows);
-    var sheet = ss.getSheetByName(sheetName);
-    if (sheet) deleteRowsFromSheet(sheet, saleId);
-  } else {
-    var sheets = ss.getSheets();
-    for (var i = 0; i < sheets.length; i++) deleteRowsFromSheet(sheets[i], saleId);
+  var lock = LockService.getScriptLock();
+  try { lock.waitLock(15000); } catch(e) {}
+  try {
+    var ss = SpreadsheetApp.openById(SS_ID);
+    if (rows && rows.length) {
+      var sheetName = sheetNameFromRows(rows);
+      var sheet = ss.getSheetByName(sheetName);
+      if (sheet) deleteRowsFromSheet(sheet, saleId);
+    } else {
+      var sheets = ss.getSheets();
+      for (var i = 0; i < sheets.length; i++) deleteRowsFromSheet(sheets[i], saleId);
+    }
+    if (rows && rows.length) addRows(rows);
+  } finally {
+    lock.releaseLock();
   }
-  if (rows && rows.length) addRows(rows);
 }
 
 function deleteRows(saleId) {
