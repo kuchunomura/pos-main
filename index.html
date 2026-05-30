@@ -768,8 +768,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 272;
-const APP_BUILD_DATE = '2026/05/28 14:10';
+const APP_VERSION = 274;
+const APP_BUILD_DATE = '2026/05/30 09:41';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
@@ -3022,14 +3022,7 @@ async function checkAppVersion(){
     var res=await fetch(base+'version.json?_='+Date.now(),{cache:'no-store'});
     var json=await res.json();
     if(json.v&&json.v>APP_VERSION){
-      var bar=document.createElement('div');
-      bar.style.cssText='position:fixed;top:44px;left:0;right:0;z-index:9999;background:#2d5016;color:#fff;padding:8px 14px;font-size:13px;display:flex;align-items:center;gap:10px;';
-      bar.innerHTML='新しいバージョン v'+json.v+' があります '
-        +'<button onclick="window.location.href=location.pathname+\'?v='+json.v+'\'" '
-        +'style="background:#fff;color:#2d5016;border:none;border-radius:4px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;">更新する</button>'
-        +'<button onclick="this.parentElement.remove()" '
-        +'style="background:none;border:none;color:rgba(255,255,255,0.7);font-size:18px;cursor:pointer;margin-left:auto;">×</button>';
-      document.body.appendChild(bar);
+      window.location.href=location.pathname+'?v='+json.v+'&_='+Date.now();
     }
   }catch(e){}
 }
