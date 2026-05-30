@@ -768,8 +768,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 277;
-const APP_BUILD_DATE = '2026/05/30 12:44';
+const APP_VERSION = 278;
+const APP_BUILD_DATE = '2026/05/30 13:11';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
@@ -2487,6 +2487,7 @@ function renderSales(){
       '<td style="font-size:10px;min-width:160px;max-width:220px;">'+
         '<div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+itemStr+'</div>'+
         (attrStr?'<div style="font-size:9px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+attrStr+'</div>':'')+
+        ((r.memo&&r.memo!=='電子決済、伝票2枚だからレジ締め注意')?'<div style="font-size:9px;color:#7a5500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📝'+r.memo+'</div>':'')+
       '</td>'+
       '<td style="font-size:10px">'+discLabel+(r.paid?'<span style="color:var(--blue)"> 済</span>':'')+'</td>'+
       '<td style="font-size:10px">'+methodLabel+'</td>'+
