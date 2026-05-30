@@ -780,16 +780,16 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 280;
-const APP_BUILD_DATE = '2026/05/30 19:23';
+const APP_VERSION = 281;
+const APP_BUILD_DATE = '2026/05/30 20:53';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
 const GAS_URL_TEST='https://script.google.com/macros/s/AKfycbwO3nrFBG7gDCwbRALgqReIO4Axyfm5mjfgIk9VLyh5o80_qSx8y70SqtYkuCtCpe8BXA/exec';
 const GAS_URL_MAIN='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
-const SS_URL_TEST='https://docs.google.com/spreadsheets/d/1mVw1DN78bVr5SiWCUDZ2HlVhalgwH4bzi3UnlS1uTFY';
-const SS_URL_MAIN='https://docs.google.com/spreadsheets/d/13AgulTcqyxRZLF9nejl2TJ3qqpLKlrFprlPX25fU-kg';
-const SS_URL_MANUAL='https://docs.google.com/spreadsheets/d/1-lTMbMmDalY4PXqMAydrZn3SdW-a_A-6G6l8JzepPug';
+const SS_URL_TEST='https://docs.google.com/spreadsheets/d/1mVw1DN78bVr5SiWCUDZ2HlVhalgwH4bzi3UnlS1uTFY/edit?pli=1';
+const SS_URL_MAIN='https://docs.google.com/spreadsheets/d/13AgulTcqyxRZLF9nejl2TJ3qqpLKlrFprlPX25fU-kg/edit?pli=1';
+const SS_URL_MANUAL='https://docs.google.com/spreadsheets/d/1-lTMbMmDalY4PXqMAydrZn3SdW-a_A-6G6l8JzepPug/edit?pli=1';
 const KEYS = {items:'pos_items',sales:'pos_sales',gas:'pos_gas',cats:'pos_cats',itemOrder:'pos_item_order',catOrder:'pos_cat_order',sites:'pos_sites',discounts:'pos_discounts',attrs:'pos_attrs',holds:'pos_holds',deviceId:'pos_device_id'};
 // デバイスID自動生成（初回のみ）
 (function(){var d=localStorage.getItem('pos_device_id');if(!d){d=Math.random().toString(36).slice(2,6).toUpperCase();localStorage.setItem('pos_device_id',d);}})();
