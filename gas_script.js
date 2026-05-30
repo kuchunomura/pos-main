@@ -139,19 +139,21 @@ function getAllSalesRows() {
   return allRows;
 }
 
-// 同じ売上IDが既に存在する場合はスキップ（重複防止）
+// 同じ売上IDが当日シートに存在する場合はスキップ（重複防止）
 function addRowsWithCheck(rows) {
   if (!rows || !rows.length) return;
   var saleId = String(rows[0][14] || '');
   if (!saleId || saleId === 'undefined') { addRows(rows); return; }
   var ss = SpreadsheetApp.openById(SS_ID);
-  var sheets = ss.getSheets();
-  for (var i = 0; i < sheets.length; i++) {
-    var lastRow = sheets[i].getLastRow();
-    if (lastRow < 4) continue;
-    var idVals = sheets[i].getRange(4, 15, lastRow - 3, 1).getValues();
-    for (var j = 0; j < idVals.length; j++) {
-      if (String(idVals[j][0]) === saleId) return;
+  var sheetName = sheetNameFromRows(rows);
+  var sheet = ss.getSheetByName(sheetName);
+  if (sheet) {
+    var lastRow = sheet.getLastRow();
+    if (lastRow >= 4) {
+      var idVals = sheet.getRange(4, 15, lastRow - 3, 1).getValues();
+      for (var j = 0; j < idVals.length; j++) {
+        if (String(idVals[j][0]) === saleId) return;
+      }
     }
   }
   addRows(rows);
