@@ -1,5 +1,13 @@
 // ===== POS レジ GAS スクリプト (main用) =====
-const SS_ID = '13AgulTcqyxRZLF9nejl2TJ3qqpLKlrFprlPX25fU-kg';
+const SS_ID = '13AgulTcqyxRZLF9nejl2TJ3qqpLKlrFprlPX25fU-kg'; // デフォルト（フォールバック用）
+
+// PropertiesServiceからSS_IDを取得（切り替え対応）
+function getSSId() {
+  return PropertiesService.getScriptProperties().getProperty('CURRENT_SS_ID') || SS_ID;
+}
+function getTargetSS() {
+  return SpreadsheetApp.openById(getSSId());
+}
 
 // 列構成 A(1)〜P(16):
 // A:日時, B:売上合計, C:商品名, D:カテゴリ, E:数量, F:単価, G:小計,
@@ -65,7 +73,7 @@ function writeSyncStatus(ss, msg) {
 function getCarryOverTotal(dateStr) {
   var total = 0;
   try {
-    var ss = SpreadsheetApp.openById(SS_ID);
+    var ss = getTargetSS();
     var sheet = ss.getSheetByName(dateStr + '売上');
     if (sheet) {
       var lastRow = sheet.getLastRow();
@@ -97,7 +105,7 @@ function handleRequest(data) {
     for (var i = 0; i < sales.length; i++) { if (sales[i] && sales[i].length) addRows(sales[i]); }
   }
   else if (type === 'bulk_merge') {
-    var ss = SpreadsheetApp.openById(SS_ID);
+    var ss = getTargetSS();
     var sheets = ss.getSheets();
     var bSales = data.sales || [];
     var dateLabel = (bSales.length > 0 && bSales[0] && bSales[0].length > 0) ? sheetNameFromRows(bSales[0]) : '同期';
@@ -111,20 +119,28 @@ function handleRequest(data) {
     writeSyncStatus(ss, '🔄 ' + dateLabel + ' 書込中...');
     for (var i = 0; i < bSales.length; i++) { if (bSales[i] && bSales[i].length) addRows(bSales[i]); }
     writeSyncStatus(ss, '✅ ' + dateLabel + ' 完了 ' + Utilities.formatDate(new Date(), 'Asia/Tokyo', 'HH:mm:ss'));
-    sortSheetsByDate(SpreadsheetApp.openById(SS_ID));
+    sortSheetsByDate(getTargetSS());
   }
   else if (type === 'get_all_sales') {
-    var ssLog = SpreadsheetApp.openById(SS_ID);
+    var ssLog = getTargetSS();
     writeSyncStatus(ssLog, '🔄 全データ読込中...');
     var rows = getAllSalesRows();
     writeSyncStatus(ssLog, '✅ 読込完了 ' + rows.length + '行 ' + Utilities.formatDate(new Date(), 'Asia/Tokyo', 'HH:mm:ss'));
     return { rows: rows };
   }
+  else if (type === 'switch_ss') {
+    if (!data.ss_id) return { error: 'ss_id missing' };
+    PropertiesService.getScriptProperties().setProperty('CURRENT_SS_ID', data.ss_id);
+    return { switched: true, ss_id: data.ss_id };
+  }
+  else if (type === 'get_current_ss') {
+    return { ss_id: getSSId(), is_default: (getSSId() === SS_ID) };
+  }
   return null;
 }
 
 function getAllSalesRows() {
-  var ss = SpreadsheetApp.openById(SS_ID);
+  var ss = getTargetSS();
   var sheets = ss.getSheets();
   var allRows = [];
   for (var s = 0; s < sheets.length; s++) {
@@ -144,7 +160,7 @@ function addRowsWithCheck(rows) {
   if (!rows || !rows.length) return;
   var saleId = String(rows[0][14] || '');
   if (!saleId || saleId === 'undefined') { addRows(rows); return; }
-  var ss = SpreadsheetApp.openById(SS_ID);
+  var ss = getTargetSS();
   var sheetName = sheetNameFromRows(rows);
   var sheet = ss.getSheetByName(sheetName);
   if (sheet) {
@@ -161,7 +177,7 @@ function addRowsWithCheck(rows) {
 
 // 全シートの重複行（同じ売上ID）を削除（初出のみ残す）
 function cleanDuplicates() {
-  var ss = SpreadsheetApp.openById(SS_ID);
+  var ss = getTargetSS();
   var sheets = ss.getSheets();
   var seen = {};
   var totalDeleted = 0;
@@ -304,7 +320,7 @@ function setupCashInputRow(sheet) {
 
 function addRows(rows) {
   if (!rows || !rows.length) return;
-  var ss = SpreadsheetApp.openById(SS_ID);
+  var ss = getTargetSS();
   var sheetName = sheetNameFromRows(rows);
   var sheet = getOrCreateSheet(ss, sheetName);
   ensureHeaders(sheet);
@@ -332,7 +348,7 @@ function replaceRows(saleId, rows) {
   var lock = LockService.getScriptLock();
   try { lock.waitLock(15000); } catch(e) {}
   try {
-    var ss = SpreadsheetApp.openById(SS_ID);
+    var ss = getTargetSS();
     if (rows && rows.length) {
       var sheetName = sheetNameFromRows(rows);
       var sheet = ss.getSheetByName(sheetName);
@@ -349,7 +365,7 @@ function replaceRows(saleId, rows) {
 
 function deleteRows(saleId) {
   if (!saleId) return;
-  var ss = SpreadsheetApp.openById(SS_ID);
+  var ss = getTargetSS();
   var sheets = ss.getSheets();
   for (var i = 0; i < sheets.length; i++) {
     deleteRowsFromSheet(sheets[i], saleId);
@@ -373,7 +389,7 @@ function deleteRowsFromSheet(sheet, saleId) {
 }
 
 function clearSheets() {
-  var ss = SpreadsheetApp.openById(SS_ID);
+  var ss = getTargetSS();
   var sheets = ss.getSheets();
   for (var s = 0; s < sheets.length; s++) {
     var sheet = sheets[s];
@@ -575,7 +591,7 @@ function runMonthlySummary() {
 
 // シート名一覧をログに出力してデバッグ確認用（GASエディタから手動実行）
 function debugSheetNames() {
-  var ss = SpreadsheetApp.openById(SS_ID);
+  var ss = getTargetSS();
   var sheets = ss.getSheets();
   var names = sheets.map(function(s){ return s.getName(); });
   Logger.log(names.join('\n'));
@@ -600,7 +616,46 @@ function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('📅 集計')
     .addItem('月別集計を作成...', 'promptMonthlySummary')
+    .addSeparator()
+    .addItem('📂 新しい月のSSに切り替え...', 'promptSwitchSpreadsheet')
     .addToUi();
+}
+
+function promptSwitchSpreadsheet() {
+  var currentId = getSSId();
+  var isDefault = (currentId === SS_ID);
+  var html = '<style>'
+    + 'body{font-family:sans-serif;padding:14px;margin:0;font-size:13px;}'
+    + 'input{width:100%;padding:9px;border:1px solid #ccc;border-radius:6px;font-size:12px;box-sizing:border-box;margin-top:4px;}'
+    + '.cur{background:#f5f5f5;border-radius:6px;padding:8px 10px;font-size:11px;color:#555;word-break:break-all;margin-bottom:10px;}'
+    + '.btn{width:100%;padding:10px;margin-top:8px;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;}'
+    + '#res{margin-top:8px;font-weight:bold;min-height:18px;}'
+    + '</style>'
+    + '<div class="cur">現在のSS ID:<br><b>' + currentId + '</b>' + (isDefault ? '（デフォルト）' : '') + '</div>'
+    + '<label>新しいスプレッドシートのID</label>'
+    + '<input id="ssid" placeholder="スプレッドシートのIDを貼り付け" />'
+    + '<button class="btn" style="background:#2d5016;color:#fff;" onclick="doSwitch()">切り替える</button>'
+    + '<div id="res"></div>'
+    + '<button class="btn" style="background:#eee;color:#333;" onclick="google.script.host.close()">閉じる</button>'
+    + '<script>function doSwitch(){'
+    + 'var id=document.getElementById("ssid").value.trim();'
+    + 'if(!id){document.getElementById("res").textContent="⚠ IDを入力してください";return;}'
+    + 'document.getElementById("res").textContent="⏳ 切り替え中...";'
+    + 'google.script.run'
+    + '.withSuccessHandler(function(r){document.getElementById("res").textContent="✅ 切り替えました";setTimeout(google.script.host.close,1500);})'
+    + '.withFailureHandler(function(e){document.getElementById("res").textContent="❌ "+e.message;})'
+    + '.switchSpreadsheetFromDialog(id);'
+    + '}<\/script>';
+  SpreadsheetApp.getUi().showModalDialog(
+    HtmlService.createHtmlOutput(html).setWidth(360).setHeight(280), '📂 SSの切り替え'
+  );
+}
+
+function switchSpreadsheetFromDialog(newSsId) {
+  if (!newSsId) throw new Error('IDが空です');
+  // 存在確認
+  SpreadsheetApp.openById(newSsId);
+  PropertiesService.getScriptProperties().setProperty('CURRENT_SS_ID', newSsId);
 }
 
 function promptMonthlySummary() {
@@ -636,7 +691,7 @@ function promptMonthlySummary() {
 function debugDiscValues(yearMonth) {
   var m=(yearMonth||'2026/5').match(/(\d{4})[\/\-](\d{1,2})/);
   var year=parseInt(m[1]),month=parseInt(m[2]);
-  var ss=SpreadsheetApp.openById(SS_ID),sheets=ss.getSheets();
+  var ss=getTargetSS(),sheets=ss.getSheets();
   var txData={};
   for (var s=0;s<sheets.length;s++){
     var name=sheets[s].getName();
@@ -673,7 +728,7 @@ function debugDiscValues(yearMonth) {
 function debugDate(yearMonthDay) {
   var m=(yearMonthDay||'2026/5/3').match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
   var year=parseInt(m[1]),month=parseInt(m[2]),day=parseInt(m[3]);
-  var ss=SpreadsheetApp.openById(SS_ID),sheets=ss.getSheets();
+  var ss=getTargetSS(),sheets=ss.getSheets();
   for (var s=0;s<sheets.length;s++){
     var name=sheets[s].getName();
     if (name.indexOf('月別集計')!==-1) continue;
@@ -718,7 +773,7 @@ function debugDate(yearMonthDay) {
 function debugSonoTa(yearMonth) {
   var m=(yearMonth||'2026/5').match(/(\d{4})[\/\-](\d{1,2})/);
   var year=parseInt(m[1]),month=parseInt(m[2]);
-  var ss=SpreadsheetApp.openById(SS_ID),sheets=ss.getSheets();
+  var ss=getTargetSS(),sheets=ss.getSheets();
   var counts={};
   for (var s=0;s<sheets.length;s++){
     var name=sheets[s].getName();
@@ -807,7 +862,7 @@ function colLetter(n) {
 
 // 月別集計シートを作成して返す
 function createMonthlySummary(year, month) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet() || SpreadsheetApp.openById(SS_ID);
+  var ss = getTargetSS();
   var sheets = ss.getSheets();
 
   var monthSheets=[];
