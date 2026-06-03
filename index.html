@@ -815,8 +815,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 299;
-const APP_BUILD_DATE = '2026/06/03 22:12';
+const APP_VERSION = 300;
+const APP_BUILD_DATE = '2026/06/03 22:19';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
@@ -3773,11 +3773,12 @@ function renderDiscountSettingsList(){
   discountItems.forEach((d,idx)=>{
     const div=document.createElement('div');
     div.style.cssText='display:flex;align-items:center;gap:6px;padding:7px;background:#f9f9f9;border-radius:8px;margin-bottom:5px;';
-    var rateTag=d.rate&&d.type==='discount'&&d.key!=='mura'&&d.key!=='stay_guest'?' <span style="font-size:10px;color:#888;">-'+d.rate+'%</span>':'';
+    var hasRate=d.type==='discount'&&d.key!=='mura'&&d.key!=='stay_guest'&&d.key!=='free';
+    var rateInput=hasRate?'<input type="number" id="disc-rate-'+idx+'" value="'+(d.rate||10)+'" min="1" max="99" style="width:42px;padding:3px 4px;border:1px solid var(--border);border-radius:4px;font-size:11px;text-align:center;" onchange="saveDiscRate('+idx+',this.value)">%':'';
     div.innerHTML=
-      '<span style="flex:1;font-size:13px;font-weight:500;">'+d.label+rateTag+'</span>'+
-      '<span style="font-size:11px;color:var(--text2);min-width:60px;">'+(d.type==='paid'?'予約サイト':'割引')+'</span>'+
-      '<button onclick="editDiscountItem('+idx+')" style="padding:3px 7px;border:1px solid #88aacc;border-radius:5px;background:#fff;color:var(--blue);font-size:10px;cursor:pointer;font-family:inherit;">編集</button>'+
+      '<span style="flex:1;font-size:13px;font-weight:500;">'+d.label+'</span>'+
+      (hasRate?'<span style="font-size:11px;color:var(--text2);margin-right:2px;">割引率:</span>'+rateInput:'<span style="font-size:11px;color:var(--text2);min-width:60px;">'+(d.type==='paid'?'予約サイト':'割引')+'</span>')+
+      '<button onclick="editDiscountItem('+idx+')" style="padding:3px 7px;border:1px solid #88aacc;border-radius:5px;background:#fff;color:var(--blue);font-size:10px;cursor:pointer;font-family:inherit;margin-left:4px;">名称</button>'+
       (!d.fixed?'<button onclick="deleteDiscountItem('+idx+')" style="padding:3px 7px;border:1px solid #fcc;border-radius:5px;background:#fff;color:var(--red);font-size:10px;cursor:pointer;font-family:inherit;">削除</button>':'');
     container.appendChild(div);
   });
@@ -3796,17 +3797,17 @@ function addDiscountItem(){
   showToast('✓ 追加しました');
 }
 
+function saveDiscRate(idx,val){
+  var r=Math.min(99,Math.max(1,parseInt(val)||10));
+  discountItems[idx].rate=r;
+  sv(KEYS.discounts,discountItems);
+  renderDiscountBar();recalcCartPrices();renderCart();renderPOS();
+}
 function editDiscountItem(idx){
   const d=discountItems[idx];
   const newLabel=prompt('名称を変更',d.label);
   if(newLabel===null) return;
   if(newLabel.trim()) discountItems[idx].label=newLabel.trim();
-  if(d.rate!==undefined&&d.type==='discount'&&d.key!=='mura'&&d.key!=='stay_guest'){
-    const newRate=prompt('割引率（%）を変更',d.rate||10);
-    if(newRate!==null&&!isNaN(parseInt(newRate))){
-      discountItems[idx].rate=Math.min(100,Math.max(1,parseInt(newRate)));
-    }
-  }
   sv(KEYS.discounts,discountItems);
   renderDiscountSettingsList();
   renderDiscountBar();
