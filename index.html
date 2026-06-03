@@ -248,7 +248,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
           <span class="total-label">合計</span>
           <span class="total-amount" id="total-amount">¥0</span>
           <button onclick="openCheckoutSummary()" id="checkout-btn"
-            style="position:absolute;top:-2px;right:0;background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:none;">決済へ →</button>
+            style="position:absolute;top:-2px;right:0;background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:none;">決済へ</button>
         </div>
         <div class="pay-btns">
           <button class="pay-cash-btn" onclick="openPayment('cash')">💴 現金</button>
@@ -815,8 +815,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 292;
-const APP_BUILD_DATE = '2026/06/03 17:14';
+const APP_VERSION = 293;
+const APP_BUILD_DATE = '2026/06/03 18:18';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
@@ -1868,14 +1868,14 @@ function openCheckoutSummary(){
     '<div style="background:#fff;border-radius:16px;width:100%;max-width:380px;padding:20px;box-shadow:0 8px 32px rgba(0,0,0,0.25);" onclick="event.stopPropagation()">'+
     '<div style="font-size:15px;font-weight:700;margin-bottom:12px;color:var(--accent);">🛒 お会計確認</div>'+
     '<div style="max-height:200px;overflow-y:auto;margin-bottom:12px;">'+itemHtml+'</div>'+
-    '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:2px solid var(--border);margin-bottom:16px;">'+
-    '<span style="font-size:15px;font-weight:700;">合計</span>'+
-    '<span style="font-size:26px;font-weight:700;color:var(--accent2);">¥'+total.toLocaleString()+'</span>'+
+    '<div style="text-align:center;padding:10px 0;border-top:2px solid var(--border);margin-bottom:16px;">'+
+    '<div style="font-size:13px;color:var(--text2);margin-bottom:4px;">合計</div>'+
+    '<div style="font-size:36px;font-weight:700;color:var(--accent2);">¥'+total.toLocaleString()+'</div>'+
     '</div>'+
     '<div style="display:flex;gap:8px;">'+
-    '<button onclick="closeCheckoutSummary();openPayment(\'cash\')" style="flex:1;padding:16px 4px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">💴 現金</button>'+
-    '<button onclick="closeCheckoutSummary();openPayment(\'card\')" style="flex:1;padding:16px 4px;background:#2471a3;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">💳 カード</button>'+
-    '<button onclick="closeCheckoutSummary();openPayment(\'other\')" style="flex:1;padding:16px 4px;background:#6c5ce7;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">📱 電子</button>'+
+    '<button onclick="closeCheckoutSummary();openPayment(\'cash\')" style="flex:1;padding:11px 4px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">💴 現金</button>'+
+    '<button onclick="closeCheckoutSummary();openPayment(\'card\')" style="flex:1;padding:11px 4px;background:#2471a3;color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">💳 カード</button>'+
+    '<button onclick="closeCheckoutSummary();openPayment(\'other\')" style="flex:1;padding:11px 4px;background:#6c5ce7;color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">📱 電子</button>'+
     '</div></div>';
   document.body.appendChild(overlay);
 }
