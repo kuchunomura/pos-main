@@ -855,8 +855,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 310;
-const APP_BUILD_DATE = '2026/06/04 00:01';
+const APP_VERSION = 311;
+const APP_BUILD_DATE = '2026/06/04 00:26';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
@@ -3192,7 +3192,8 @@ async function submitInvoice(){
     if(!dv){res.style.color='#c00';res.textContent='⚠ 計上日を入力してください';return;}
     billDate = new Date(dv);
   }
-  var billDateStr = billDate.getFullYear()+'/'+(billDate.getMonth()+1)+'/'+(billDate.getDate()<10?'0':'')+billDate.getDate();
+  var bm=billDate.getMonth()+1; var bd=billDate.getDate();
+  var billDateStr = billDate.getFullYear()+'/'+(bm<10?'0':'')+bm+'/'+(bd<10?'0':'')+bd;
   res.style.color='#555'; res.textContent='⏳ 作成中...';
   var payload = {
     type: 'create_invoice',
