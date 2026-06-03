@@ -815,8 +815,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 297;
-const APP_BUILD_DATE = '2026/06/03 19:01';
+const APP_VERSION = 298;
+const APP_BUILD_DATE = '2026/06/03 22:05';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
@@ -1050,29 +1050,40 @@ let siteNames = ld(KEYS.sites) || {s1:'',s2:'',s3:''};
 
 // 割引・予約サイト設定
 const DEFAULT_DISCOUNTS = [
-  {key:'mura',    label:'村内（半額）', type:'discount', fixed:true},
-  {key:'stay_guest',label:'宿泊者',   type:'discount', fixed:true},
-  {key:'group',   label:'団体',        type:'discount', fixed:true, rate:10},
-  {key:'rakuten', label:'楽天',        type:'paid',     fixed:false},
-  {key:'jalan',   label:'じゃらん',   type:'paid',     fixed:false},
-  {key:'sou',     label:'SOU',         type:'paid',     fixed:false},
-  {key:'pass_day',label:'年間パス（昼）',type:'paid',   fixed:false},
-  {key:'pass_night',label:'年間パス（夜）',type:'paid', fixed:false},
+  {key:'mura',      label:'村内（半額）',  type:'discount', fixed:true},
+  {key:'stay_guest',label:'宿泊者',        type:'discount', fixed:true},
+  {key:'rakuten',   label:'楽天',          type:'paid',     fixed:false},
+  {key:'jalan',     label:'じゃらん',      type:'paid',     fixed:false},
+  {key:'sou',       label:'SOU',           type:'paid',     fixed:false},
+  {key:'pass_day',  label:'年間パス（昼）',type:'paid',     fixed:false},
+  {key:'pass_night',label:'年間パス（夜）',type:'paid',     fixed:false},
+  {key:'group',     label:'団体',          type:'discount', fixed:true, rate:10},
+  {key:'free',      label:'無料',          type:'discount', fixed:true},
 ];
 let discountItems = ld(KEYS.discounts) || DEFAULT_DISCOUNTS;
-// 団体割引が未登録の場合は追加
+// 団体・無料割引のマイグレーション
 (function(){
-  if(!discountItems.find(function(d){return d.key==='group';})){
-    var muraIdx=discountItems.findIndex(function(d){return d.key==='rakuten';});
-    var insertAt=muraIdx>=0?muraIdx:2;
-    discountItems.splice(insertAt,0,{key:'group',label:'団体',type:'discount',fixed:true,rate:10});
-    sv(KEYS.discounts,discountItems);
+  var changed=false;
+  var gi=discountItems.findIndex(function(d){return d.key==='group';});
+  var pni=discountItems.findIndex(function(d){return d.key==='pass_night';});
+  if(gi>=0&&(pni<0||gi<pni)){
+    var g=discountItems.splice(gi,1)[0];
+    g.rate=g.rate||10; g.fixed=true;
+    discountItems.push(g); changed=true;
+  } else if(gi<0){
+    discountItems.push({key:'group',label:'団体',type:'discount',fixed:true,rate:10}); changed=true;
   }
+  if(!discountItems.find(function(d){return d.key==='free';})){
+    discountItems.push({key:'free',label:'無料',type:'discount',fixed:true}); changed=true;
+  }
+  if(changed) sv(KEYS.discounts,discountItems);
 })();
 let cart = [];
 let selectedAttrs = {age:[],nationality:[]};
 let activeDiscount = ''; // site key or 'pass_day' or 'pass_night' or 'stay_guest'
 let activeMura = false;  // 村民割引トグル（activeDiscountとは独立）
+let activeGroup = false; // 団体割引トグル
+let activeFree = false;  // 無料トグル
 let nextDayMode = 0; // 翌日計上モード: 0=OFF, 1=翌日, 2=翌々日
 let paymentDoneTimer = null;
 let paymentDoneCountdownInterval = null;
@@ -1318,12 +1329,16 @@ function renderDiscountBar(){
   discountItems.forEach(d=>{
     const b=document.createElement('button');
     const isMuraKey=d.key==='mura';
-    const isActive=isMuraKey ? activeMura : activeDiscount===d.key;
+    const isGroupKey=d.key==='group';
+    const isFreeKey=d.key==='free';
+    const isActive=isMuraKey?activeMura:isGroupKey?activeGroup:isFreeKey?activeFree:activeDiscount===d.key;
     const isPaid=d.type==='paid';
     b.className='disc-btn'+(isActive?(isPaid?' paid-active':' active'):'');
-    b.textContent=d.label+(d.rate&&d.type==='discount'&&d.key!=='mura'&&d.key!=='stay_guest'?' -'+d.rate+'%':'')+(isPaid&&isActive?' ✓支払済':'');
+    b.textContent=d.label+(d.rate&&d.type==='discount'&&!isMuraKey&&d.key!=='stay_guest'?' -'+d.rate+'%':'')+(isPaid&&isActive?' ✓支払済':'');
     b.onclick=()=>{
       if(isMuraKey){ activeMura=!activeMura; }
+      else if(isGroupKey){ activeGroup=!activeGroup; }
+      else if(isFreeKey){ activeFree=!activeFree; }
       else { activeDiscount=isActive?'':d.key; }
       recalcCartPrices();
       renderDiscountBar();renderPOS();renderCart();
@@ -1567,11 +1582,11 @@ function getDiscountedPrice(item){
     if(item.id==='i_bbq' || item.free_mura) return 0;
     if(item.cat==='cat_walk' || item.cat==='cat_tree_day') return Math.floor(item.price/2);
   }
-  if(activeDiscount){
-    var gd=discountItems.find(function(x){return x.key===activeDiscount;});
-    if(gd&&gd.type==='discount'&&gd.rate&&gd.key!=='mura'&&gd.key!=='stay_guest'){
-      return Math.floor(item.price*(100-gd.rate)/100);
-    }
+  if(activeFree) return 0;
+  if(activeGroup && item.cat!=='cat_rental'){
+    var gd=discountItems.find(function(x){return x.key==='group';});
+    var grate=gd?(Number(gd.rate)||10):10;
+    return Math.floor(item.price*(100-grate)/100);
   }
   return item.price;
 }
@@ -1786,12 +1801,14 @@ function recalcCartPrices(){
         cartItem.price=Math.floor(cartItem.origPrice/2); cartItem.discounted=true; cartItem.paidLabel=''; applied=true;
       }
     }
-    if(!applied&&activeDiscount){
-      var gd3=discountItems.find(function(x){return x.key===activeDiscount;});
-      if(gd3&&gd3.type==='discount'&&gd3.rate&&gd3.key!=='mura'&&gd3.key!=='stay_guest'){
-        cartItem.price=Math.floor(cartItem.origPrice*(100-gd3.rate)/100);
-        cartItem.discounted=true;cartItem.paidLabel='';applied=true;
-      }
+    if(!applied&&cartItem.groupOn){
+      var gdg=discountItems.find(function(x){return x.key==='group';});
+      var grate=gdg?(Number(gdg.rate)||10):10;
+      cartItem.price=Math.floor(cartItem.origPrice*(100-grate)/100);
+      cartItem.discounted=true;cartItem.paidLabel='';applied=true;
+    }
+    if(!applied&&cartItem.freeOn){
+      cartItem.price=0;cartItem.discounted=true;cartItem.paidLabel='';applied=true;
     }
     if(!applied){
       cartItem.price=cartItem.origPrice; cartItem.discounted=false; cartItem.paidLabel='';
@@ -1812,9 +1829,11 @@ function addToCart(item,cat){
   const paidBadge = getPaidBadge(item);
   const price = paidBadge ? 0 : getDiscountedPrice(item);
   const newPassKey=(activeDiscount==='pass_day'||activeDiscount==='pass_night')?activeDiscount:'';
-  const ex=cart.find(c=>c.id===item.id&&c.discounted===(price<item.price)&&!c.paidLabel===!paidBadge&&(c.passKey||'')===(newPassKey));
+  const newGroupOn=activeGroup&&item.cat!=='cat_rental';
+  const newFreeOn=activeFree;
+  const ex=cart.find(c=>c.id===item.id&&c.discounted===(price<item.price)&&!c.paidLabel===!paidBadge&&(c.passKey||'')===(newPassKey)&&!!c.groupOn===!!newGroupOn&&!!c.freeOn===!!newFreeOn);
   if(ex)ex.qty++;
-  else cart.push({id:item.id,name:item.name,origPrice:item.price,price,qty:1,discounted:price<item.price,paidLabel:paidBadge||'',free_mura:item.free_mura||false,cat:item.cat||'',catColor:cat?cat.bg:'#fff',muraOn:activeMura&&(item.cat==='cat_walk'||item.cat==='cat_tree_day'||item.id==='i_bbq'||!!item.free_mura),passKey:newPassKey});
+  else cart.push({id:item.id,name:item.name,origPrice:item.price,price,qty:1,discounted:price<item.price,paidLabel:paidBadge||'',free_mura:item.free_mura||false,cat:item.cat||'',catColor:cat?cat.bg:'#fff',muraOn:activeMura&&(item.cat==='cat_walk'||item.cat==='cat_tree_day'||item.id==='i_bbq'||!!item.free_mura),groupOn:newGroupOn,freeOn:newFreeOn,passKey:newPassKey});
   if(STAY_CAT_IDS.includes(item.cat)) recalcCartPrices();
   renderPOS();
   renderCart();showToast('✓ '+item.name);
@@ -1842,13 +1861,17 @@ function renderCart(){
   cart.forEach((item,idx)=>{
     const div=document.createElement('div');div.className='cart-item';
     div.style.cssText='flex-direction:column;align-items:stretch;gap:4px;padding:8px 6px;border-bottom:1px solid #f0f0f0;';
-    const discTag = item.paidLabel
-      ? '<span style="font-size:10px;background:#fde8e8;color:'+paidDisplaySettings.color+';border:1px solid #f5c0c0;border-radius:4px;padding:1px 5px;margin-left:4px;font-weight:600;">'+item.paidLabel+'</span>'
-      : (item.discounted
-          ? (item.free_mura
-              ? '<span style="font-size:10px;background:#fde8e8;color:var(--red);border:1px solid #f5c0c0;border-radius:4px;padding:1px 5px;margin-left:4px;font-weight:600;">無料</span>'
-              : '<span style="font-size:10px;background:#fde8e8;color:var(--red);border:1px solid #f5c0c0;border-radius:4px;padding:1px 5px;margin-left:4px;font-weight:600;">割引</span>')
-          : '');
+    var discTag='';
+    if(item.paidLabel){
+      discTag='<span style="font-size:10px;background:#fde8e8;color:'+paidDisplaySettings.color+';border:1px solid #f5c0c0;border-radius:4px;padding:1px 5px;margin-left:4px;font-weight:600;">'+item.paidLabel+'</span>';
+    } else if(item.freeOn){
+      discTag='<span style="font-size:10px;background:#fde8e8;color:var(--red);border:1px solid #f5c0c0;border-radius:4px;padding:1px 5px;margin-left:4px;font-weight:600;">無料</span>';
+    } else if(item.groupOn){
+      var gdLabel=discountItems.find(function(x){return x.key==='group';}); var gr=(gdLabel?gdLabel.rate:10)||10;
+      discTag='<span style="font-size:10px;background:#fde8e8;color:var(--red);border:1px solid #f5c0c0;border-radius:4px;padding:1px 5px;margin-left:4px;font-weight:600;">団体-'+gr+'%</span>';
+    } else if(item.discounted){
+      discTag='<span style="font-size:10px;background:#fde8e8;color:var(--red);border:1px solid #f5c0c0;border-radius:4px;padding:1px 5px;margin-left:4px;font-weight:600;">'+(item.free_mura?'無料':'割引')+'</span>';
+    }
     const priceColor = item.paidLabel ? paidDisplaySettings.color : (item.discounted ? 'var(--red)' : 'var(--accent2)');
     div.innerHTML=
       '<div style="font-size:13px;font-weight:500;line-height:1.4;">'+item.name+discTag+'</div>'+
