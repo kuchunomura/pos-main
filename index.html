@@ -855,8 +855,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 308;
-const APP_BUILD_DATE = '2026/06/03 23:43';
+const APP_VERSION = 309;
+const APP_BUILD_DATE = '2026/06/03 23:56';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
@@ -3208,14 +3208,14 @@ async function submitInvoice(){
   };
   try{
     var url = ld(KEYS.gas)||DEFAULT_GAS_URL;
-    var resp = await fetch(url+'?d='+encodeURIComponent(JSON.stringify(payload)),{method:'GET',redirect:'follow'});
+    var resp = await fetch(url,{method:'POST',redirect:'follow',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     var json = await resp.json();
     if(json.data&&json.data.sheet){
       res.style.color='#27ae60';
       res.textContent='✅ '+json.data.sheet+' を作成しました';
       setTimeout(closeInvoiceModal, 2000);
     } else {
-      res.style.color='#c00'; res.textContent='❌ 作成失敗';
+      res.style.color='#c00'; res.textContent='❌ 作成失敗 '+(json.message||'');
     }
   }catch(e){
     res.style.color='#c00'; res.textContent='❌ エラー: '+e.message;
