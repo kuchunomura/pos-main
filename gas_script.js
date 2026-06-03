@@ -1305,6 +1305,7 @@ function createInvoiceSheet(data) {
   var dateKey = billDate.replace(/\//g, '');
   var num = getNextInvoiceNumber(ss, prefix);
   var sheetName = prefix + '-' + dateKey + '-' + num;
+  if (data.ss_id_override) { ss = SpreadsheetApp.openById(data.ss_id_override); }
   while (ss.getSheetByName(sheetName) !== null) { num = String(parseInt(num)+1).padStart(3, '0'); sheetName = prefix + '-' + dateKey + '-' + num; }
   var out = ss.insertSheet(sheetName, 0);
   var C = 'center', L = 'left', R = 'right';
