@@ -815,8 +815,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 298;
-const APP_BUILD_DATE = '2026/06/03 22:05';
+const APP_VERSION = 299;
+const APP_BUILD_DATE = '2026/06/03 22:12';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
@@ -3886,7 +3886,14 @@ function selectStayPeople(n){
   const isMura = activeMura;
   const isPaid = (activeDiscount==='rakuten'||activeDiscount==='jalan');
   const stayPassKey = (activeDiscount==='pass_night')?'pass_night':'';
-  const finalPrice = (isPaid||stayPassKey) ? 0 : (isMura ? Math.floor(totalPrice / 2) : totalPrice);
+  var gdg=discountItems.find(function(x){return x.key==='group';}); var grate=gdg?(Number(gdg.rate)||10):10;
+  const newGroupOn = activeGroup;
+  const newFreeOn = activeFree;
+  const finalPrice = (isPaid||stayPassKey) ? 0
+    : newFreeOn ? 0
+    : isMura ? Math.floor(totalPrice / 2)
+    : newGroupOn ? Math.floor(totalPrice * (100 - grate) / 100)
+    : totalPrice;
   const paidLabel = (isPaid||stayPassKey) ? paidDisplaySettings.label : '';
   const cat = pendingStayCat;
   cart.push({
@@ -3901,6 +3908,8 @@ function selectStayPeople(n){
     isStay: true,
     cat: pendingStayItem.cat || '',
     catColor: cat ? cat.bg : '#fff',
+    groupOn: newGroupOn,
+    freeOn: newFreeOn,
     passKey: stayPassKey
   });
   document.getElementById('stay-modal').classList.remove('open');
