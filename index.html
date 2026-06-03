@@ -200,10 +200,13 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
     <div class="pos-left">
       <div class="pos-top-bar">
         <div class="cat-filter-tabs" id="cat-filter-tabs"></div>
-        <button id="next-day-btn"  class="edit-btn" onclick="toggleNextDay(1)" title="翌日計上モード">🌙 翌日</button>
-        <button id="next-day2-btn" class="edit-btn" onclick="toggleNextDay(2)" title="翌々日計上モード">🌙🌙 翌々日</button>
-        <button class="edit-btn" id="invoice-mode-btn" onclick="toggleInvoiceMode()" title="請求書・見積書モード">📄 請求書</button>
-        <button class="edit-btn" id="edit-btn" onclick="toggleEditMode()">✏️ 編集</button>
+        <button class="edit-btn" onclick="toggleTopBtns()" id="top-btns-toggle" title="メニュー">▼</button>
+        <div id="top-btns-group" style="display:none;align-items:center;gap:4px;">
+          <button id="next-day-btn"  class="edit-btn" onclick="toggleNextDay(1)" title="翌日計上モード">🌙 翌日</button>
+          <button id="next-day2-btn" class="edit-btn" onclick="toggleNextDay(2)" title="翌々日計上モード">🌙🌙 翌々日</button>
+          <button class="edit-btn" id="invoice-mode-btn" onclick="toggleInvoiceMode()" title="請求書・見積書モード">📄 請求書</button>
+          <button class="edit-btn" id="edit-btn" onclick="toggleEditMode()">✏️ 編集</button>
+        </div>
       </div>
       <div class="pos-items-area" id="pos-items-area"></div>
       <div id="discount-bar-wrap" style="background:var(--surface);border-top:1px solid var(--border);padding:4px 8px;flex-shrink:0;">
@@ -710,12 +713,12 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
     <div class="form-row" style="margin-bottom:10px;">
       <label style="font-size:12px;font-weight:600;">売上計上</label>
       <div style="display:flex;flex-direction:column;gap:4px;margin-top:4px;">
-        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="radio" name="inv-cart-record" value="today" checked onchange="document.getElementById('inv-cart-date-row').style.display='none';"> 今日の日付で計上</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="radio" name="inv-cart-record" value="other" onchange="document.getElementById('inv-cart-date-row').style.display='';"> 別日で計上</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="radio" name="inv-cart-record" value="today" checked onchange="document.getElementById('inv-cart-date-row').style.display='none';"> 今日の日付で売上計上</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="radio" name="inv-cart-record" value="other" onchange="document.getElementById('inv-cart-date-row').style.display='';"> 別日で売上計上</label>
         <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="radio" name="inv-cart-record" value="none" onchange="document.getElementById('inv-cart-date-row').style.display='none';"> 売上計上しない</label>
       </div>
     </div>
-    <div id="inv-cart-date-row" class="form-row" style="display:none;margin-bottom:8px;">
+    <div id="inv-cart-date-row" style="display:none;margin-bottom:8px;padding-left:4px;">
       <input type="date" id="inv-cart-date" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;">
     </div>
     <input type="hidden" name="inv-cart-method" value="cash">
@@ -748,8 +751,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
     <div class="form-row" style="margin-bottom:10px;">
       <label style="font-size:12px;font-weight:600;">売上計上</label>
       <div style="display:flex;flex-direction:column;gap:4px;margin-top:4px;">
-        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="radio" name="inv-record" value="today" checked> 今日の日付で計上</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="radio" name="inv-record" value="other" onchange="document.getElementById('inv-date-row').style.display=''"> 別日で計上</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="radio" name="inv-record" value="today" checked> 今日の日付で売上計上</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="radio" name="inv-record" value="other" onchange="document.getElementById('inv-date-row').style.display=''"> 別日で売上計上</label>
         <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="radio" name="inv-record" value="none" onchange="document.getElementById('inv-date-row').style.display='none'"> 売上計上しない（見積のみ）</label>
       </div>
     </div>
@@ -897,8 +900,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 324;
-const APP_BUILD_DATE = '2026/06/04 08:24';
+const APP_VERSION = 325;
+const APP_BUILD_DATE = '2026/06/04 08:47';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -3200,6 +3203,15 @@ async function retrySyncSale(id){
   s.syncStatus=ok?'ok':'fail';sv(KEYS.sales,sales);renderSales();
 }
 
+function toggleTopBtns(){
+  var g=document.getElementById('top-btns-group');
+  var t=document.getElementById('top-btns-toggle');
+  if(!g) return;
+  var open=g.style.display==='none';
+  g.style.display=open?'flex':'none';
+  if(t) t.textContent=open?'▲':'▼';
+}
+
 // ==================== 請求書モード ====================
 var invoiceMode = false;
 function toggleInvoiceMode(){
@@ -3218,7 +3230,7 @@ function openInvoiceFromCart(){
   var total = cart.reduce(function(s,i){return s+i.price*i.qty;},0);
   var preview = '<b>¥'+total.toLocaleString()+'</b>　';
   preview += cart.map(function(i){return i.name+(i.qty>1?' ×'+i.qty:'');}).join('、');
-  document.getElementById('invoice-cart-preview').textContent = preview;
+  document.getElementById('invoice-cart-preview').innerHTML = preview;
   document.getElementById('inv-cart-recipient').value = '';
   document.getElementById('inv-cart-memo').value = '';
   document.getElementById('inv-cart-date').value = '';
