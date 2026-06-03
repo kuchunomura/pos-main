@@ -1,4 +1,4 @@
-// ===== POS レジ GAS スクリプト (main用) =====
+﻿// ===== POS レジ GAS スクリプト (main用) =====
 const SS_ID = '1WopPkAIZJSLjc9kr7C5hKvWCPYN7CYmOiXOvko0Q4iI'; // デフォルト（フォールバック用）
 
 // PropertiesServiceからSS_IDを取得（切り替え対応）
@@ -1305,45 +1305,26 @@ function createInvoiceSheet(data) {
   var dateKey = billDate.replace(/\//g, '');
   var num = getNextInvoiceNumber(ss, prefix);
   var sheetName = prefix + '-' + dateKey + '-' + num;
-
   var out = ss.insertSheet(sheetName, 0);
   var C = 'center', L = 'left', R = 'right';
-  var MAIN = '#2d5016', LIGHT = '#e8f0e0', GRAY = '#f5f5f5', BORDER = '#cccccc';
-
-  // タイトル
-  out.getRange(1,1,1,6).merge()
-    .setValue('【' + docType + '】')
-    .setFontSize(18).setFontWeight('bold')
-    .setBackground(MAIN).setFontColor('#ffffff')
-    .setHorizontalAlignment(C).setVerticalAlignment('middle');
-  out.setRowHeight(1, 44);
-
-  // 発行日・No
-  out.getRange(2,1,1,3).merge().setValue('').setBackground(GRAY);
-  out.getRange(2,4).setValue('発行日').setFontWeight('bold').setHorizontalAlignment(R).setBackground(GRAY);
-  out.getRange(2,5,1,2).merge().setValue(billDate).setHorizontalAlignment(L).setBackground(GRAY);
-  out.getRange(3,4).setValue('No.').setFontWeight('bold').setHorizontalAlignment(R).setBackground(GRAY);
-  out.getRange(3,5,1,2).merge().setValue(sheetName).setHorizontalAlignment(L).setBackground(GRAY);
-
-  // 宛先
+  var BORDER = '#aaaaaa';
+  out.getRange(1,1,1,6).merge().setValue('【' + docType + '】').setFontSize(20).setFontWeight('bold').setHorizontalAlignment(C).setVerticalAlignment('middle');
+  out.setRowHeight(1, 50);
+  out.getRange(2,4).setValue('発行日').setFontWeight('bold').setHorizontalAlignment(R);
+  out.getRange(2,5,1,2).merge().setValue(billDate).setHorizontalAlignment(L);
   var recipient = data.recipient || '　';
-  out.getRange(4,1,1,3).merge()
-    .setValue(recipient + '　様')
-    .setFontSize(13).setFontWeight('bold')
-    .setHorizontalAlignment(L).setVerticalAlignment('middle');
-  out.setRowHeight(4, 32);
-
-  // あいさつ文
+  out.getRange(3,1,1,3).merge().setValue(recipient + '　様').setFontSize(14).setFontWeight('bold').setHorizontalAlignment(L).setVerticalAlignment('middle');
+  out.setRowHeight(3, 32);
+  var issuer = ['合同会社フェレリ　代表　ジョラン フェレリ','〒637-1441　奈良県吉野郡十津川村大字小川112','21世紀の森　空中の村','TEL：0746-62-0567','MAIL：info@kuuchuu-no-mura.com'];
+  for (var ii = 0; ii < issuer.length; ii++) {
+    out.getRange(3+ii,4,1,3).merge().setValue(issuer[ii]).setFontSize(10).setHorizontalAlignment(R);
+  }
+  var msgRow = 3 + issuer.length + 1;
   var msg = docType === '見積書' ? '下記の通りお見積申し上げます。' : '下記の通りご請求申し上げます。';
-  out.getRange(5,1,1,6).merge().setValue(msg).setFontColor('#555').setHorizontalAlignment(L);
-
-  // 明細ヘッダー
-  var hRow = 6;
-  out.getRange(hRow,1,1,6).setValues([['品名','数量','単価','金額','','']]);
-  out.getRange(hRow,1,1,4).setFontWeight('bold').setBackground(LIGHT).setHorizontalAlignment(C);
+  out.getRange(msgRow,1,1,6).merge().setValue(msg).setFontColor('#555').setHorizontalAlignment(L);
+  var hRow = msgRow + 1;
+  out.getRange(hRow,1,1,4).setValues([['品名','数量','単価','金額']]).setFontWeight('bold').setHorizontalAlignment(C).setBorder(true,true,true,true,true,true,BORDER,SpreadsheetApp.BorderStyle.SOLID);
   out.getRange(hRow,1).setHorizontalAlignment(L);
-
-  // 明細行
   var items = data.items || [];
   var dataRow = hRow + 1;
   var subtotal = 0;
@@ -1355,60 +1336,31 @@ function createInvoiceSheet(data) {
     out.getRange(dataRow,2).setValue(it.qty).setHorizontalAlignment(C);
     out.getRange(dataRow,3).setValue(it.price).setNumberFormat('#,##0').setHorizontalAlignment(R);
     out.getRange(dataRow,4).setValue(lineTotal).setNumberFormat('#,##0').setHorizontalAlignment(R);
-    if (i % 2 === 0) out.getRange(dataRow,1,1,4).setBackground('#fafafa');
+    out.getRange(dataRow,1,1,4).setBorder(false,true,true,true,false,false,BORDER,SpreadsheetApp.BorderStyle.SOLID);
     dataRow++;
   }
-  // 空行（最低5行）
-  while (dataRow < hRow + 6) { dataRow++; }
-
-  // 合計ブロック
+  while (dataRow < hRow + 6) {
+    out.getRange(dataRow,1,1,4).setBorder(false,true,true,true,false,false,BORDER,SpreadsheetApp.BorderStyle.SOLID);
+    dataRow++;
+  }
   var totalRow = dataRow + 1;
   var total = data.total || subtotal;
   var discount = subtotal - total;
-
-  out.getRange(totalRow,3).setValue('小計').setFontWeight('bold').setHorizontalAlignment(R).setBackground(GRAY);
-  out.getRange(totalRow,4).setValue(subtotal).setNumberFormat('#,##0').setHorizontalAlignment(R).setBackground(GRAY);
+  out.getRange(totalRow,3).setValue('小計').setFontWeight('bold').setHorizontalAlignment(R);
+  out.getRange(totalRow,4).setValue(subtotal).setNumberFormat('#,##0').setHorizontalAlignment(R);
   if (discount > 0) {
     totalRow++;
-    out.getRange(totalRow,3).setValue('割引').setFontWeight('bold').setHorizontalAlignment(R).setBackground(GRAY);
-    out.getRange(totalRow,4).setValue(-discount).setNumberFormat('#,##0').setHorizontalAlignment(R).setBackground(GRAY).setFontColor('#c0392b');
+    out.getRange(totalRow,3).setValue('割引').setFontWeight('bold').setHorizontalAlignment(R);
+    out.getRange(totalRow,4).setValue(-discount).setNumberFormat('#,##0').setHorizontalAlignment(R).setFontColor('#c0392b');
   }
   totalRow++;
-  out.getRange(totalRow,1,1,6).merge()
-    .setValue('　').setBackground(MAIN);
-  totalRow++;
-  out.getRange(totalRow,1,1,2).merge()
-    .setValue('お支払金額（税込）')
-    .setFontSize(13).setFontWeight('bold')
-    .setBackground(MAIN).setFontColor('#fff').setHorizontalAlignment(L).setVerticalAlignment('middle');
-  out.getRange(totalRow,3,1,2).merge()
-    .setValue('¥ ' + total.toLocaleString())
-    .setFontSize(16).setFontWeight('bold')
-    .setBackground(MAIN).setFontColor('#fff').setHorizontalAlignment(R).setVerticalAlignment('middle');
-  out.setRowHeight(totalRow, 36);
-
-  // 支払方法・備考
+  out.getRange(totalRow,1,1,2).merge().setValue('お支払金額（税込）').setFontSize(12).setFontWeight('bold').setHorizontalAlignment(L).setVerticalAlignment('middle');
+  out.getRange(totalRow,3,1,2).merge().setValue('¥ ' + total.toLocaleString()).setFontSize(15).setFontWeight('bold').setHorizontalAlignment(R).setVerticalAlignment('middle');
+  out.setRowHeight(totalRow, 32);
   totalRow += 2;
-  var methodMap = {cash:'現金', card:'クレジットカード', other:'電子決済'};
-  var method = methodMap[data.method] || data.method || '';
-  out.getRange(totalRow,1).setValue('【支払方法】').setFontWeight('bold').setBackground(GRAY);
-  out.getRange(totalRow,2,1,5).merge().setValue(method).setBackground(GRAY);
-  totalRow++;
-  out.getRange(totalRow,1).setValue('【備考】').setFontWeight('bold').setBackground(GRAY);
-  out.getRange(totalRow,2,1,5).merge().setValue(data.memo||'').setBackground(GRAY).setWrap(true);
-
-  // 列幅
-  out.setColumnWidth(1, 220);
-  out.setColumnWidth(2, 60);
-  out.setColumnWidth(3, 90);
-  out.setColumnWidth(4, 90);
-  out.setColumnWidth(5, 60);
-  out.setColumnWidth(6, 60);
-
-  // 全体に外枠
-  var lastRow = totalRow;
-  out.getRange(1,1,lastRow,4).setBorder(true,true,true,true,true,true,BORDER,SpreadsheetApp.BorderStyle.SOLID);
-
+  out.getRange(totalRow,1).setValue('【備考】').setFontWeight('bold');
+  out.getRange(totalRow,2,1,5).merge().setValue(data.memo||'').setWrap(true);
+  out.setColumnWidth(1, 230); out.setColumnWidth(2, 60); out.setColumnWidth(3, 90); out.setColumnWidth(4, 90); out.setColumnWidth(5, 90); out.setColumnWidth(6, 90);
   SpreadsheetApp.flush();
   return sheetName;
 }
