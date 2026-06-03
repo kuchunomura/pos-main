@@ -710,9 +710,9 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
     <div class="form-row" style="margin-bottom:10px;">
       <label style="font-size:12px;font-weight:600;">売上計上</label>
       <div style="display:flex;flex-direction:column;gap:4px;margin-top:4px;">
-        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="radio" name="inv-cart-record" value="today" checked onchange="document.getElementById('inv-cart-method').style.display='';document.getElementById('inv-cart-date-row').style.display='none';"> 今日の日付で計上</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="radio" name="inv-cart-record" value="other" onchange="document.getElementById('inv-cart-method').style.display='';document.getElementById('inv-cart-date-row').style.display='';"> 別日で計上</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="radio" name="inv-cart-record" value="none" onchange="document.getElementById('inv-cart-method').style.display='none';document.getElementById('inv-cart-date-row').style.display='none';"> 売上計上しない</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="radio" name="inv-cart-record" value="today" checked onchange="document.getElementById('inv-cart-date-row').style.display='none';"> 今日の日付で計上</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="radio" name="inv-cart-record" value="other" onchange="document.getElementById('inv-cart-date-row').style.display='';"> 別日で計上</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="radio" name="inv-cart-record" value="none" onchange="document.getElementById('inv-cart-date-row').style.display='none';"> 売上計上しない</label>
       </div>
     </div>
     <div id="inv-cart-date-row" class="form-row" style="display:none;margin-bottom:8px;">
@@ -897,8 +897,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 322;
-const APP_BUILD_DATE = '2026/06/04 08:16';
+const APP_VERSION = 323;
+const APP_BUILD_DATE = '2026/06/04 08:19';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -3223,7 +3223,6 @@ function openInvoiceFromCart(){
   document.getElementById('inv-cart-memo').value = '';
   document.getElementById('inv-cart-date').value = '';
   document.getElementById('inv-cart-date-row').style.display = 'none';
-  document.getElementById('inv-cart-method').style.display = '';
   document.getElementById('invoice-cart-result').textContent = '';
   document.querySelector('input[name="inv-cart-doctype"][value="invoice"]').checked = true;
   document.querySelector('input[name="inv-cart-record"][value="today"]').checked = true;
