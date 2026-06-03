@@ -253,7 +253,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
         <div class="pay-btns">
           <button class="pay-cash-btn" onclick="openPayment('cash')">💴 現金</button>
           <button class="pay-card-btn" style="flex:1;padding:16px 6px;" onclick="openPayment('card')">💳 カード</button>
-          <button class="pay-card-btn" style="flex:1;padding:16px 6px;background:#6c5ce7;" onclick="openPayment('other')">📱 電子</button>
+          <button class="pay-card-btn" style="flex:1;padding:16px 2px;background:#6c5ce7;font-size:11px;" onclick="openPayment('other')">📱 iD/QP/交通系</button>
         </div>
         <div class="cart-bottom-btns">
           <button class="hold-btn" onclick="holdCart()">⏸ 保留</button>
@@ -815,8 +815,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 293;
-const APP_BUILD_DATE = '2026/06/03 18:18';
+const APP_VERSION = 294;
+const APP_BUILD_DATE = '2026/06/03 18:32';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
@@ -1875,8 +1875,10 @@ function openCheckoutSummary(){
     '<div style="display:flex;gap:8px;">'+
     '<button onclick="closeCheckoutSummary();openPayment(\'cash\')" style="flex:1;padding:11px 4px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">💴 現金</button>'+
     '<button onclick="closeCheckoutSummary();openPayment(\'card\')" style="flex:1;padding:11px 4px;background:#2471a3;color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">💳 カード</button>'+
-    '<button onclick="closeCheckoutSummary();openPayment(\'other\')" style="flex:1;padding:11px 4px;background:#6c5ce7;color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">📱 電子</button>'+
-    '</div></div>';
+    '<button onclick="closeCheckoutSummary();openPayment(\'other\')" style="flex:1;padding:11px 2px;background:#6c5ce7;color:#fff;border:none;border-radius:10px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;">📱 iD/QP/交通系</button>'+
+    '</div>'+
+    '<div style="font-size:10px;color:#999;text-align:center;margin-top:10px;">※クレジットは物理カードのみ（タッチ不可）</div>'+
+    '</div>';
   document.body.appendChild(overlay);
 }
 function closeCheckoutSummary(){
@@ -2082,6 +2084,8 @@ function openPayment(method){
   const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
   const labels={cash:'現金で決済',card:'カードで決済',other:'電子決済'};
   document.getElementById('payment-modal-title').textContent=labels[method]||method;
+  var cb=document.getElementById('payment-confirm-btn');
+  if(cb) cb.textContent=method==='cash'?'決済完了':'決済完了へ';
   document.getElementById('payment-modal-amount').textContent='¥'+total.toLocaleString();
   const cs=document.getElementById('cash-change-section');
   cs.style.display=method==='cash'?'':'none';
