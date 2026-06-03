@@ -372,14 +372,17 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
   </div>
   <!-- SS切替モーダル -->
   <div class="modal-overlay" id="switch-ss-modal" style="display:none;align-items:center;justify-content:center;">
-    <div class="modal" style="max-width:360px;padding:20px;">
-      <h3 style="margin:0 0 12px;">📂 月次SS切り替え</h3>
-      <div id="switch-ss-current" style="background:#f5f5f5;border-radius:6px;padding:8px 10px;font-size:11px;color:#555;word-break:break-all;margin-bottom:12px;"></div>
-      <div class="form-row" style="margin-bottom:12px;">
-        <label style="font-size:12px;font-weight:600;">新しいスプレッドシートのID</label>
-        <input type="text" id="switch-ss-input" placeholder="スプレッドシートのIDを貼り付け"
-          style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:inherit;box-sizing:border-box;margin-top:4px;">
-      </div>
+    <div class="modal" style="max-width:380px;padding:20px;">
+      <h3 style="margin:0 0 12px;">📂 月初シート切り替え</h3>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:10px;line-height:1.7;">URLまたはIDどちらでも貼り付け可</div>
+      <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:4px;">📊 同期先シート（GAS）</div>
+      <div id="switch-ss-current" style="background:#f5f5f5;border-radius:6px;padding:6px 10px;font-size:10px;color:#555;word-break:break-all;margin-bottom:6px;"></div>
+      <input type="text" id="switch-ss-input" placeholder="URLまたはIDを貼り付け"
+        style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:inherit;box-sizing:border-box;margin-bottom:12px;">
+      <div style="font-size:12px;font-weight:700;color:#7a5500;margin-bottom:4px;">📋 手動集計シート</div>
+      <div id="switch-manual-current" style="background:#f5f5f5;border-radius:6px;padding:6px 10px;font-size:10px;color:#555;word-break:break-all;margin-bottom:6px;"></div>
+      <input type="text" id="switch-manual-input" placeholder="URLまたはIDを貼り付け（変更しない場合は空欄）"
+        style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:inherit;box-sizing:border-box;margin-bottom:12px;">
       <div id="switch-ss-result" style="font-size:12px;font-weight:700;min-height:18px;margin-bottom:8px;"></div>
       <div style="display:flex;gap:8px;">
         <button class="btn-primary2" style="flex:1;background:#7a5500;color:#fff;" onclick="doSwitchSS()">切り替える</button>
@@ -445,7 +448,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
       <span id="sales-app-type-label" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:var(--accent2);color:#fff;"></span>
       <button class="btn-sm2" onclick="window.open(SS_URL_TEST,'_blank')" style="font-size:10px;padding:3px 8px;background:#e8f4fd;color:#2471a3;border-color:#a0c8e8;">📊 testシート</button>
       <button class="btn-sm2" onclick="window.open(SS_URL_MAIN,'_blank')" style="font-size:10px;padding:3px 8px;background:#f0f4e8;color:#2d5016;border-color:#a0c870;">📊 mainシート</button>
-      <button class="btn-sm2" onclick="window.open(SS_URL_MANUAL,'_blank')" style="font-size:10px;padding:3px 8px;background:#fff9c4;color:#7a5500;border-color:#d4b040;">📊 手動集計シート</button>
+      <button class="btn-sm2" onclick="window.open(getManualSSUrl(),'_blank')" style="font-size:10px;padding:3px 8px;background:#fff9c4;color:#7a5500;border-color:#d4b040;">📊 手動集計シート</button>
     </div>
     <div class="summary-cards" style="margin-bottom:10px;">
       <div class="summary-card"><div class="sc-label">売上合計</div><div class="sc-value" id="sc-total">¥0</div></div>
@@ -810,8 +813,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 288;
-const APP_BUILD_DATE = '2026/06/03 10:22';
+const APP_VERSION = 289;
+const APP_BUILD_DATE = '2026/06/03 15:34';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
@@ -3026,25 +3029,41 @@ async function retrySyncSale(id){
 }
 
 // ==================== SS切り替え ====================
+function extractSSId(str){
+  if(!str) return '';
+  str=str.trim();
+  var m=str.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+  if(m) return m[1];
+  return str;
+}
+function getManualSSUrl(){
+  var stored=localStorage.getItem('pos_manual_ss_id');
+  return 'https://docs.google.com/spreadsheets/d/'+(stored||'1-lTMbMmDalY4PXqMAydrZn3SdW-a_A-6G6l8JzepPug')+'/edit?pli=1';
+}
 async function openSwitchSSModal(){
   var modal=document.getElementById('switch-ss-modal');
   var cur=document.getElementById('switch-ss-current');
+  var manCur=document.getElementById('switch-manual-current');
   var inp=document.getElementById('switch-ss-input');
+  var manInp=document.getElementById('switch-manual-input');
   var res=document.getElementById('switch-ss-result');
   if(res) res.textContent='';
   if(inp) inp.value='';
+  if(manInp) manInp.value='';
+  var manId=localStorage.getItem('pos_manual_ss_id')||'1-lTMbMmDalY4PXqMAydrZn3SdW-a_A-6G6l8JzepPug';
+  if(manCur) manCur.textContent='現在: '+manId;
   if(cur) cur.textContent='取得中...';
   try{
     var url=ld(KEYS.gas)||DEFAULT_GAS_URL;
     var r=await fetch(url+'?d='+encodeURIComponent(JSON.stringify({type:'get_current_ss'})),{method:'GET',redirect:'follow'});
     var json=await r.json();
     if(json.data&&json.data.ss_id){
-      cur.innerHTML='現在のSS ID:<br><b style="word-break:break-all;">'+json.data.ss_id+'</b>'+(json.data.is_default?' <span style="color:#888;">（デフォルト）</span>':'');
+      if(cur) cur.textContent='現在: '+json.data.ss_id+(json.data.is_default?' （デフォルト）':'');
     } else {
-      cur.textContent='現在のSS ID: 取得できませんでした';
+      if(cur) cur.textContent='取得できませんでした';
     }
   }catch(e){
-    if(cur) cur.textContent='現在のSS ID: 取得できませんでした';
+    if(cur) cur.textContent='取得できませんでした';
   }
   if(modal) modal.style.display='flex';
 }
@@ -3054,23 +3073,28 @@ function closeSwitchSSModal(){
 }
 async function doSwitchSS(){
   var inp=document.getElementById('switch-ss-input');
+  var manInp=document.getElementById('switch-manual-input');
   var res=document.getElementById('switch-ss-result');
-  var newId=(inp?inp.value.trim():'');
-  if(!newId){if(res)res.textContent='⚠ IDを入力してください';return;}
+  var newId=extractSSId(inp?inp.value:'');
+  var manId=extractSSId(manInp?manInp.value:'');
+  if(!newId&&!manId){if(res)res.textContent='⚠ 少なくとも1つ入力してください';return;}
   if(res){res.style.color='#555';res.textContent='⏳ 切り替え中...';}
-  try{
-    var url=ld(KEYS.gas)||DEFAULT_GAS_URL;
-    var r=await fetch(url+'?d='+encodeURIComponent(JSON.stringify({type:'switch_ss',ss_id:newId})),{method:'GET',redirect:'follow'});
-    var json=await r.json();
-    if(json.data&&json.data.switched){
-      if(res){res.style.color='#27ae60';res.textContent='✅ 切り替えました';}
-      setTimeout(closeSwitchSSModal,1500);
-    } else {
-      if(res){res.style.color='#c0392b';res.textContent='❌ 切り替え失敗';}
-    }
-  }catch(e){
-    if(res){res.style.color='#c0392b';res.textContent='❌ エラー: '+e.message;}
+  var msgs=[];
+  if(newId){
+    try{
+      var url=ld(KEYS.gas)||DEFAULT_GAS_URL;
+      var r=await fetch(url+'?d='+encodeURIComponent(JSON.stringify({type:'switch_ss',ss_id:newId})),{method:'GET',redirect:'follow'});
+      var json=await r.json();
+      if(json.data&&json.data.switched) msgs.push('同期先 ✅');
+      else msgs.push('同期先 ❌');
+    }catch(e){ msgs.push('同期先 ❌'); }
   }
+  if(manId){
+    localStorage.setItem('pos_manual_ss_id', manId);
+    msgs.push('手動集計 ✅');
+  }
+  if(res){res.style.color='#27ae60';res.textContent=msgs.join('　');}
+  setTimeout(closeSwitchSSModal,1800);
 }
 
 // GAS接続テスト
