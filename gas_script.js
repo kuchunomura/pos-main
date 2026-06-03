@@ -136,6 +136,11 @@ function handleRequest(data) {
   else if (type === 'get_current_ss') {
     return { ss_id: getSSId(), is_default: (getSSId() === SS_ID) };
   }
+  else if (type === 'create_invoice') {
+    var sheetName = createInvoiceSheet(data);
+    if (data.record_sale && data.rows && data.rows.length) addRows(data.rows);
+    return { sheet: sheetName };
+  }
   return null;
 }
 
@@ -1275,6 +1280,134 @@ function createMonthlySummary(year, month) {
   var maxCol=Math.max(8,3+pgKeysCross.length*2);
   for (var wc=4;wc<=maxCol;wc++) out.setColumnWidth(wc,wc%2===0?60:90);
   out.setColumnWidth(7,140);out.setColumnWidth(8,90);
+
+  SpreadsheetApp.flush();
+  return sheetName;
+}
+
+// ==================== 請求書・見積書 ====================
+
+function getNextInvoiceNumber(ss, prefix) {
+  var sheets = ss.getSheets();
+  var max = 0;
+  for (var i = 0; i < sheets.length; i++) {
+    var m = sheets[i].getName().match(new RegExp('^' + prefix + '-(\\d{8})-(\\d+)$'));
+    if (m) { var n = parseInt(m[2]); if (n > max) max = n; }
+  }
+  return String(max + 1).padStart(3, '0');
+}
+
+function createInvoiceSheet(data) {
+  var ss = getTargetSS();
+  var docType = data.doc_type === 'estimate' ? '見積書' : '請求書';
+  var prefix = data.doc_type === 'estimate' ? '見積書' : '請求書';
+  var billDate = data.bill_date || Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd');
+  var dateKey = billDate.replace(/\//g, '');
+  var num = getNextInvoiceNumber(ss, prefix);
+  var sheetName = prefix + '-' + dateKey + '-' + num;
+
+  var out = ss.insertSheet(sheetName, 0);
+  var C = 'center', L = 'left', R = 'right';
+  var MAIN = '#2d5016', LIGHT = '#e8f0e0', GRAY = '#f5f5f5', BORDER = '#cccccc';
+
+  // タイトル
+  out.getRange(1,1,1,6).merge()
+    .setValue('【' + docType + '】')
+    .setFontSize(18).setFontWeight('bold')
+    .setBackground(MAIN).setFontColor('#ffffff')
+    .setHorizontalAlignment(C).setVerticalAlignment('middle');
+  out.setRowHeight(1, 44);
+
+  // 発行日・No
+  out.getRange(2,1,1,3).merge().setValue('').setBackground(GRAY);
+  out.getRange(2,4).setValue('発行日').setFontWeight('bold').setHorizontalAlignment(R).setBackground(GRAY);
+  out.getRange(2,5,1,2).merge().setValue(billDate).setHorizontalAlignment(L).setBackground(GRAY);
+  out.getRange(3,4).setValue('No.').setFontWeight('bold').setHorizontalAlignment(R).setBackground(GRAY);
+  out.getRange(3,5,1,2).merge().setValue(sheetName).setHorizontalAlignment(L).setBackground(GRAY);
+
+  // 宛先
+  var recipient = data.recipient || '　';
+  out.getRange(4,1,1,3).merge()
+    .setValue(recipient + '　様')
+    .setFontSize(13).setFontWeight('bold')
+    .setHorizontalAlignment(L).setVerticalAlignment('middle');
+  out.setRowHeight(4, 32);
+
+  // あいさつ文
+  var msg = docType === '見積書' ? '下記の通りお見積申し上げます。' : '下記の通りご請求申し上げます。';
+  out.getRange(5,1,1,6).merge().setValue(msg).setFontColor('#555').setHorizontalAlignment(L);
+
+  // 明細ヘッダー
+  var hRow = 6;
+  out.getRange(hRow,1,1,6).setValues([['品名','数量','単価','金額','','']]);
+  out.getRange(hRow,1,1,4).setFontWeight('bold').setBackground(LIGHT).setHorizontalAlignment(C);
+  out.getRange(hRow,1).setHorizontalAlignment(L);
+
+  // 明細行
+  var items = data.items || [];
+  var dataRow = hRow + 1;
+  var subtotal = 0;
+  for (var i = 0; i < items.length; i++) {
+    var it = items[i];
+    var lineTotal = it.price * it.qty;
+    subtotal += lineTotal;
+    out.getRange(dataRow,1).setValue(it.name).setHorizontalAlignment(L);
+    out.getRange(dataRow,2).setValue(it.qty).setHorizontalAlignment(C);
+    out.getRange(dataRow,3).setValue(it.price).setNumberFormat('#,##0').setHorizontalAlignment(R);
+    out.getRange(dataRow,4).setValue(lineTotal).setNumberFormat('#,##0').setHorizontalAlignment(R);
+    if (i % 2 === 0) out.getRange(dataRow,1,1,4).setBackground('#fafafa');
+    dataRow++;
+  }
+  // 空行（最低5行）
+  while (dataRow < hRow + 6) { dataRow++; }
+
+  // 合計ブロック
+  var totalRow = dataRow + 1;
+  var total = data.total || subtotal;
+  var discount = subtotal - total;
+
+  out.getRange(totalRow,3).setValue('小計').setFontWeight('bold').setHorizontalAlignment(R).setBackground(GRAY);
+  out.getRange(totalRow,4).setValue(subtotal).setNumberFormat('#,##0').setHorizontalAlignment(R).setBackground(GRAY);
+  if (discount > 0) {
+    totalRow++;
+    out.getRange(totalRow,3).setValue('割引').setFontWeight('bold').setHorizontalAlignment(R).setBackground(GRAY);
+    out.getRange(totalRow,4).setValue(-discount).setNumberFormat('#,##0').setHorizontalAlignment(R).setBackground(GRAY).setFontColor('#c0392b');
+  }
+  totalRow++;
+  out.getRange(totalRow,1,1,6).merge()
+    .setValue('　').setBackground(MAIN);
+  totalRow++;
+  out.getRange(totalRow,1,1,2).merge()
+    .setValue('お支払金額（税込）')
+    .setFontSize(13).setFontWeight('bold')
+    .setBackground(MAIN).setFontColor('#fff').setHorizontalAlignment(L).setVerticalAlignment('middle');
+  out.getRange(totalRow,3,1,2).merge()
+    .setValue('¥ ' + total.toLocaleString())
+    .setFontSize(16).setFontWeight('bold')
+    .setBackground(MAIN).setFontColor('#fff').setHorizontalAlignment(R).setVerticalAlignment('middle');
+  out.setRowHeight(totalRow, 36);
+
+  // 支払方法・備考
+  totalRow += 2;
+  var methodMap = {cash:'現金', card:'クレジットカード', other:'電子決済'};
+  var method = methodMap[data.method] || data.method || '';
+  out.getRange(totalRow,1).setValue('【支払方法】').setFontWeight('bold').setBackground(GRAY);
+  out.getRange(totalRow,2,1,5).merge().setValue(method).setBackground(GRAY);
+  totalRow++;
+  out.getRange(totalRow,1).setValue('【備考】').setFontWeight('bold').setBackground(GRAY);
+  out.getRange(totalRow,2,1,5).merge().setValue(data.memo||'').setBackground(GRAY).setWrap(true);
+
+  // 列幅
+  out.setColumnWidth(1, 220);
+  out.setColumnWidth(2, 60);
+  out.setColumnWidth(3, 90);
+  out.setColumnWidth(4, 90);
+  out.setColumnWidth(5, 60);
+  out.setColumnWidth(6, 60);
+
+  // 全体に外枠
+  var lastRow = totalRow;
+  out.getRange(1,1,lastRow,4).setBorder(true,true,true,true,true,true,BORDER,SpreadsheetApp.BorderStyle.SOLID);
 
   SpreadsheetApp.flush();
   return sheetName;

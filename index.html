@@ -691,6 +691,46 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
   </div>
 </div>
 
+<!-- 請求書・見積書モーダル -->
+<div class="modal-overlay" id="invoice-modal" style="display:none;align-items:center;justify-content:center;">
+  <div class="modal" style="max-width:380px;padding:20px;" onclick="event.stopPropagation()">
+    <h3 style="margin:0 0 14px;">📄 請求書・見積書を作成</h3>
+    <div id="invoice-sale-preview" style="background:#f9f9f9;border-radius:8px;padding:10px;margin-bottom:12px;font-size:12px;max-height:120px;overflow-y:auto;"></div>
+    <div class="form-row" style="margin-bottom:10px;">
+      <label style="font-size:12px;font-weight:600;">種別</label>
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="radio" name="inv-doctype" value="invoice" checked> 請求書</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="radio" name="inv-doctype" value="estimate"> 見積書</label>
+      </div>
+    </div>
+    <div class="form-row" style="margin-bottom:10px;">
+      <label style="font-size:12px;font-weight:600;">売上計上</label>
+      <div style="display:flex;flex-direction:column;gap:4px;margin-top:4px;">
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="radio" name="inv-record" value="today" checked> 今日の日付で計上</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="radio" name="inv-record" value="other" onchange="document.getElementById('inv-date-row').style.display=''"> 別日で計上</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="radio" name="inv-record" value="none" onchange="document.getElementById('inv-date-row').style.display='none'"> 売上計上しない（見積のみ）</label>
+      </div>
+    </div>
+    <div id="inv-date-row" class="form-row" style="display:none;margin-bottom:10px;">
+      <label style="font-size:12px;font-weight:600;">計上日</label>
+      <input type="date" id="inv-date" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;margin-top:4px;">
+    </div>
+    <div class="form-row" style="margin-bottom:10px;">
+      <label style="font-size:12px;font-weight:600;">宛先（任意）</label>
+      <input type="text" id="inv-recipient" placeholder="例：田中様、〇〇グループ" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;margin-top:4px;">
+    </div>
+    <div class="form-row" style="margin-bottom:14px;">
+      <label style="font-size:12px;font-weight:600;">備考（任意）</label>
+      <input type="text" id="inv-memo" placeholder="備考" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;margin-top:4px;">
+    </div>
+    <div id="invoice-result" style="font-size:12px;font-weight:700;min-height:16px;margin-bottom:8px;"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-primary2" style="flex:1;background:#2d5016;color:#fff;" onclick="submitInvoice()">作成する</button>
+      <button class="btn-sm2" style="flex:1;" onclick="closeInvoiceModal()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
 <!-- 決済モーダル -->
 <div class="modal-overlay" id="payment-modal">
   <div class="modal" style="max-width:480px;">
@@ -815,8 +855,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 302;
-const APP_BUILD_DATE = '2026/06/03 22:26';
+const APP_VERSION = 303;
+const APP_BUILD_DATE = '2026/06/03 22:46';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
@@ -2629,7 +2669,7 @@ function renderSales(){
       '<td style="font-size:10px">'+discLabel+(r.paid?'<span style="color:var(--blue)"> 済</span>':'')+'</td>'+
       '<td style="font-size:10px">'+methodLabel+'</td>'+
       '<td style="font-weight:600;text-align:right;font-size:11px">¥'+r.total.toLocaleString()+'</td>'+
-      '<td><button class="edit-sale-btn" onclick="event.stopPropagation();editSaleRecord(\''+r.id+'\')">カートで修正</button></td>';
+      '<td style="white-space:nowrap;"><button class="edit-sale-btn" onclick="event.stopPropagation();editSaleRecord(\''+r.id+'\')">カートで修正</button> <button class="edit-sale-btn" onclick="event.stopPropagation();openInvoiceModal(\''+r.id+'\')" style="background:#e8f0e0;color:#2d5016;border-color:#a0c870;">請求書</button></td>';
     tr.onclick=()=>openSaleDetail(r.id);
     tbody.appendChild(tr);
   });
@@ -3116,6 +3156,70 @@ async function retrySyncSale(id){
   s.syncStatus='pending';sv(KEYS.sales,sales);renderSales();
   var ok=await autoSyncSale(s);
   s.syncStatus=ok?'ok':'fail';sv(KEYS.sales,sales);renderSales();
+}
+
+// ==================== 請求書・見積書 ====================
+var _invoiceSaleId = null;
+function openInvoiceModal(saleId){
+  var r = sales.find(function(s){return s.id===saleId;}); if(!r) return;
+  _invoiceSaleId = saleId;
+  var preview = '<b>'+dtToShort(r.datetime)+'　¥'+r.total.toLocaleString()+'</b><br>';
+  preview += r.items.map(function(i){return i.name+(i.qty>1?' ×'+i.qty:'')+'　¥'+(i.price*i.qty).toLocaleString();}).join('<br>');
+  document.getElementById('invoice-sale-preview').innerHTML = preview;
+  document.getElementById('inv-recipient').value = '';
+  document.getElementById('inv-memo').value = r.memo||'';
+  document.getElementById('inv-date').value = '';
+  document.getElementById('inv-date-row').style.display = 'none';
+  document.getElementById('invoice-result').textContent = '';
+  document.querySelector('input[name="inv-doctype"][value="invoice"]').checked = true;
+  document.querySelector('input[name="inv-record"][value="today"]').checked = true;
+  document.getElementById('invoice-modal').style.display = 'flex';
+}
+function closeInvoiceModal(){
+  document.getElementById('invoice-modal').style.display = 'none';
+  _invoiceSaleId = null;
+}
+async function submitInvoice(){
+  var r = sales.find(function(s){return s.id===_invoiceSaleId;}); if(!r) return;
+  var docType = document.querySelector('input[name="inv-doctype"]:checked').value;
+  var recordMode = document.querySelector('input[name="inv-record"]:checked').value;
+  var recipient = document.getElementById('inv-recipient').value.trim();
+  var memo = document.getElementById('inv-memo').value.trim();
+  var res = document.getElementById('invoice-result');
+  var billDate = new Date();
+  if(recordMode==='other'){
+    var dv = document.getElementById('inv-date').value;
+    if(!dv){res.style.color='#c00';res.textContent='⚠ 計上日を入力してください';return;}
+    billDate = new Date(dv);
+  }
+  var billDateStr = billDate.getFullYear()+'/'+(billDate.getMonth()+1)+'/'+(billDate.getDate()<10?'0':'')+billDate.getDate();
+  res.style.color='#555'; res.textContent='⏳ 作成中...';
+  var payload = {
+    type: 'create_invoice',
+    doc_type: docType,
+    bill_date: billDateStr,
+    recipient: recipient,
+    memo: memo,
+    items: r.items.map(function(i){return {name:i.name,qty:i.qty,price:i.price};}),
+    total: r.total,
+    method: r.method,
+    record_sale: recordMode!=='none',
+    rows: recordMode!=='none' ? saleToRows(r) : []
+  };
+  try{
+    var url = ld(KEYS.gas)||DEFAULT_GAS_URL;
+    var resp = await fetch(url+'?d='+encodeURIComponent(JSON.stringify(payload)),{method:'GET',redirect:'follow'});
+    var json = await resp.json();
+    if(json.data&&json.data.sheet){
+      res.style.color='#27ae60';
+      res.textContent='✅ '+json.data.sheet+' を作成しました';
+      setTimeout(closeInvoiceModal, 2000);
+    } else {
+      res.style.color='#c00'; res.textContent='❌ 作成失敗';
+    }
+  }catch(e){
+    res.style.color='#c00'; res.textContent='❌ エラー: '+e.message;
+  }
 }
 
 // ==================== SS切り替え ====================
