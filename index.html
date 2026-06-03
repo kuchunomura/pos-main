@@ -772,8 +772,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 </div>
 
 <!-- 決済完了 -->
-<div class="payment-done" id="payment-done">
-  <div class="payment-done-inner">
+<div class="payment-done" id="payment-done" onclick="nextCustomer()">
+  <div class="payment-done-inner" onclick="event.stopPropagation()">
     <div class="payment-done-icon">✅</div>
     <div class="payment-done-title">決済完了</div>
     <div class="payment-done-amount" id="done-amount"></div>
@@ -815,8 +815,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 295;
-const APP_BUILD_DATE = '2026/06/03 18:35';
+const APP_VERSION = 296;
+const APP_BUILD_DATE = '2026/06/03 18:40';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
