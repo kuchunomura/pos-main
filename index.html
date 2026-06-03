@@ -718,14 +718,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
     <div id="inv-cart-date-row" class="form-row" style="display:none;margin-bottom:8px;">
       <input type="date" id="inv-cart-date" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;">
     </div>
-    <div id="inv-cart-method" style="margin-bottom:10px;">
-      <label style="font-size:12px;font-weight:600;">支払方法</label>
-      <div style="display:flex;gap:6px;margin-top:4px;">
-        <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;font-size:12px;cursor:pointer;border:1px solid var(--border);border-radius:8px;padding:8px 4px;"><input type="radio" name="inv-cart-method" value="cash" checked> 💴現金</label>
-        <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;font-size:12px;cursor:pointer;border:1px solid var(--border);border-radius:8px;padding:8px 4px;"><input type="radio" name="inv-cart-method" value="card"> 💳カード</label>
-        <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;font-size:11px;cursor:pointer;border:1px solid var(--border);border-radius:8px;padding:8px 2px;"><input type="radio" name="inv-cart-method" value="other"> 📱電子</label>
-      </div>
-    </div>
+    <input type="hidden" name="inv-cart-method" value="cash">
     <div class="form-row" style="margin-bottom:10px;">
       <input type="text" id="inv-cart-recipient" placeholder="宛先（任意）" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;">
     </div>
@@ -904,8 +897,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 319;
-const APP_BUILD_DATE = '2026/06/04 08:01';
+const APP_VERSION = 320;
+const APP_BUILD_DATE = '2026/06/04 08:09';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -1983,7 +1976,7 @@ function renderCart(){
   if(hasDiscount&&origTotal>total){origRow.style.display='block';origRow.textContent='定価 ¥'+origTotal.toLocaleString();}
   else origRow.style.display='none';
   var cb=document.getElementById('checkout-btn');
-  if(cb) cb.style.display='';
+  if(cb) cb.style.display=invoiceMode?'none':'';
   renderHoldTabs();
 }
 
