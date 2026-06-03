@@ -897,8 +897,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 323;
-const APP_BUILD_DATE = '2026/06/04 08:19';
+const APP_VERSION = 324;
+const APP_BUILD_DATE = '2026/06/04 08:24';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -3271,13 +3271,14 @@ async function submitInvoiceFromCart(){
       res.textContent='✅ '+json.data.sheet+' を作成しました';
       closeInvoiceCartModal();
       if(recordMode!=='none'){
-        currentPayMethod = method;
-        confirmPayment();
-      } else {
-        clearCart();
-        toggleInvoiceMode();
-        showToast('📄 '+json.data.sheet+' を作成しました');
+        var saleTs=recordMode==='other'?new Date(document.getElementById('inv-cart-date').value+'T12:00:00').toISOString():new Date().toISOString();
+        var invSale={id:'s_'+Date.now(),datetime:saleTs,items:cart.map(function(i){return Object.assign({},i);}),total:total,method:method,attrs:Object.assign({},selectedAttrs),discount:activeDiscount,paid:false,memo:memo,device:localStorage.getItem('pos_device_id')||'',device_name:localStorage.getItem('pos_device_name')||'',syncStatus:'pending'};
+        sales.push(invSale);sv(KEYS.sales,sales);saveSnapshotToIDB();
+        autoSyncSale(invSale).then(function(ok){var s=sales.find(function(x){return x.id===invSale.id;});if(s){s.syncStatus=ok?'ok':'fail';sv(KEYS.sales,sales);saveSnapshotToIDB();renderSales();}});
       }
+      clearCart();
+      toggleInvoiceMode();
+      showToast('📄 '+json.data.sheet+' を作成しました');
     } else {
       res.style.color='#c00'; res.textContent='❌ 作成失敗: '+(json.message||json.status||'');
     }
