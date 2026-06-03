@@ -855,15 +855,15 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 306;
-const APP_BUILD_DATE = '2026/06/03 23:28';
+const APP_VERSION = 308;
+const APP_BUILD_DATE = '2026/06/03 23:43';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
 const GAS_URL_TEST='https://script.google.com/macros/s/AKfycbys-bK-HCuRJxFWNXYSO6w72b9qsGbuUjt_4B5GpeitG01GFgBPMXoh8TiagccpUBdBnA/exec';
 const GAS_URL_MAIN='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
 const SS_URL_TEST='https://docs.google.com/spreadsheets/d/1_iNytjWzVi6vvd_nSecG_uZJEnzkoL8zynY12UkNrNM/edit?pli=1';
-const SS_URL_MAIN='https://docs.google.com/spreadsheets/d/13AgulTcqyxRZLF9nejl2TJ3qqpLKlrFprlPX25fU-kg/edit?pli=1';
+const SS_URL_MAIN='https://docs.google.com/spreadsheets/d/1WopPkAIZJSLjc9kr7C5hKvWCPYN7CYmOiXOvko0Q4iI/edit?pli=1';
 const SS_URL_MANUAL='https://docs.google.com/spreadsheets/d/1-lTMbMmDalY4PXqMAydrZn3SdW-a_A-6G6l8JzepPug/edit?pli=1';
 const KEYS = {items:'pos_items',sales:'pos_sales',gas:'pos_gas',cats:'pos_cats',itemOrder:'pos_item_order',catOrder:'pos_cat_order',sites:'pos_sites',discounts:'pos_discounts',attrs:'pos_attrs',holds:'pos_holds',deviceId:'pos_device_id'};
 // デバイスID自動生成（初回のみ）
@@ -3235,9 +3235,10 @@ function getManualSSUrl(){
   return 'https://docs.google.com/spreadsheets/d/'+(stored||'1-lTMbMmDalY4PXqMAydrZn3SdW-a_A-6G6l8JzepPug')+'/edit?pli=1';
 }
 function getCurrentSSUrl(){
-  var stored=localStorage.getItem('pos_current_ss_id');
-  return 'https://docs.google.com/spreadsheets/d/'+(stored||'13AgulTcqyxRZLF9nejl2TJ3qqpLKlrFprlPX25fU-kg')+'/edit?pli=1';
+  var stored=localStorage.getItem('pos_current_ss_id_main');
+  return 'https://docs.google.com/spreadsheets/d/'+(stored||'1WopPkAIZJSLjc9kr7C5hKvWCPYN7CYmOiXOvko0Q4iI')+'/edit?pli=1';
 }
+localStorage.setItem('pos_current_ss_id_main','1WopPkAIZJSLjc9kr7C5hKvWCPYN7CYmOiXOvko0Q4iI');
 async function openSwitchSSModal(){
   var modal=document.getElementById('switch-ss-modal');
   var cur=document.getElementById('switch-ss-current');
@@ -3283,7 +3284,7 @@ async function doSwitchSS(){
       var url=ld(KEYS.gas)||DEFAULT_GAS_URL;
       var r=await fetch(url+'?d='+encodeURIComponent(JSON.stringify({type:'switch_ss',ss_id:newId})),{method:'GET',redirect:'follow'});
       var json=await r.json();
-      if(json.data&&json.data.switched){msgs.push('同期先 ✅');localStorage.setItem('pos_current_ss_id',newId);}
+      if(json.data&&json.data.switched){msgs.push('同期先 ✅');localStorage.setItem('pos_current_ss_id_main',newId);}
       else msgs.push('同期先 ❌');
     }catch(e){ msgs.push('同期先 ❌'); }
   }

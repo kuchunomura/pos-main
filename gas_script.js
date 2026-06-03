@@ -1,5 +1,5 @@
 // ===== POS レジ GAS スクリプト (main用) =====
-const SS_ID = '13AgulTcqyxRZLF9nejl2TJ3qqpLKlrFprlPX25fU-kg'; // デフォルト（フォールバック用）
+const SS_ID = '1WopPkAIZJSLjc9kr7C5hKvWCPYN7CYmOiXOvko0Q4iI'; // デフォルト（フォールバック用）
 
 // PropertiesServiceからSS_IDを取得（切り替え対応）
 function getSSId() {
