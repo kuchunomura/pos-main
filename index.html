@@ -447,7 +447,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
       <button class="btn-sm2" onclick="clearFilter()">全件</button>
       <span id="sales-app-type-label" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:var(--accent2);color:#fff;"></span>
       <button class="btn-sm2" onclick="window.open(SS_URL_TEST,'_blank')" style="font-size:10px;padding:3px 8px;background:#e8f4fd;color:#2471a3;border-color:#a0c8e8;">📊 testシート</button>
-      <button class="btn-sm2" onclick="window.open(SS_URL_MAIN,'_blank')" style="font-size:10px;padding:3px 8px;background:#f0f4e8;color:#2d5016;border-color:#a0c870;">📊 mainシート</button>
+      <button class="btn-sm2" onclick="window.open(getCurrentSSUrl(),'_blank')" style="font-size:10px;padding:3px 8px;background:#f0f4e8;color:#2d5016;border-color:#a0c870;">📊 mainシート</button>
       <button class="btn-sm2" onclick="window.open(getManualSSUrl(),'_blank')" style="font-size:10px;padding:3px 8px;background:#fff9c4;color:#7a5500;border-color:#d4b040;">📊 手動集計シート</button>
     </div>
     <div class="summary-cards" style="margin-bottom:10px;">
@@ -813,8 +813,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 289;
-const APP_BUILD_DATE = '2026/06/03 15:34';
+const APP_VERSION = 290;
+const APP_BUILD_DATE = '2026/06/03 16:17';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
@@ -3040,6 +3040,10 @@ function getManualSSUrl(){
   var stored=localStorage.getItem('pos_manual_ss_id');
   return 'https://docs.google.com/spreadsheets/d/'+(stored||'1-lTMbMmDalY4PXqMAydrZn3SdW-a_A-6G6l8JzepPug')+'/edit?pli=1';
 }
+function getCurrentSSUrl(){
+  var stored=localStorage.getItem('pos_current_ss_id');
+  return 'https://docs.google.com/spreadsheets/d/'+(stored||'13AgulTcqyxRZLF9nejl2TJ3qqpLKlrFprlPX25fU-kg')+'/edit?pli=1';
+}
 async function openSwitchSSModal(){
   var modal=document.getElementById('switch-ss-modal');
   var cur=document.getElementById('switch-ss-current');
@@ -3085,7 +3089,7 @@ async function doSwitchSS(){
       var url=ld(KEYS.gas)||DEFAULT_GAS_URL;
       var r=await fetch(url+'?d='+encodeURIComponent(JSON.stringify({type:'switch_ss',ss_id:newId})),{method:'GET',redirect:'follow'});
       var json=await r.json();
-      if(json.data&&json.data.switched) msgs.push('同期先 ✅');
+      if(json.data&&json.data.switched){msgs.push('同期先 ✅');localStorage.setItem('pos_current_ss_id',newId);}
       else msgs.push('同期先 ❌');
     }catch(e){ msgs.push('同期先 ❌'); }
   }
