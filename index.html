@@ -815,8 +815,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 294;
-const APP_BUILD_DATE = '2026/06/03 18:32';
+const APP_VERSION = 295;
+const APP_BUILD_DATE = '2026/06/03 18:35';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
@@ -1877,7 +1877,7 @@ function openCheckoutSummary(){
     '<button onclick="closeCheckoutSummary();openPayment(\'card\')" style="flex:1;padding:11px 4px;background:#2471a3;color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">💳 カード</button>'+
     '<button onclick="closeCheckoutSummary();openPayment(\'other\')" style="flex:1;padding:11px 2px;background:#6c5ce7;color:#fff;border:none;border-radius:10px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;">📱 iD/QP/交通系</button>'+
     '</div>'+
-    '<div style="font-size:10px;color:#999;text-align:center;margin-top:10px;">※クレジットは物理カードのみ（タッチ不可）</div>'+
+    '<div style="font-size:10px;color:#999;text-align:center;margin-top:10px;">※クレジットは物理カードのみ（タッチ不可）　※PayPay不可</div>'+
     '</div>';
   document.body.appendChild(overlay);
 }
