@@ -244,9 +244,11 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
       <div class="cart-footer">
         <div id="orig-amount-row" class="orig-amount" style="display:none"></div>
 
-        <div class="total-row">
+        <div class="total-row" style="position:relative;">
           <span class="total-label">合計</span>
           <span class="total-amount" id="total-amount">¥0</span>
+          <button onclick="openCheckoutSummary()" id="checkout-btn"
+            style="position:absolute;top:-2px;right:0;background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:none;">決済へ →</button>
         </div>
         <div class="pay-btns">
           <button class="pay-cash-btn" onclick="openPayment('cash')">💴 現金</button>
@@ -813,8 +815,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 291;
-const APP_BUILD_DATE = '2026/06/03 17:00';
+const APP_VERSION = 292;
+const APP_BUILD_DATE = '2026/06/03 17:14';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
@@ -1810,6 +1812,7 @@ function renderCart(){
     document.getElementById('cart-count').textContent='';
     document.getElementById('total-amount').textContent='¥0';
     document.getElementById('orig-amount-row').style.display='none';
+    var cb=document.getElementById('checkout-btn');if(cb)cb.style.display='none';
     return;
   }
   const hasDiscount=cart.some(i=>i.discounted);
@@ -1844,7 +1847,41 @@ function renderCart(){
   const origRow=document.getElementById('orig-amount-row');
   if(hasDiscount&&origTotal>total){origRow.style.display='block';origRow.textContent='定価 ¥'+origTotal.toLocaleString();}
   else origRow.style.display='none';
+  var cb=document.getElementById('checkout-btn');
+  if(cb) cb.style.display='';
   renderHoldTabs();
+}
+
+function openCheckoutSummary(){
+  if(!cart.length){showToast('⚠ カートが空です','#c00');return;}
+  var total=cart.reduce(function(s,i){return s+i.price*i.qty;},0);
+  var itemHtml=cart.map(function(i){
+    return '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f5f5f5;font-size:14px;">'+
+      '<span>'+i.name+(i.qty>1?' ×'+i.qty:'')+'</span>'+
+      '<span style="font-weight:600;color:var(--accent2);">¥'+(i.price*i.qty).toLocaleString()+'</span></div>';
+  }).join('');
+  var overlay=document.createElement('div');
+  overlay.id='checkout-summary-overlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:16px;';
+  overlay.onclick=function(e){if(e.target===overlay)closeCheckoutSummary();};
+  overlay.innerHTML=
+    '<div style="background:#fff;border-radius:16px;width:100%;max-width:380px;padding:20px;box-shadow:0 8px 32px rgba(0,0,0,0.25);" onclick="event.stopPropagation()">'+
+    '<div style="font-size:15px;font-weight:700;margin-bottom:12px;color:var(--accent);">🛒 お会計確認</div>'+
+    '<div style="max-height:200px;overflow-y:auto;margin-bottom:12px;">'+itemHtml+'</div>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:2px solid var(--border);margin-bottom:16px;">'+
+    '<span style="font-size:15px;font-weight:700;">合計</span>'+
+    '<span style="font-size:26px;font-weight:700;color:var(--accent2);">¥'+total.toLocaleString()+'</span>'+
+    '</div>'+
+    '<div style="display:flex;gap:8px;">'+
+    '<button onclick="closeCheckoutSummary();openPayment(\'cash\')" style="flex:1;padding:16px 4px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">💴 現金</button>'+
+    '<button onclick="closeCheckoutSummary();openPayment(\'card\')" style="flex:1;padding:16px 4px;background:#2471a3;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">💳 カード</button>'+
+    '<button onclick="closeCheckoutSummary();openPayment(\'other\')" style="flex:1;padding:16px 4px;background:#6c5ce7;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">📱 電子</button>'+
+    '</div></div>';
+  document.body.appendChild(overlay);
+}
+function closeCheckoutSummary(){
+  var el=document.getElementById('checkout-summary-overlay');
+  if(el) el.remove();
 }
 
 function chgQty(idx,d){cart[idx].qty=Math.max(1,cart[idx].qty+d);renderCart();}
