@@ -855,8 +855,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 312;
-const APP_BUILD_DATE = '2026/06/04 00:26';
+const APP_VERSION = 313;
+const APP_BUILD_DATE = '2026/06/04 00:46';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz2oz3hTdemYeN2hsFoTDAsu1lv7JCbNV2JPCxRm0kCVShmfe6qYmX_byHy6QxJ8YfF/exec';
@@ -3216,7 +3216,7 @@ async function submitInvoice(){
       if(recordMode!=='none') autoSyncSale(r);
       setTimeout(closeInvoiceModal, 2000);
     } else {
-      res.style.color='#c00'; res.textContent='❌ 作成失敗 '+(json.message||'');
+      res.style.color='#c00'; res.textContent='❌ 作成失敗: '+(json.message||json.status||JSON.stringify(json).substring(0,120));
     }
   }catch(e){
     res.style.color='#c00'; res.textContent='❌ エラー: '+e.message;
