@@ -900,8 +900,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 325;
-const APP_BUILD_DATE = '2026/06/04 08:47';
+const APP_VERSION = 326;
+const APP_BUILD_DATE = '2026/06/05 20:35';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -909,7 +909,7 @@ const GAS_URL_TEST='https://script.google.com/macros/s/AKfycbys-bK-HCuRJxFWNXYSO
 const GAS_URL_MAIN='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
 const SS_URL_TEST='https://docs.google.com/spreadsheets/d/1_iNytjWzVi6vvd_nSecG_uZJEnzkoL8zynY12UkNrNM/edit?pli=1';
 const SS_URL_MAIN='https://docs.google.com/spreadsheets/d/1WopPkAIZJSLjc9kr7C5hKvWCPYN7CYmOiXOvko0Q4iI/edit?pli=1';
-const SS_URL_MANUAL='https://docs.google.com/spreadsheets/d/1-lTMbMmDalY4PXqMAydrZn3SdW-a_A-6G6l8JzepPug/edit?pli=1';
+const SS_URL_MANUAL='https://docs.google.com/spreadsheets/d/167eC69tlzoFxyhg2AT6BWY3FqwdDnfKxQX1GAIKhkb0/edit?pli=1';
 const KEYS = {items:'pos_items',sales:'pos_sales',gas:'pos_gas',cats:'pos_cats',itemOrder:'pos_item_order',catOrder:'pos_cat_order',sites:'pos_sites',discounts:'pos_discounts',attrs:'pos_attrs',holds:'pos_holds',deviceId:'pos_device_id'};
 // デバイスID自動生成（初回のみ）
 (function(){var d=localStorage.getItem('pos_device_id');if(!d){d=Math.random().toString(36).slice(2,6).toUpperCase();localStorage.setItem('pos_device_id',d);}})();
@@ -3384,7 +3384,7 @@ function extractSSId(str){
 }
 function getManualSSUrl(){
   var stored=localStorage.getItem('pos_manual_ss_id');
-  return 'https://docs.google.com/spreadsheets/d/'+(stored||'1-lTMbMmDalY4PXqMAydrZn3SdW-a_A-6G6l8JzepPug')+'/edit?pli=1';
+  return 'https://docs.google.com/spreadsheets/d/'+(stored||'167eC69tlzoFxyhg2AT6BWY3FqwdDnfKxQX1GAIKhkb0')+'/edit?pli=1';
 }
 function getCurrentSSUrl(){
   var stored=localStorage.getItem('pos_current_ss_id_main');
