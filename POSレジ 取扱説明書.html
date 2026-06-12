@@ -1,0 +1,557 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POSレジ 取扱説明書</title>
+<style>
+  body { font-family: 'Hiragino Sans', 'Noto Sans JP', sans-serif; font-size: 14px; color: #1a1a1a; max-width: 860px; margin: 0 auto; padding: 24px 16px 60px; line-height: 1.8; background: #fff; }
+  h1 { font-size: 22px; font-weight: 700; border-bottom: 3px solid #2d5016; padding-bottom: 8px; margin-bottom: 6px; color: #2d5016; }
+  h2 { font-size: 17px; font-weight: 700; border-left: 5px solid #2d5016; padding-left: 10px; margin-top: 40px; margin-bottom: 10px; color: #2d5016; }
+  h3 { font-size: 15px; font-weight: 700; margin-top: 24px; margin-bottom: 8px; color: #8b4513; }
+  h4 { font-size: 13px; font-weight: 700; margin-top: 18px; margin-bottom: 6px; color: #333; border-bottom: 1px dashed #ccc; padding-bottom: 3px; }
+  h5 { font-size: 13px; font-weight: 700; margin-top: 14px; margin-bottom: 4px; color: #555; }
+  p { margin: 6px 0 10px; }
+  ul, ol { margin: 6px 0 10px; padding-left: 24px; }
+  li { margin-bottom: 3px; }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0 16px; font-size: 13px; }
+  th { background: #2d5016; color: #fff; padding: 7px 10px; text-align: left; font-weight: 600; }
+  td { padding: 6px 10px; border: 1px solid #ddd; }
+  tr:nth-child(even) td { background: #f9f9f9; }
+  code { background: #f0f0f0; border-radius: 4px; padding: 1px 5px; font-family: monospace; font-size: 12px; color: #c0392b; }
+  pre { background: #f4f4f4; border: 1px solid #ddd; border-radius: 6px; padding: 12px; font-family: monospace; font-size: 12px; overflow-x: auto; line-height: 1.6; }
+  pre code { background: none; padding: 0; color: #333; }
+  blockquote { background: #fffbe6; border-left: 4px solid #f0ad00; margin: 10px 0; padding: 8px 14px; border-radius: 0 6px 6px 0; font-size: 13px; }
+  blockquote p { margin: 0; }
+  hr { border: none; border-top: 1px solid #ddd; margin: 28px 0; }
+  strong { font-weight: 700; }
+  .meta { color: #666; font-size: 13px; margin-bottom: 16px; }
+  .toc { background: #f0f4e8; border: 1px solid #c8dca8; border-radius: 8px; padding: 14px 20px; margin: 16px 0 28px; }
+  .toc p { font-weight: 700; margin: 0 0 8px; color: #2d5016; }
+  .toc ol { margin: 0; }
+  .toc li { margin-bottom: 2px; font-size: 13px; }
+  .warn { background: #fde8e8; border-left: 4px solid #c0392b; margin: 10px 0; padding: 8px 14px; border-radius: 0 6px 6px 0; font-size: 13px; }
+  .section-divider { border-top: 2px solid #e0d8d0; margin: 16px 0 10px; }
+  @media print {
+    body { max-width: 100%; padding: 10px; font-size: 12px; }
+    h2 { page-break-before: auto; }
+    table { font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+
+<h1 id="posレジ-取扱説明書">POSレジ 取扱説明書</h1>
+
+<p><strong>バージョン</strong>: 329（2026/06/11 時点）<br><strong>対応端末</strong>: iPad 第6世代 Safari / 一般的なパソコン・タブレットのブラウザ<br><strong>アプリURL</strong>: https://kuchunomura.github.io/pos-app-test</p>
+
+<blockquote><p>この説明書は、<strong>パソコンやレジに詳しくない方でも読めるように</strong>、専門用語をできるだけ使わずに書いています。<br>上から順番に読めば、ひととおりの操作ができるようになります。困ったら最後の「<a href="#15-よくある操作-qa">よくある操作 Q&amp;A</a>」を見てください。</p></blockquote>
+
+<hr>
+
+<h2 id="このアプリは何をするもの">このアプリは何をするもの？</h2>
+
+<blockquote><p><strong>タブレットやパソコンの画面で、お会計（レジ打ち）をするためのアプリです。</strong><br>売ったものとお金は、自動的に <strong>Googleのオンライン表（スプレッドシート）</strong> に記録されていきます。あとから「今日いくら売れたか」を集計したり、グラフで見たりできます。</p></blockquote>
+
+<p>特別な機械（レジスター）ではなく、<strong>インターネットの画面（ウェブページ）</strong>として動きます。アプリURLをブラウザ（SafariやChrome）で開くだけで使えます。</p>
+
+<hr>
+
+<h2 id="目次">目次</h2>
+
+<ol><li><a href="#1-基本画面構成4つのタブ">基本画面構成（4つのタブ）</a></li><li><a href="#2-レジタブ①-商品を選んでカートに入れる">レジタブ① 商品を選んでカートに入れる</a></li><li><a href="#3-レジタブ②-カート右側の使い方">レジタブ② カート（右側）の使い方</a></li><li><a href="#4-割引予約サイトの使い方">割引・予約サイトの使い方</a></li><li><a href="#5-支払いお会計のしかた">支払い（お会計）のしかた</a></li><li><a href="#6-宿泊商品の操作人数選択">宿泊商品の操作（人数選択）</a></li><li><a href="#7-保留機能会計を一時とっておく">保留機能（会計を一時とっておく）</a></li><li><a href="#8-翌日翌々日計上モード">翌日・翌々日計上モード</a></li><li><a href="#9-請求書見積書の作成">請求書・見積書の作成</a></li><li><a href="#10-時間計算タブ時間">時間計算タブ（⏱時間）</a></li><li><a href="#11-売上タブ売上">売上タブ（📊売上）</a></li><li><a href="#12-設定タブ設定">設定タブ（⚙️設定）</a></li><li><a href="#13-googleスプレッドシート連携の仕組み">Googleスプレッドシート連携の仕組み</a></li><li><a href="#14-複数の端末で使うときの注意">複数の端末で使うときの注意</a></li><li><a href="#15-よくある操作-qa">よくある操作 Q&amp;A</a></li><li><a href="#16-アプリの更新画面が古いときの対処">アプリの更新・画面が古いときの対処</a></li><li><a href="#17-データのバックアップと引き継ぎ">データのバックアップと引き継ぎ</a></li><li><a href="#18-スプレッドシートの中身参考">スプレッドシートの中身（参考）</a></li></ol>
+
+<hr>
+
+<h2 id="1-基本画面構成4つのタブ">1. 基本画面構成（4つのタブ）</h2>
+
+<p>画面のいちばん上に、4つの「タブ（切り替えボタン）」が並んでいます。タップすると画面が切り替わります。</p>
+
+<table>
+<thead><tr><th>タブ</th><th>何をする場所か</th></tr></thead>
+<tbody><tr><td>🛒 レジ</td><td><strong>メインの画面。</strong> 商品を選んでお会計をする</td></tr>
+<tr><td>⏱ 時間</td><td>アクティビティ（空中ウォーク等）の終了時刻を計算する</td></tr>
+<tr><td>📊 売上</td><td>売れたものの一覧・集計を見る／スプレッドシートに送る</td></tr>
+<tr><td>⚙️ 設定</td><td>商品・カテゴリー・各種設定を変える（普段はあまり触らない）</td></tr></tbody>
+</table>
+
+<blockquote><p>いちばん上のバーには、<strong>今のアプリのバージョン番号</strong>（例：<code>v329</code>）と更新日も表示されています。右端の 🔄 ボタンは画面の再読み込み（リロード）ボタンです。</p></blockquote>
+
+<hr>
+
+<h2 id="2-レジタブ①-商品を選んでカートに入れる">2. レジタブ① 商品を選んでカートに入れる</h2>
+
+<p>レジタブは画面が <strong>左右2つ</strong>に分かれています。</p>
+
+<ul><li><strong>左側</strong> = 商品がたくさん並んでいるエリア（ここから選ぶ）</li><li><strong>右側</strong> = カート（選んだ商品が入っていく、レシートのような場所）</li></ul>
+
+<h3 id="2-1-カテゴリーで絞り込む">2-1. カテゴリーで絞り込む</h3>
+
+<p>左上に、横スクロールできる<strong>カテゴリーのボタン</strong>が並んでいます。</p>
+
+<ul><li><strong>すべて</strong>：全部の商品を表示</li><li>カテゴリー名をタップ：そのカテゴリーの商品だけを表示</li></ul>
+
+<p>カテゴリーの例：空中ウォーク／ツリーハウス昼／BBQ／宿泊：ツリーハウス／宿泊：ドーム／宿泊：空中テント／宿泊：ハンモック／備品レンタル／ペット／受付飲食／グッズ／無人販売／消耗品／ピクニック飲食／飲み物／食べ物／その他 など。</p>
+
+<h3 id="2-2-商品をタップしてカートに入れる">2-2. 商品をタップしてカートに入れる</h3>
+
+<p><strong>商品のボタンをタップするだけ</strong>で、右側のカートに追加されます。同じ商品をもう一度タップすると数が増えます。</p>
+
+<blockquote><p>宿泊商品（ツリーハウス・ドーム・テント・ハンモック）をタップしたときは、<strong>人数を選ぶ画面</strong>が出ます（→ <a href="#6-宿泊商品の操作人数選択">6. 宿泊商品の操作</a>）。</p></blockquote>
+
+<h3 id="2-3-終了時刻の自動表示空中ウォークツリーハウス昼">2-3. 終了時刻の自動表示（空中ウォーク・ツリーハウス昼）</h3>
+
+<p>空中ウォーク・ツリーハウス昼のカテゴリーの見出しには、<strong>「今からこのコースを始めたら何時に終わるか」</strong>が自動で表示されます。</p>
+
+<ul><li>例：<code>55分→14:35</code>　<code>115分→15:35</code>　<code>1DAY→17:00</code></li><li>いまカートに入っているコースは<strong>赤色の太字</strong>で目立つようになります。</li></ul>
+
+<h3 id="2-4-画面上の▼メニューボタン">2-4. 画面上の「▼メニュー」ボタン</h3>
+
+<p>カテゴリーボタンの右端に、小さな <strong>「▼」ボタン</strong>があります。タップすると、ふだんは隠れている4つのボタンが開きます（もう一度押すと閉じます）。</p>
+
+<table>
+<thead><tr><th>ボタン</th><th>使うとき</th></tr></thead>
+<tbody><tr><td>🌙 翌日</td><td>売上を<strong>翌日の日付</strong>で記録したいとき（→ <a href="#8-翌日翌々日計上モード">8章</a>）</td></tr>
+<tr><td>🌙🌙 翌々日</td><td>売上を<strong>翌々日の日付</strong>で記録したいとき</td></tr>
+<tr><td>📄 請求書</td><td><strong>請求書・見積書</strong>を作る「請求書モード」に切り替える（→ <a href="#9-請求書見積書の作成">9章</a>）</td></tr>
+<tr><td>✏️ 編集</td><td>商品ボタンの並べ替え・編集をする「編集モード」に切り替える</td></tr></tbody>
+</table>
+
+<blockquote><p>ふだんの会計では、この中のボタンは使いません。必要なときだけ開いてください。</p></blockquote>
+
+<h3 id="2-5-金額を手で入力して追加未登録商品">2-5. 金額を手で入力して追加（未登録商品）</h3>
+
+<p>左側のいちばん下に金額の入力欄があります。<strong>金額を入力 → 「追加」</strong>を押すと、商品リストに無いものを「未登録商品」としてカートに入れられます。</p>
+
+<hr>
+
+<h2 id="3-レジタブ②-カート右側の使い方">3. レジタブ② カート（右側）の使い方</h2>
+
+<p>右側がカート（お会計する商品のリスト）です。</p>
+
+<h3 id="3-1-上部の表示">3-1. 上部の表示</h3>
+
+<ul><li><strong>時計</strong>：現在時刻がずっと表示されます。</li><li><strong>天気アイコン（🌤）</strong>：タップすると今日の天気を選べます（売上データに記録されます）。</li><li><strong>保留タブ（数字の並び）</strong>：会計を一時とっておく機能（→ <a href="#7-保留機能会計を一時とっておく">7章</a>）。中身が入っているとオレンジの点が付きます。</li><li><strong>前日繰越バッジ（黄色）</strong>：前日から「繰越」として記録された売上があると表示されます。</li></ul>
+
+<h3 id="3-2-カートの中の操作">3-2. カートの中の操作</h3>
+
+<table>
+<thead><tr><th>やりたいこと</th><th>操作</th></tr></thead>
+<tbody><tr><td>商品の数を増やす</td><td>カート内の <strong>＋</strong> ボタン</td></tr>
+<tr><td>商品の数を減らす</td><td>カート内の <strong>－</strong> ボタン（0になると消える）</td></tr>
+<tr><td>商品を消す</td><td>右端の <strong>×</strong></td></tr>
+<tr><td>カートを全部空にする</td><td>下の <strong>🗑 クリア</strong> ボタン</td></tr></tbody>
+</table>
+
+<h3 id="3-3-合計金額">3-3. 合計金額</h3>
+
+<p>カートの下に<strong>合計金額</strong>が大きく出ます。割引が効いているときは、もとの金額に取り消し線が付きます。</p>
+
+<hr>
+
+<h2 id="4-割引予約サイトの使い方">4. 割引・予約サイトの使い方</h2>
+
+<p>左側の下のほうにある <strong>「割引・予約サイト」</strong>の文字をタップすると、割引ボタンが開きます（もう一度押すと閉じます）。</p>
+
+<h3 id="4-1-割引ボタン押すと赤紫色になる">4-1. 割引ボタン（押すと赤紫色になる）</h3>
+
+<table>
+<thead><tr><th>ボタン</th><th>内容</th></tr></thead>
+<tbody><tr><td>村内（半額）</td><td>レンタル以外の商品が半額になる。一部の商品（BBQなど）は無料になる</td></tr>
+<tr><td>団体割引</td><td>団体向けの割引。割引率（◯%）は設定で変えられます（ボタンに <code>-10%</code> のように表示）</td></tr>
+<tr><td>無料割引</td><td>対象商品を無料（¥0）にする</td></tr>
+<tr><td>宿泊者</td><td>対象商品を宿泊者向けの割引価格にする</td></tr></tbody>
+</table>
+
+<p>ボタンを押すと割引が効き、もう一度押すと解除されます。</p>
+
+<h3 id="4-2-予約サイトボタン押すと青色になる">4-2. 予約サイトボタン（押すと青色になる）</h3>
+
+<p>楽天・じゃらん・SOU・年間パス（昼）・年間パス（夜）などがあります。<br>これを選ぶと、宿泊商品に <strong>「支払済」のバッジ</strong>が付き、料金が <strong>¥0</strong> として扱われます（=その予約サイト経由で前払い済み、という意味）。</p>
+
+<blockquote><p><strong>ポイント</strong>：割引と予約サイトは、それぞれ選べます。同じボタンをもう一度押すと解除できます。<br>割引・予約サイトのボタンの追加や削除は、<a href="#12-設定タブ設定">設定タブ</a>でできます（村内・宿泊者は固定で消せません）。</p></blockquote>
+
+<h3 id="4-3-属性入力">4-3. 属性入力（👤）</h3>
+
+<p>割引バーの近くにある <strong>👤</strong> をタップすると、お客さんの年齢層・国籍を選べます（あとで集計に使えます）。複数選べて、会計が終わるとリセットされます。</p>
+
+<hr>
+
+<h2 id="5-支払いお会計のしかた">5. 支払い（お会計）のしかた</h2>
+
+<p>カートに商品を入れたら、お会計に進みます。<strong>進み方は2通り</strong>ありますが、おすすめは「決済へ」ボタンです。</p>
+
+<h3 id="5-1【おすすめ】決済へボタンで確認してから会計">5-1.【おすすめ】「決済へ」ボタンで確認してから会計</h3>
+
+<ol><li>カート下の合計金額の右にある <strong>「決済へ」</strong>ボタンを押す</li><li><strong>お会計確認の画面</strong>が開く（買うものの一覧と合計金額がもう一度出る）</li><li>内容を確認したら、支払方法のボタンを押す：</li></ol>
+
+<ul><li><strong>💴 現金</strong></li><li><strong>💳 カード</strong></li><li><strong>📱 iD/QP/交通系</strong>（電子マネー）</li></ul>
+
+<blockquote><p>この確認画面には注意書きが出ます：<strong>※クレジットは物理カードのみ（タッチ決済は不可）　※PayPayは使えません</strong></p></blockquote>
+
+<h3 id="5-2-支払方法のボタンを直接押す">5-2. 支払方法のボタンを直接押す</h3>
+
+<p>カート下にも <strong>💴現金 / 💳カード / 📱iD/QP/交通系</strong> のボタンが並んでいます。急いでいるときはここを直接押してもOKです。</p>
+
+<h3 id="5-3-現金払いの操作">5-3. 現金払いの操作</h3>
+
+<ol><li><strong>💴 現金</strong>を押す</li><li>確認画面が開く</li><li>「受取金額」欄に、お客さんから受け取った金額を入力</li></ol>
+
+<ul><li>金額ボタン（50／100／500／1,000／5,000／10,000）を押すと足し算で入力できます</li><li><strong>C</strong> … 入力を消す</li><li><strong>ちょうど</strong> … 合計と同じ金額を自動で入れる</li></ul>
+
+<ol><li><strong>お釣りが自動で計算</strong>されて表示されます</li><li><strong>決済完了</strong>を押す</li></ol>
+
+<h3 id="5-4-カード電子マネーの操作">5-4. カード・電子マネーの操作</h3>
+
+<ol><li><strong>💳 カード</strong> または <strong>📱 iD/QP/交通系</strong>を押す</li><li>確認画面（金額の確認）が出る</li><li><strong>決済完了</strong>を押す</li></ol>
+
+<h3 id="5-5-決済が終わったあとの画面">5-5. 決済が終わったあとの画面</h3>
+
+<p>会計が終わると完了画面が出ます。</p>
+
+<table>
+<thead><tr><th>やること</th><th>動作</th></tr></thead>
+<tbody><tr><td>画面の外側（暗い部分）をタップ／✅次のお客様へ</td><td>カートを空にして次の会計へ</td></tr>
+<tr><td>🔴 印をつけて閉じる</td><td>「あとで確認が必要」な売上に赤い印を付けて閉じる</td></tr></tbody>
+</table>
+
+<blockquote><p>決済が終わると、売上は<strong>自動でGoogleスプレッドシートに送られます</strong>（手動操作は不要）。送信中・送信済みの状態は売上タブで確認できます（→ <a href="#11-売上タブ売上">11章</a>）。</p></blockquote>
+
+<hr>
+
+<h2 id="6-宿泊商品の操作人数選択">6. 宿泊商品の操作（人数選択）</h2>
+
+<p>ツリーハウス・ドーム・テント・ハンモックの商品をタップすると、<strong>人数を選ぶ画面</strong>が開きます。<br>人数によって1人あたりの料金が変わります。</p>
+
+<p>例（ツリーハウス）：</p>
+
+<table>
+<thead><tr><th>人数</th><th>1棟の料金</th></tr></thead>
+<tbody><tr><td>1名</td><td>¥14,000</td></tr>
+<tr><td>2名</td><td>¥12,000</td></tr>
+<tr><td>3名</td><td>¥10,000</td></tr>
+<tr><td>4名</td><td>¥8,000</td></tr>
+<tr><td>5名以上</td><td>¥8,000</td></tr></tbody>
+</table>
+
+<blockquote><p>ドームやテントには色の点（●）が付いていて、種類（ミラー・クリア・グレーなど）が見分けられます。</p></blockquote>
+
+<h3 id="予約サイト経由の支払済">予約サイト経由の「支払済」</h3>
+
+<p>割引バーで<strong>楽天・じゃらん・SOU・年間パス</strong>を選ぶと、宿泊商品に「支払済」バッジが付いて料金が¥0になります（バッジの文字や色は設定で変えられます）。</p>
+
+<hr>
+
+<h2 id="7-保留機能会計を一時とっておく">7. 保留機能（会計を一時とっておく）</h2>
+
+<p>複数のお客さんの会計を<strong>同時に進めたい</strong>ときに使います。最大10件までとっておけます。</p>
+
+<h3 id="とっておく保留する">とっておく（保留する）</h3>
+
+<ol><li>カートに商品が入った状態で <strong>⏸ 保留</strong>ボタンを押す</li><li>タイトルを入力する画面が出る（空欄なら時刻がタイトルになる）</li><li><strong>保留する</strong>を押すと、カートが空になり、保留タブに保存される</li></ol>
+
+<h3 id="戻す">戻す</h3>
+
+<ol><li>カート上部の<strong>保留タブ（数字）</strong>を押す</li><li>そのときのカートが戻ってくる</li></ol>
+
+<blockquote><p>中身が入っている保留タブには<strong>オレンジの点（●）</strong>が付きます。</p></blockquote>
+
+<hr>
+
+<h2 id="8-翌日翌々日計上モード">8. 翌日・翌々日計上モード</h2>
+
+<p>チェックインは今日だけど、<strong>料金は翌日（または翌々日）の売上として記録したい</strong>ときに使います。</p>
+
+<ol><li>画面上の <strong>「▼メニュー」</strong>を開き、<strong>🌙 翌日</strong> または <strong>🌙🌙 翌々日</strong>を押す</li><li>カートの上に黄色／茶色のバナー「🌙 翌日計上モード ON」が出る</li><li>この状態で会計すると、<strong>売上の日付が翌日（翌々日）</strong>で記録される</li><li>もう一度同じボタンを押すと解除</li></ol>
+
+<blockquote><p>売上タブの絞り込みで「明日」「明後日」を選ぶと、翌日計上した売上を確認できます。</p></blockquote>
+
+<hr>
+
+<h2 id="9-請求書見積書の作成">9. 請求書・見積書の作成</h2>
+
+<p>お客さんに渡す<strong>請求書や見積書</strong>を、スプレッドシート上に帳票（書類）の形で作れます。作り方は2通りあります。</p>
+
+<h3 id="9-1-カート今の会計内容から作る">9-1. カート（今の会計内容）から作る</h3>
+
+<ol><li>画面上の <strong>「▼メニュー」</strong>を開き、<strong>📄 請求書</strong>を押す（ボタンの色が変わり「請求書モード」になる）</li><li>すると、カート下の支払ボタンが <strong>「📄 請求書・見積書を作成」</strong>に変わる</li><li>商品をカートに入れた状態でそのボタンを押す</li><li>作成画面で次を選ぶ：</li></ol>
+
+<ul><li><strong>種別</strong>：請求書 か 見積書</li><li><strong>売上計上</strong>：</li><li>「今日の日付で売上計上」… 今日の売上としても記録する</li><li>「別日で売上計上」… 日付を指定して、その日の売上として記録する</li><li>「売上計上しない」… 書類だけ作る（見積りなどで、まだ売上にしないとき）</li><li><strong>宛先</strong>（任意）：例「田中様」「〇〇グループ」</li><li><strong>備考</strong>（任意）</li></ul>
+
+<ol><li><strong>作成する</strong>を押すと、スプレッドシートに請求書／見積書のシートが作られます</li></ol>
+
+<blockquote><p>作り終わると請求書モードは自動で解除されます。もう一度ふつうの会計に戻ります。</p></blockquote>
+
+<h3 id="9-2-過去の売上から作る">9-2. 過去の売上から作る</h3>
+
+<p>売上タブの明細から特定の売上を開いて、そこから請求書・見積書を作ることもできます（宛先・備考を入れて作成）。</p>
+
+<hr>
+
+<h2 id="10-時間計算タブ時間">10. 時間計算タブ（⏱時間）</h2>
+
+<p>アクティビティが<strong>何時に終わるか</strong>をすばやく計算する道具です。会計とは関係なく使えます。</p>
+
+<h3 id="単体で計算">単体で計算</h3>
+
+<ol><li><strong>施設</strong>（空中ウォーク／ツリーハウス昼）を選ぶ</li><li><strong>コース</strong>（55分／115分／1DAY）を選ぶ</li><li><strong>開始時間</strong>を入れる（<strong>今すぐ</strong>ボタンで現在時刻が入る）</li><li>終了時刻と残り時間が表示される</li></ol>
+
+<table>
+<thead><tr><th>施設</th><th>営業時間</th><th>最終受付</th></tr></thead>
+<tbody><tr><td>空中ウォーク</td><td>9:00〜17:00</td><td>16:00</td></tr>
+<tr><td>ツリーハウス昼</td><td>10:00〜16:00</td><td>15:00</td></tr></tbody>
+</table>
+
+<h3 id="両方つづけて利用する場合コンボ計算">両方つづけて利用する場合（コンボ計算）</h3>
+
+<ol><li><strong>順番</strong>（空中ウォーク→ツリーハウス、またはその逆）を選ぶ</li><li>それぞれのコース時間を選ぶ</li><li>開始時間を入れる</li><li>各施設の終了時刻が出る</li></ol>
+
+<hr>
+
+<h2 id="11-売上タブ売上">11. 売上タブ（📊売上）</h2>
+
+<p>売れたものの一覧や集計を見る画面です。</p>
+
+<h3 id="11-1-明細ビュー-明細—-一覧で見る">11-1. 明細ビュー（📋 明細）— 一覧で見る</h3>
+
+<table>
+<thead><tr><th>やりたいこと</th><th>操作</th></tr></thead>
+<tbody><tr><td>今日の売上</td><td><strong>📅 今日</strong></td></tr>
+<tr><td>昨日の売上</td><td><strong>昨日</strong></td></tr>
+<tr><td>日付で絞る</td><td>日付欄に範囲を入れて <strong>絞込</strong></td></tr>
+<tr><td>全部見る</td><td><strong>全件</strong></td></tr></tbody>
+</table>
+
+<p>上部には、売上合計・件数・人数・客単価のまとめが出ます。</p>
+
+<p><strong>一覧の各行の見方：</strong></p>
+
+<ul><li>いちばん左の <strong>🔴／⚪</strong> … 「要確認」の印。タップで付けたり外したりできる</li><li>日時の下に <strong>📱端末名</strong>（どの端末からの売上か）</li><li>日時の下の<strong>同期バッジ</strong>でスプレッドシートへの送信状況がわかります：</li><li>🟢 <strong>同期済</strong> … 送信できている</li><li>🔴 <strong>要再送</strong> ＋ <strong>再送ボタン</strong> … 送信に失敗。<strong>再送</strong>ボタンで送り直せる</li><li><strong>送信中...</strong> … いま送っている途中</li><li>🌙マーク … 翌日計上した売上</li><li>📝メモ … メモが付いている売上</li></ul>
+
+<h3 id="11-2-売上の修正削除">11-2. 売上の修正・削除</h3>
+
+<ul><li>行をタップ → <strong>詳細画面</strong>が開く。メモ・属性の変更、🔴印の付け外し、削除ができる</li><li>行の <strong>「カートで修正」</strong>ボタン → その売上がカートに戻る。直してもう一度会計すると、売上が更新される</li></ul>
+
+<h3 id="11-3-集計ビュー-集計—-グラフで見る">11-3. 集計ビュー（📊 集計）— グラフで見る</h3>
+
+<p>期間（今日／今週／今月／カスタム）を選んで、いろいろなグラフを見られます。</p>
+
+<table>
+<thead><tr><th>グラフ</th><th>内容</th></tr></thead>
+<tbody><tr><td>日別</td><td>日ごとの売上</td></tr>
+<tr><td>時間帯別</td><td>時間帯ごとの件数</td></tr>
+<tr><td>曜日別</td><td>曜日ごとの集計</td></tr>
+<tr><td>商品別</td><td>商品ごとの売上・数量</td></tr>
+<tr><td>属性別</td><td>年齢層・国籍ごとの組数・人数</td></tr>
+<tr><td>割引別</td><td>割引種別ごとの件数</td></tr></tbody>
+</table>
+
+<p>月ごとの集計をまとめて見る「月別集計」もあります。</p>
+
+<h3 id="11-4-csv出力">11-4. CSV出力</h3>
+
+<p><strong>📥 CSV</strong> を押すと、今絞り込んでいる売上をCSVファイル（表計算ソフトで開けるファイル）に書き出せます。</p>
+
+<h3 id="11-5-スプレッドシートへの同期-同期">11-5. スプレッドシートへの同期（📊 同期）</h3>
+
+<p>会計のたびに自動で送られますが、<strong>手動でまとめて送る</strong>こともできます。<strong>📊 同期 ▾</strong> を押すとメニューが出ます。</p>
+
+<table>
+<thead><tr><th>メニュー</th><th>内容</th></tr></thead>
+<tbody><tr><td>今日分</td><td>今日の売上を送る</td></tr>
+<tr><td>昨日分</td><td>昨日の売上を送る</td></tr>
+<tr><td>絞込分</td><td>いま絞り込んでいる分を送る</td></tr>
+<tr><td>全件</td><td>すべての売上を送る</td></tr></tbody>
+</table>
+
+<blockquote><p>⚠️ <strong>「全件」は要注意</strong>：シートをいったん全部消してから送り直します。複数の端末で使っている場合、ある端末で「全件」をすると、<strong>その端末が知らない他の端末の売上がシートから消えてしまいます</strong>。複数台のときは「今日分」「昨日分」を使ってください（→ <a href="#14-複数の端末で使うときの注意">14章</a>）。</p></blockquote>
+
+<h3 id="11-6-月初シート切替—-月が替わったとき">11-6. 月初シート切替（📂）— 月が替わったとき</h3>
+
+<p>毎月、新しいGoogleスプレッドシートに記録先を切り替える運用をしている場合に使います。</p>
+
+<ol><li><strong>📂 月初シート切替</strong>ボタンを押す</li><li>新しく作ったスプレッドシートのURL（またはID）を貼り付ける</li></ol>
+
+<ul><li>「同期先シート（GAS）」… 売上を記録するシート</li><li>「手動集計シート」… 手動集計用のシート（変えないなら空欄でOK）</li></ul>
+
+<ol><li><strong>切り替える</strong>を押す</li></ol>
+
+<blockquote><p>これ以降の売上は、新しいスプレッドシートに記録されます。</p></blockquote>
+
+<hr>
+
+<h2 id="12-設定タブ設定">12. 設定タブ（⚙️設定）</h2>
+
+<p>普段はあまり触りませんが、商品や各種設定を変えるときに使います。</p>
+
+<table>
+<thead><tr><th>設定項目</th><th>内容</th></tr></thead>
+<tbody><tr><td>カテゴリー管理</td><td>カテゴリーの追加・色の変更</td></tr>
+<tr><td>商品登録</td><td>商品の追加（名前・金額・カテゴリー・在庫数）</td></tr>
+<tr><td>割引・予約サイト設定</td><td>割引ボタン・予約サイトボタンの追加／削除（団体割引の率もここで設定）</td></tr>
+<tr><td>属性設定</td><td>年齢層・国籍の選択肢を編集</td></tr>
+<tr><td>時間計算設定</td><td>施設の営業時間・コース時間など</td></tr>
+<tr><td>表示サイズ調整</td><td>文字サイズ・カート幅の調整</td></tr>
+<tr><td>支払済み表示設定</td><td>予約サイト選択時のバッジ文言・色</td></tr>
+<tr><td>スプレッドシート連携</td><td>GASのURL・端末名の設定（→ <a href="#13-googleスプレッドシート連携の仕組み">13章</a>）</td></tr></tbody>
+</table>
+
+<blockquote><p>商品の細かい見た目（文字サイズ・色）は、レジタブの <strong>✏️編集モード</strong>で商品をタップして変えられます。</p></blockquote>
+
+<hr>
+
+<h2 id="13-googleスプレッドシート連携の仕組み">13. Googleスプレッドシート連携の仕組み</h2>
+
+<p>このアプリは、売上を <strong>Google Apps Script（GAS）</strong> という仕組みを通じて、Googleスプレッドシートに自動で記録します。</p>
+
+<h3 id="13-1-自動で送られるタイミング">13-1. 自動で送られるタイミング</h3>
+
+<p><strong>会計が完了するたびに自動で送られます。</strong> 手動操作は不要です。</p>
+
+<table>
+<thead><tr><th>できごと</th><th>スプレッドシートでの動き</th></tr></thead>
+<tbody><tr><td>会計完了</td><td>行を追加</td></tr>
+<tr><td>「カートで修正」して再会計</td><td>元の行を消して新しい行を追加</td></tr>
+<tr><td>詳細画面でメモ・属性を変更</td><td>その行を更新</td></tr>
+<tr><td>詳細画面から削除</td><td>その行を削除</td></tr></tbody>
+</table>
+
+<blockquote><p>送信に失敗したときは、売上タブの明細に <strong>🔴要再送</strong>バッジが出ます。<strong>再送</strong>ボタンで送り直せます。</p></blockquote>
+
+<h3 id="13-2-設定スプレッドシート連携">13-2. 設定（スプレッドシート連携）</h3>
+
+<table>
+<thead><tr><th>項目</th><th>説明</th></tr></thead>
+<tbody><tr><td>GAS WebアプリURL</td><td>送信先となるGASのURL</td></tr>
+<tr><td>端末名</td><td>スプレッドシートに記録される端末の名前（例：レジ1）</td></tr></tbody>
+</table>
+
+<p><strong>接続テスト</strong>：URLを保存してから「🔗 接続テスト」を押すと、ちゃんとつながるか確認できます。</p>
+
+<blockquote><p>このTEST版アプリは、GASのURLが内部で固定されています（設定で変えても起動時に元に戻ります）。本番（main版）では自由に変更できます。</p></blockquote>
+
+<hr>
+
+<h2 id="14-複数の端末で使うときの注意">14. 複数の端末で使うときの注意</h2>
+
+<h3 id="データはどこにある">データはどこにある？</h3>
+
+<p>このアプリの売上・設定は、<strong>それぞれの端末のブラウザの中</strong>に保存されます（localStorageといいます）。<strong>端末どうしでデータは自動共有されません。</strong></p>
+
+<p>ただし、売上は会計のたびにスプレッドシートへ送られるので、<strong>スプレッドシートには全部の端末の売上が集まります。</strong></p>
+
+<pre><code>端末A の売上  ┐
+               ├→ Googleスプレッドシート（全部まとまる）
+端末B の売上  ┘</code></pre>
+
+<h3 id="端末名は必ず設定する">端末名は必ず設定する</h3>
+
+<p>どの端末からの売上か見分けられるように、設定タブの「スプレッドシート連携」で<strong>端末名（例：レジ1、レジ2）</strong>を必ず設定してください。</p>
+
+<h3 id="全件同期の落とし穴重要">「全件同期」の落とし穴（重要）</h3>
+
+<p>ある端末で「全件」同期をすると、シートをいったん空にして送り直すため、<strong>その端末が知らない他端末の売上が消えます。</strong> 複数台で使うときは「今日分」「昨日分」などの部分同期を使ってください。</p>
+
+<hr>
+
+<h2 id="15-よくある操作-qa">15. よくある操作 Q&amp;A</h2>
+
+<p><strong>Q. 会計を間違えた金額でやってしまった</strong><br>A. 📊売上タブの明細でその行の <strong>「カートで修正」</strong>を押し、直してもう一度会計してください。</p>
+
+<p><strong>Q. 何人ものお客さんを同時に会計したい</strong><br>A. <strong>⏸ 保留</strong>機能を使います。1組目を保留 → 2組目を入力 → 保留タブで切り替えて精算。</p>
+
+<p><strong>Q. 天気を記録したい</strong><br>A. カート右上の天気アイコン（🌤）をタップして選ぶと、その日の売上に記録されます。</p>
+
+<p><strong>Q. 請求書／見積書を作りたい</strong><br>A. 「▼メニュー」→ 📄請求書 で請求書モードにして、カートから作成します（→ <a href="#9-請求書見積書の作成">9章</a>）。</p>
+
+<p><strong>Q. 別のお客さんの会計に進みたい</strong><br>A. 決済完了画面で「次のお客様へ」を押すか、画面の外側をタップするとカートが空になります。</p>
+
+<p><strong>Q. スプレッドシートに売上が反映されない</strong><br>A. ①設定タブ → スプレッドシート連携 → 「🔗 接続テスト」で「✅ GAS接続OK」が出るか確認。②OKなら 📊同期 →「今日分」で送り直す。③明細に🔴要再送バッジがあれば「再送」ボタンを押す。</p>
+
+<p><strong>Q. 別の端末から見ると売上が無い</strong><br>A. 端末ごとにデータは別です。売上はスプレッドシートには集まっているので、そちらで全体を確認できます。端末の画面で見たいときは、その端末のデータをエクスポート→こちらにインポートしてください。</p>
+
+<p><strong>Q. 月が替わったので記録先を新しいシートにしたい</strong><br>A. 売上タブの「📂 月初シート切替」で新しいスプレッドシートのURLを設定します（→ <a href="#11-6-月初シート切替-月が替わったとき">11-6</a>）。</p>
+
+<p><strong>Q. アプリを開いたら古い画面のままだった</strong><br>A. ブラウザに古いデータが残っています。<a href="#16-アプリの更新画面が古いときの対処">16章</a>を参照してください。</p>
+
+<hr>
+
+<h2 id="16-アプリの更新画面が古いときの対処">16. アプリの更新・画面が古いときの対処</h2>
+
+<h3 id="バージョンの確認">バージョンの確認</h3>
+
+<p>画面いちばん上のバー、または設定タブの最上部に、今のバージョンが出ます。</p>
+
+<pre><code>POSレジ ver.329
+更新: 2026/06/11 | TEST版</code></pre>
+
+<p>新しいバージョンが出ているとき、アプリが自動で気づいて「新しいバージョンがあります。会計完了後に🔄ボタンで更新してください」と案内することがあります。その場合は会計を終えてから右上の <strong>🔄</strong> を押してください。（カートが空のときは自動で更新されることもあります。）</p>
+
+<h3 id="画面が古いまま変わらないときキャッシュの削除">画面が古いまま変わらないとき（キャッシュの削除）</h3>
+
+<blockquote><p>⚠️ <strong>iPadのSafariで「Webサイトデータを削除」すると、売上・設定も全部消えます。</strong> 先に必ず<a href="#17-データのバックアップと引き継ぎ">エクスポート（バックアップ）</a>してください。</p></blockquote>
+
+<h5 id="ipadsafari">iPad（Safari）</h5>
+
+<ol><li>「設定」アプリ → 「Safari」→「詳細」→「Webサイトデータ」</li><li>「すべてのWebサイトデータを削除」→ アプリを開き直す</li><li>（データを消したくない場合）プライベートタブでアプリURLを開くと、最新版を確認だけできます</li></ol>
+
+<h5 id="パソコンchrome-edge">パソコン（Chrome / Edge）</h5>
+
+<ul><li><strong><code>Ctrl + Shift + R</code></strong>（Macは <code>Cmd + Shift + R</code>）を押す。これで最新版になります。<strong>売上・設定は消えません。</strong></li></ul>
+
+<h5 id="androidタブレットchrome">Androidタブレット（Chrome）</h5>
+
+<ol><li>Chrome右上「︙」→「設定」→「プライバシーとセキュリティ」→「閲覧履歴データの削除」</li><li><strong>「キャッシュされた画像とファイル」だけ</strong>にチェック（「Cookieとサイトデータ」はチェックしない）→ 削除</li><li>これなら売上・設定は消えません</li></ol>
+
+<hr>
+
+<h2 id="17-データのバックアップと引き継ぎ">17. データのバックアップと引き継ぎ</h2>
+
+<h3 id="エクスポートバックアップを取る">エクスポート（バックアップを取る）</h3>
+
+<p>設定タブの <strong>「📤 全データをエクスポート」</strong>を押すと、商品・設定・売上などをファイル1つに書き出せます。<strong>週1回くらいは取っておくと安心です。</strong></p>
+
+<h3 id="インポート別の端末に引き継ぐ復元する">インポート（別の端末に引き継ぐ・復元する）</h3>
+
+<p><strong>「📥 インポート」</strong>で、書き出したファイルを読み込みます。</p>
+
+<ul><li>売上・保留は<strong>追加</strong>（重複しない）</li><li>設定（商品・GAS URLなど）は<strong>上書き</strong></li></ul>
+
+<h3 id="データリセット">データリセット</h3>
+
+<p>特定の項目を最初の状態（初期値）に戻せます。<strong>手動で変えた設定は元に戻せません。</strong>（売上データとGAS URLは消えません。）</p>
+
+<hr>
+
+<h2 id="18-スプレッドシートの中身参考">18. スプレッドシートの中身（参考）</h2>
+
+<p>売上は「M/D売上」（例：6/11売上）というシート名で、日付ごとに記録されます。</p>
+
+<table>
+<thead><tr><th>列</th><th>内容</th></tr></thead>
+<tbody><tr><td>A</td><td>日時</td></tr>
+<tr><td>B</td><td>売上合計</td></tr>
+<tr><td>C</td><td>商品名</td></tr>
+<tr><td>D</td><td>カテゴリー</td></tr>
+<tr><td>E</td><td>数量</td></tr>
+<tr><td>F</td><td>単価</td></tr>
+<tr><td>G</td><td>小計</td></tr>
+<tr><td>H</td><td>人数</td></tr>
+<tr><td>I</td><td>割引</td></tr>
+<tr><td>J</td><td>支払方法</td></tr>
+<tr><td>K</td><td>年齢層</td></tr>
+<tr><td>L</td><td>国籍</td></tr>
+<tr><td>M</td><td>天気</td></tr>
+<tr><td>N</td><td>メモ</td></tr>
+<tr><td>O</td><td>売上ID</td></tr>
+<tr><td>P</td><td>端末名</td></tr></tbody>
+</table>
+
+<p>シートの1行目には集計（件数・売上・現金/カード/電子の合計）、2行目にはレジ現金の手入力欄と差額計算が自動で入ります。右側には商品別・年齢層別・国籍別の集計表が自動で作られます。<br>請求書・見積書は別のシート（帳票の形）として作られます。</p>
+
+<hr>
+
+<p>*最終更新: 2026/06/11（アプリ v329 時点）*</p>
+
+</body>
+</html>

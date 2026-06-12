@@ -1,0 +1,569 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POSレジ 引き継ぎ説明書</title>
+<style>
+  body { font-family: 'Hiragino Sans', 'Noto Sans JP', sans-serif; font-size: 14px; color: #1a1a1a; max-width: 860px; margin: 0 auto; padding: 24px 16px 60px; line-height: 1.8; background: #fff; }
+  h1 { font-size: 22px; font-weight: 700; border-bottom: 3px solid #2d5016; padding-bottom: 8px; margin-bottom: 6px; color: #2d5016; }
+  h2 { font-size: 17px; font-weight: 700; border-left: 5px solid #2d5016; padding-left: 10px; margin-top: 40px; margin-bottom: 10px; color: #2d5016; }
+  h3 { font-size: 15px; font-weight: 700; margin-top: 24px; margin-bottom: 8px; color: #8b4513; }
+  h4 { font-size: 13px; font-weight: 700; margin-top: 18px; margin-bottom: 6px; color: #333; border-bottom: 1px dashed #ccc; padding-bottom: 3px; }
+  p { margin: 6px 0 10px; }
+  ul, ol { margin: 6px 0 10px; padding-left: 24px; }
+  li { margin-bottom: 3px; }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0 16px; font-size: 13px; }
+  th { background: #2d5016; color: #fff; padding: 7px 10px; text-align: left; font-weight: 600; }
+  td { padding: 6px 10px; border: 1px solid #ddd; }
+  tr:nth-child(even) td { background: #f9f9f9; }
+  code { background: #f0f0f0; border-radius: 4px; padding: 1px 5px; font-family: monospace; font-size: 12px; color: #c0392b; }
+  pre { background: #f4f4f4; border: 1px solid #ddd; border-radius: 6px; padding: 12px; font-family: monospace; font-size: 12px; overflow-x: auto; line-height: 1.6; white-space: pre-wrap; }
+  pre code { background: none; padding: 0; color: #333; }
+  blockquote { background: #fffbe6; border-left: 4px solid #f0ad00; margin: 10px 0; padding: 8px 14px; border-radius: 0 6px 6px 0; font-size: 13px; }
+  blockquote p { margin: 0; }
+  hr { border: none; border-top: 1px solid #ddd; margin: 28px 0; }
+  strong { font-weight: 700; }
+  .meta { color: #666; font-size: 13px; margin-bottom: 16px; }
+  .toc { background: #f0f4e8; border: 1px solid #c8dca8; border-radius: 8px; padding: 14px 20px; margin: 16px 0 28px; }
+  .toc p { font-weight: 700; margin: 0 0 8px; color: #2d5016; }
+  .toc ol { margin: 0; }
+  .toc li { margin-bottom: 2px; font-size: 13px; }
+  .warn { background: #fde8e8; border-left: 4px solid #c0392b; margin: 10px 0; padding: 8px 14px; border-radius: 0 6px 6px 0; font-size: 13px; }
+  .tip { background: #e8f4fd; border-left: 4px solid #2471a3; margin: 10px 0; padding: 8px 14px; border-radius: 0 6px 6px 0; font-size: 13px; }
+  .tool-box { background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; padding: 14px 18px; margin: 12px 0; }
+  .tool-box h4 { margin-top: 0; border: none; padding: 0; font-size: 14px; color: #2d5016; }
+  .step { counter-reset: step-counter; }
+  .step-item { display: flex; gap: 12px; margin-bottom: 14px; align-items: flex-start; }
+  .step-num { background: #2d5016; color: #fff; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+  .step-body { flex: 1; }
+  @media print {
+    body { max-width: 100%; padding: 10px; font-size: 12px; }
+    h2 { page-break-before: auto; }
+    table { font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+
+<h1 id="posレジ-引き継ぎ説明書">POSレジ 引き継ぎ説明書</h1>
+
+<h2 id="～-claude-code-で改修するための完全ガイド-～">～ Claude Code で改修するための完全ガイド ～</h2>
+
+<p><strong>対象読者</strong>: このシステムを初めて引き継ぐ人  <br><strong>前提知識</strong>: 不要（専門知識がなくても読めるように書いています）</p>
+
+<hr>
+
+<h2 id="目次">目次</h2>
+
+<ol><li><a href="#1-このシステムの全体像">このシステムの全体像</a></li><li><a href="#2-使う道具の説明">使う「道具」の説明</a></li><li><a href="#3-道具どうしの関係性">道具どうしの関係性</a></li><li><a href="#4-ファイルの場所と役割">ファイルの場所と役割</a></li><li><a href="#5-アプリのデータの流れ">アプリのデータの流れ</a></li><li><a href="#6-改修の基本手順">改修の基本手順</a></li><li><a href="#7-test版とmain版の使い分け">「test版」と「main版」の使い分け</a></li><li><a href="#8-デプロイとは何か">デプロイとは何か</a></li><li><a href="#9-gasgoogle-apps-scriptの改修">GAS（Google Apps Script）の改修</a></li><li><a href="#10-よくある改修パターンと頼み方の例">よくある改修パターンと頼み方の例</a></li><li><a href="#11-困ったときのチェックリスト">困ったときのチェックリスト</a></li><li><a href="#12-重要な用語集">重要な用語集</a></li></ol>
+
+<hr>
+
+<h2 id="1-このシステムの全体像">1. このシステムの全体像</h2>
+
+<h3 id="一言で言うと">一言で言うと</h3>
+
+<blockquote><p><strong>タブレット（iPad・PCでも）で動くレジアプリ。売上データはGoogleスプレッドシートに自動で記録される。</strong></p></blockquote>
+
+<h3 id="システムを構成する3つのパーツ">システムを構成する3つのパーツ</h3>
+
+<pre><code>┌─────────────────────────────────────────────────────────┐
+│                                                           │
+│  ① POSレジ画面（index.html）                              │
+│     ブラウザ（Safari/Chrome）で開くウェブアプリ            │
+│     インターネット上（GitHub Pages）に置いてある           │
+│                                                           │
+│          ↓ 決済すると自動で送信                           │
+│                                                           │
+│  ② GAS（gas_script.js）                                   │
+│     Googleのサーバー上で動くプログラム                     │
+│     レジからデータを受け取って整形する中継役               │
+│                                                           │
+│          ↓ 整形したデータを書き込む                       │
+│                                                           │
+│  ③ Googleスプレッドシート                                  │
+│     売上データの最終保存場所                               │
+│     日付ごとにシートが自動作成される                       │
+│                                                           │
+└─────────────────────────────────────────────────────────┘</code></pre>
+
+<hr>
+
+<h2 id="2-使う道具の説明">2. 使う「道具」の説明</h2>
+
+<p>改修作業で使う道具は4つあります。それぞれ全然別のものです。</p>
+
+<hr>
+
+<h3 id="道具①-vs-code青いアプリ">道具① VS Code（青いアプリ）</h3>
+
+<p><strong>役割：ファイルを開いて編集するためのソフト</strong></p>
+
+<p>Wordで文書を編集するのと同じように、VS CodeはHTMLやJavaScriptのファイルを編集するためのソフトです。プログラマー向けの高機能なテキストエディタです。</p>
+
+<pre><code>アイコン: 青い「&lt; &gt;」のマーク
+正式名称: Visual Studio Code（マイクロソフト製）
+用途: index.html や gas_script.js を開いて中身を確認・編集する</code></pre>
+
+<p>VS Code自体に改修の能力はありません。ファイルを「開く・見る・編集する」だけのソフトです。</p>
+
+<hr>
+
+<h3 id="道具②-claude-codevs-codeの中にある青いチャット">道具② Claude Code（VS Codeの中にある青いチャット）</h3>
+
+<p><strong>役割：AIにファイルの改修を依頼するチャット画面</strong></p>
+
+<p>VS Codeの中に組み込まれているAIアシスタントです。チャットで日本語で指示すると、AIがファイルを自動で書き換えてくれます。</p>
+
+<pre><code>どこにある: VS Codeの左側のバーにあるアイコン、またはパネル内
+見た目: チャット画面（メッセージを入力して送信する）
+用途: 「○○を追加してください」と日本語で頼むと、
+       AIが index.html などのファイルを自動で編集してくれる</code></pre>
+
+<p><strong>重要</strong>: Claude Code は「頭脳」であり、VS Code は「作業台」です。<br>Claude Code が VS Code のファイルを直接書き換えます。</p>
+
+<hr>
+
+<h3 id="道具③-ターミナル黒い画面">道具③ ターミナル（黒い画面）</h3>
+
+<p><strong>役割：コンピューターに命令を文字で入力する画面</strong></p>
+
+<p>ターミナルとは「黒い画面に文字でコマンド（命令）を入力する場所」です。マウスで操作する代わりに、キーボードだけでコンピューターに指示を出します。</p>
+
+<pre><code>見た目: 黒または暗い背景に白い文字
+VS Codeの中にある: 上メニュー「Terminal」→「New Terminal」で開く
+用途: GitHub へのアップロード（git コマンド）など</code></pre>
+
+<p>普段は<strong>Claude Code が代わりにターミナルを操作</strong>してくれるので、自分で文字を入力することはほぼありません。</p>
+
+<hr>
+
+<h3 id="道具④-githubインターネット上のファイル置き場">道具④ GitHub（インターネット上のファイル置き場）</h3>
+
+<p><strong>役割：ファイルを保存・公開するクラウドサービス</strong></p>
+
+<p>GitHubはプログラムのファイルを保存・共有するためのサービスです。Googleドライブと似ていますが、プログラマー向けの特別な機能（変更履歴の管理など）があります。</p>
+
+<pre><code>種類1: GitHub（ウェブサイト） → github.com にある
+種類2: GitHub Pages → GitHub上のファイルをウェブサイトとして公開する機能</code></pre>
+
+<p>このプロジェクトでは：</p>
+
+<ul><li><strong>ファイル置き場として</strong> → index.html などを保存</li><li><strong>ウェブサイト公開として</strong> → タブレットがアクセスするURLになる</li></ul>
+
+<hr>
+
+<h2 id="3-道具どうしの関係性">3. 道具どうしの関係性</h2>
+
+<pre><code>┌──────────────────────────────────────────────────────────────┐
+│                     あなたのパソコン                           │
+│                                                               │
+│  ┌─────────────────────────────────────────────┐             │
+│  │              VS Code（青いアプリ）              │             │
+│  │                                               │             │
+│  │  ┌──────────────┐    ┌───────────────────┐  │             │
+│  │  │  Claude Code  │    │   ターミナル        │  │             │
+│  │  │  （チャット）  │    │   （黒い画面）      │  │             │
+│  │  │               │    │                   │  │             │
+│  │  │ あなたが日本語 │    │ gitコマンドが       │  │             │
+│  │  │ で指示を入力  │    │ ここで実行される    │  │             │
+│  │  └──────┬───────┘    └─────────┬─────────┘  │             │
+│  │          │                      │             │             │
+│  │          ▼                      ▼             │             │
+│  │  ┌─────────────────────────────────────┐    │             │
+│  │  │         パソコン内のファイル           │    │             │
+│  │  │  pos reji/pos main/index.html        │    │             │
+│  │  │  pos reji/pos test/index.html        │    │             │
+│  │  │  pos reji/pos main/gas_script.js     │    │             │
+│  │  └─────────────────────────────────────┘    │             │
+│  └─────────────────────────────────────────────┘             │
+│                                                               │
+└──────────────────────────┬────────────────────────────────────┘
+                            │ git push（アップロード）
+                            ▼
+┌──────────────────────────────────────────────────────────────┐
+│                   GitHub（インターネット）                      │
+│                                                               │
+│  ファイルが保存される場所 ＋ ウェブサイトとして公開される         │
+│                                                               │
+│  URL（test版）: https://kuchunomura.github.io/pos-app-test│
+│                                                               │
+└──────────────────────────┬────────────────────────────────────┘
+                            │ ブラウザでURLを開く
+                            ▼
+              タブレット（iPad）のブラウザ
+              → レジアプリとして動く</code></pre>
+
+<h3 id="一言まとめ">一言まとめ</h3>
+
+<table>
+<thead><tr><th>道具</th><th>役割のひとこと</th></tr></thead>
+<tbody><tr><td>VS Code</td><td>ファイルを開く作業台</td></tr>
+<tr><td>Claude Code</td><td>改修してくれるAI（チャットで依頼する）</td></tr>
+<tr><td>ターミナル</td><td>GitHubへ送るコマンドを実行する場所（主にClaudeが使う）</td></tr>
+<tr><td>GitHub</td><td>ファイルを保存・公開する場所</td></tr></tbody>
+</table>
+
+<hr>
+
+<h2 id="4-ファイルの場所と役割">4. ファイルの場所と役割</h2>
+
+<h3 id="フォルダ構成">フォルダ構成</h3>
+
+<pre><code>pos yoyaku projects/
+│
+├── CLAUDE.md               ← プロジェクト全体のルール（バージョン管理ルール等）
+│
+├── pos reji/
+│   ├── pos main/           ← 【本番版】実際に使っているアプリ
+│   │   ├── index.html      ← レジアプリ本体（これ1つで全部入り）
+│   │   ├── gas_script.js   ← GASに貼り付けるプログラム
+│   │   └── version.json    ← バージョン確認用（更新通知に使う）
+│   │
+│   ├── pos test/           ← 【テスト版】改修の練習・確認用
+│   │   ├── index.html      ← テスト用レジアプリ
+│   │   ├── gas_script.js   ← テスト用GASプログラム
+│   │   ├── version.json    ← バージョン確認用
+│   │   ├── POSレジ 取扱説明書.html  ← 取扱説明書（HTML版・スタッフ用）
+│   │   ├── manual.md       ← 取扱説明書の編集用（Markdown版）
+│   │   └── CLAUDE.md       ← Claudeへの技術仕様書（このアプリ用）
+│   │
+│   ├── manual_ss_gas_script.js  ← 手動集計スプレッドシート用のGAS
+│   ├── 引き継ぎ説明書.md    ← この説明書（Markdown版）
+│   └── 引き継ぎ説明書.html  ← この説明書（HTML版）
+│
+└── yoyaku/                 ← 予約システム（別アプリ・別管理）</code></pre>
+
+<h3 id="各ファイルの役割">各ファイルの役割</h3>
+
+<table>
+<thead><tr><th>ファイル</th><th>役割</th><th>編集頻度</th></tr></thead>
+<tbody><tr><td><code>index.html</code></td><td>レジアプリの画面・機能すべて</td><td>機能追加・デザイン変更のたびに</td></tr>
+<tr><td><code>gas_script.js</code></td><td>スプレッドシート書き込みロジック</td><td>列構成変更・集計変更のときのみ</td></tr>
+<tr><td><code>CLAUDE.md</code></td><td>Claudeへの技術的な説明書</td><td>仕様が変わったときに更新</td></tr></tbody>
+</table>
+
+<h3 id="重要`indexhtml`-の中身について">重要：<code>index.html</code> の中身について</h3>
+
+<p>このファイル1つに <strong>HTML（画面の骨組み）・CSS（デザイン）・JavaScript（動作）</strong> の3種類がすべて入っています。</p>
+
+<pre><code>index.html の中身
+├── &lt;style&gt; ～ &lt;/style&gt;     デザイン（色・サイズ・レイアウト）
+├── &lt;body&gt; ～ &lt;/body&gt;       画面の骨組み（ボタン・タブなど）
+└── &lt;script&gt; ～ &lt;/script&gt;   動作（計算・データ保存・通信）</code></pre>
+
+<p>「ひとつの料理にすべての食材と調理法が書いてある大きなレシピ帳」のようなイメージです。</p>
+
+<hr>
+
+<h2 id="5-アプリのデータの流れ">5. アプリのデータの流れ</h2>
+
+<h3 id="データの保存場所は2か所ある">データの保存場所は2か所ある</h3>
+
+<pre><code>【端末内】 localStorage（ローカルストレージ）
+  ↓ 端末のブラウザ内に保存される
+  ・商品リスト
+  ・カテゴリー設定
+  ・売上履歴
+  ・保留データ
+  ・GAS URL等の各種設定
+  ※ インターネット不要で動く
+  ※ ブラウザのデータを消すと消える！
+
+【Google】 Googleスプレッドシート
+  ↓ GASを通じてインターネット経由で保存
+  ・売上データ（日付別シート）
+  ※ インターネット必要
+  ※ ブラウザのデータを消しても残る</code></pre>
+
+<h3 id="決済したときのデータの流れ">決済したときのデータの流れ</h3>
+
+<pre><code>1. お客様の商品をタップ → カートに追加（端末内）
+
+2. 「現金」「カード」「電子」ボタンをタップ
+
+3. 売上データが端末内のlocalStorageに保存される
+
+4. 同時に、インターネット経由でGASにデータを送信
+
+5. GASがスプレッドシートに新しい行を書き込む
+
+6. スプレッドシートの集計が自動更新される</code></pre>
+
+<h3 id="複数台で使うとき">複数台で使うとき</h3>
+
+<pre><code>iPad（レジ1）  →  端末内データ A  →┐
+                                    ├→ GAS → スプレッドシート（全台合算）
+iPad（レジ2）  →  端末内データ B  →┘
+
+※ 端末どうしは直接つながっていない
+※ スプレッドシートが全員の集計場所</code></pre>
+
+<hr>
+
+<h2 id="6-改修の基本手順">6. 改修の基本手順</h2>
+
+<h3 id="全体の流れ必ずこの順番で">全体の流れ（必ずこの順番で）</h3>
+
+<pre><code>Step 1: Claude Code にチャットで依頼する
+         「test版のindex.htmlに○○を追加してください」
+
+         ↓
+
+Step 2: Claude Code がファイルを自動で書き換える
+         （パソコン内のファイルが変わるだけ。まだネットには反映されない）
+
+         ↓
+
+Step 3: ブラウザでtest版URLを開いて確認する
+         https://kuchunomura.github.io/pos-app-test
+         ※ この時点ではまだ古いバージョンが表示される可能性あり
+         ※ まずGitHubにアップロードしてから確認する
+
+         ↓
+
+Step 4: GitHubにアップロード（デプロイ）する
+         Claude Codeに「GitHubにアップロードしてください」と頼む
+
+         ↓
+
+Step 5: 数分待ってURLを再読み込みして確認
+         変更が反映されているか確認する
+
+         ↓
+
+Step 6: 問題なければmain版にも同じ変更を適用
+         「main版のindex.htmlにも同じ変更をしてください」
+         → 再度GitHubにアップロード</code></pre>
+
+<h3 id="claude-code-への頼み方コツ">Claude Code への頼み方（コツ）</h3>
+
+<h4 id="良い頼み方の例">良い頼み方の例</h4>
+
+<pre><code>「test版のindex.htmlに以下の変更をしてください。
+ カテゴリーに『テイクアウト』を追加して、
+ 商品は『コーヒー（400円）』『紅茶（350円）』
+ の2つを登録してください。
+ カテゴリーの色は背景が薄い青、枠が青、文字が紺にしてください。」</code></pre>
+
+<h4 id="悪い頼み方の例">悪い頼み方の例</h4>
+
+<pre><code>「コーヒーを追加して」
+  → どのファイル？何円？どのカテゴリー？情報が足りない
+
+「全部直して」
+  → 何を直すのか分からない</code></pre>
+
+<h4 id="必ず伝えるべき情報">必ず伝えるべき情報</h4>
+
+<ul><li><strong>どのファイルを変更するか</strong>（test版 or main版）</li><li><strong>何を変えたいか</strong>（追加・削除・変更・デザイン変更）</li><li><strong>具体的な内容</strong>（商品名・金額・色など）</li></ul>
+
+<hr>
+
+<h2 id="7-test版とmain版の使い分け">7. 「test版」と「main版」の使い分け</h2>
+
+<h3 id="なぜ2つあるのか">なぜ2つあるのか</h3>
+
+<p>改修は必ず「失敗するリスク」があります。もし本番（main版）で直接作業して壊れたら、営業中にレジが使えなくなります。それを防ぐために「まずtest版で試す」という手順があります。</p>
+
+<pre><code>test版 = 練習場・実験場
+main版 = 本番・実際に使う場所</code></pre>
+
+<h3 id="test版pos-testindexhtml">test版（pos test/index.html）</h3>
+
+<ul><li><strong>URL</strong>: <code>https://kuchunomura.github.io/pos-app-test</code></li><li>改修のお試し・動作確認用</li><li>ここで壊れても本番には影響しない</li><li><strong>改修はまずtest版で行う</strong></li></ul>
+
+<h3 id="main版pos-mainindexhtml">main版（pos main/index.html）</h3>
+
+<ul><li>実際のレジとして使用中</li><li>ここを壊すと営業に影響が出る</li><li><strong>test版で確認後にmain版に反映する</strong></li></ul>
+
+<h3 id="test版-main版への反映手順">test版 → main版への反映手順</h3>
+
+<p>test版で確認できたら、Claude Codeにこう頼む：</p>
+
+<pre><code>「test版のindex.htmlに加えた○○の変更を、
+ main版のindex.htmlにも同じように適用してください。」</code></pre>
+
+<hr>
+
+<h2 id="8-デプロイとは何か">8. デプロイとは何か</h2>
+
+<h3 id="デプロイをかんたんに説明すると">「デプロイ」をかんたんに説明すると</h3>
+
+<blockquote><p><strong>パソコン内で編集したファイルを、インターネット上に公開すること</strong></p></blockquote>
+
+<pre><code>【パソコンの中】                    【インターネット上】
+  pos main/                          GitHub Pages
+    index.html   ─── デプロイ ───→    URL（タブレットがアクセスする場所）</code></pre>
+
+<h3 id="なぜデプロイが必要か">なぜデプロイが必要か</h3>
+
+<p>ファイルを編集しただけでは、それはパソコンの中にしかありません。タブレットからURLを開いてもまだ古いバージョンが表示されます。GitHubにアップロード（＝デプロイ）して初めてタブレットに反映されます。</p>
+
+<pre><code>ファイルを編集 → パソコンの中だけ変わる
+デプロイする  → インターネット上が更新される → タブレットに反映</code></pre>
+
+<h3 id="デプロイの仕組みgit">デプロイの仕組み（Git）</h3>
+
+<p>GitHubへのアップロードには「Git（ギット）」というシステムを使います。難しく考える必要はありません。Claude Codeが全部やってくれます。</p>
+
+<pre><code>Git の主な操作:
+  git add     → 「このファイルをアップロード対象にする」
+  git commit  → 「変更内容に名前をつけて記録する」
+  git push    → 「GitHubにアップロードする」
+
+※ この3つをまとめて「デプロイ」と呼んでいる
+※ Claude Code に頼めばすべて自動でやってくれる</code></pre>
+
+<h3 id="バージョン番号のルール重要">バージョン番号のルール（重要）</h3>
+
+<p><code>index.html</code> を変更したら、画面に出る<strong>バージョン番号を必ず1つ増やす</strong>決まりになっています（どんなに小さな修正でも）。これは「今タブレットに表示されているのが最新版かどうか」を見分けるための番号です。</p>
+
+<pre><code>変更のたびに、セットで更新する3つ:
+  ・APP_VERSION      → バージョン番号を +1（例: 329 → 330）
+  ・APP_BUILD_DATE   → 更新した日時に書き換える
+  ・CLAUDE.md の「現在のバージョン」 → 同じ番号・日付に揃える</code></pre>
+
+<p><strong>これらは Claude Code に頼めば自動でやってくれます</strong>（「バージョンを上げてデプロイして」と頼むだけ）。番号を上げ忘れると、タブレット側が「新しい版が出た」と気づけず、古い画面のままになってしまいます。</p>
+
+<h3 id="デプロイの頼み方">デプロイの頼み方</h3>
+
+<pre><code>Claude Codeへ:
+「test版をGitHubにアップロードしてください。
+ コメント（コミットメッセージ）は『テイクアウトカテゴリーを追加』にしてください。」</code></pre>
+
+<p>Claude Codeがターミナルで以下を自動実行します（確認のポップアップが出たらOKを押す）：</p>
+
+<pre><code>git add "pos reji/pos test/index.html"
+git commit -m "テイクアウトカテゴリーを追加"
+git push origin main</code></pre>
+
+<h3 id="デプロイ後の確認">デプロイ後の確認</h3>
+
+<ol><li>数分待つ（GitHub Pagesの更新に時間がかかる）</li><li>ブラウザでURLを開く</li><li>設定タブのバージョン番号が新しくなっているか確認</li></ol>
+
+<p><strong>古いバージョンが表示される場合</strong> → キャッシュが残っている可能性がある。取扱説明書の「アプリ更新・キャッシュ問題」参照。</p>
+
+<hr>
+
+<h2 id="9-gasgoogle-apps-scriptの改修">9. GAS（Google Apps Script）の改修</h2>
+
+<h3 id="gasとは">GASとは</h3>
+
+<pre><code>GAS = Google Apps Script
+
+Googleのサーバーで動くプログラム。
+レジから送られてきた売上データをスプレッドシートに書き込む「翻訳係」。</code></pre>
+
+<h3 id="gasを変更する必要があるケース">GASを変更する必要があるケース</h3>
+
+<ul><li>スプレッドシートの列を追加・変更したい</li><li>集計の計算方法を変えたい</li><li>新しいデータ項目を記録したい</li></ul>
+
+<h3 id="gasの改修手順">GASの改修手順</h3>
+
+<ol><li><strong><code>gas_script.js</code></strong> を Claude Code で編集する（パソコン内のファイル）</li><li><strong>Google Apps Script のサイト</strong>（script.google.com）をブラウザで開く</li><li>対象プロジェクトのコードをすべて選択して削除</li><li>編集した <code>gas_script.js</code> の内容をコピーして貼り付ける</li><li>保存する（Ctrl+S）</li><li>「デプロイ」→「デプロイを管理」→「新しいデプロイ」</li></ol>
+
+<p><strong>注意</strong>: GASを変更すると <strong>スプレッドシートへの書き込みが止まる</strong> ことがあります。<br>改修時は必ず設定タブの「接続テスト」で確認してください。</p>
+
+<h3 id="gasとindexhtmlの連携">GASとindex.htmlの連携</h3>
+
+<pre><code>index.html（レジ）  →  GAS WebアプリURL  →  gas_script.js  →  スプレッドシート
+
+GAS WebアプリURL = GASの「住所」
+設定タブ → スプレッドシート連携 → GAS WebアプリURL に入力されている</code></pre>
+
+<hr>
+
+<h2 id="10-よくある改修パターンと頼み方の例">10. よくある改修パターンと頼み方の例</h2>
+
+<h3 id="パターン1新しい商品を追加したい">パターン1：新しい商品を追加したい</h3>
+
+<pre><code>「test版のindex.htmlに新しい商品を追加してください。
+ カテゴリー：受付飲食
+ 商品名：オレンジジュース
+ 金額：300円
+ 在庫表示：なし」</code></pre>
+
+<h3 id="パターン2新しいカテゴリーを追加したい">パターン2：新しいカテゴリーを追加したい</h3>
+
+<pre><code>「test版のindex.htmlに新しいカテゴリーを追加してください。
+ カテゴリー名：テイクアウト
+ 背景色：薄い黄色
+ 枠色：オレンジ
+ 文字色：濃い茶色
+ そのカテゴリーに商品『焼き菓子（500円）』を登録してください。」</code></pre>
+
+<h3 id="パターン3商品の金額を変更したい">パターン3：商品の金額を変更したい</h3>
+
+<pre><code>「main版のindex.htmlで、
+ カテゴリー『受付飲食』の商品『コーヒー』の金額を
+ 400円から450円に変更してください。」</code></pre>
+
+<h3 id="パターン4画面のデザインを変えたい">パターン4：画面のデザインを変えたい</h3>
+
+<pre><code>「test版のindex.htmlで、
+ 支払いボタン（現金・カード・電子）をもう少し大きくしてください。
+ 見た目でわかりやすくなれば方法はお任せします。」</code></pre>
+
+<h3 id="パターン5デプロイを頼む">パターン5：デプロイを頼む</h3>
+
+<pre><code>「test版の変更をGitHubにアップロードしてください。
+ コメントは『オレンジジュースを追加』にしてください。」</code></pre>
+
+<h3 id="パターン6main版への反映">パターン6：main版への反映</h3>
+
+<pre><code>「test版のindex.htmlに加えた変更を、
+ main版のindex.htmlにも同じように適用してから、
+ GitHubにアップロードしてください。」</code></pre>
+
+<hr>
+
+<h2 id="11-困ったときのチェックリスト">11. 困ったときのチェックリスト</h2>
+
+<h3 id="アプリが動かないエラーが出る">アプリが動かない・エラーが出る</h3>
+
+<ul><li>[ ] Claude Codeに「エラーが出ています」と伝える（何のエラーか教えれば解決してくれる）</li><li>[ ] Gitの履歴から戻せる → 「1つ前のバージョンに戻してください」と頼む</li></ul>
+
+<h3 id="スプレッドシートに売上が書き込まれない">スプレッドシートに売上が書き込まれない</h3>
+
+<ul><li>[ ] 設定タブ → スプレッドシート連携 → 「接続テスト」でOKが出るか確認</li><li>[ ] GAS WebアプリURLが正しく設定されているか確認</li><li>[ ] 売上タブ → 「同期」→「今日分」で手動送信を試みる</li></ul>
+
+<h3 id="改修後にアプリが古いままに見える">改修後にアプリが古いままに見える</h3>
+
+<ul><li>[ ] GitHubにアップロード（デプロイ）したか確認</li><li>[ ] ブラウザのキャッシュをクリアしたか確認（取扱説明書 12章参照）</li><li>[ ] 設定タブのバージョン番号が新しくなったか確認</li></ul>
+
+<h3 id="誤った改修でデータが消えた壊れた">誤った改修でデータが消えた・壊れた</h3>
+
+<ul><li>[ ] Gitの履歴から古いファイルを復元できる（「1つ前に戻してください」と頼む）</li><li>[ ] localStorage内のデータが消えた場合 → エクスポートしたJSONファイルからインポートで復元</li><li>[ ] スプレッドシートのデータは消えない（GASでのみ変更される）</li></ul>
+
+<hr>
+
+<h2 id="12-重要な用語集">12. 重要な用語集</h2>
+
+<table>
+<thead><tr><th>用語</th><th>意味</th></tr></thead>
+<tbody><tr><td><strong>VS Code</strong></td><td>ファイルを編集するソフト（青いアイコン）。Wordのプログラマー版</td></tr>
+<tr><td><strong>Claude Code</strong></td><td>VS Codeの中にあるAIチャット。日本語で頼むとファイルを自動編集してくれる</td></tr>
+<tr><td><strong>ターミナル</strong></td><td>黒い画面。文字でコンピューターに命令する場所。Claude Codeが自動で使う</td></tr>
+<tr><td><strong>GitHub</strong></td><td>プログラムのファイルをインターネット上に保存・公開するサービス</td></tr>
+<tr><td><strong>GitHub Pages</strong></td><td>GitHubのファイルをウェブサイトとして公開する機能。URLでアクセスできる</td></tr>
+<tr><td><strong>デプロイ</strong></td><td>パソコン内のファイルをGitHubにアップロードして、URLに反映させること</td></tr>
+<tr><td><strong>Git</strong></td><td>ファイルの変更履歴を管理するシステム。<code>git push</code> でGitHubに送る</td></tr>
+<tr><td><strong>git push</strong></td><td>GitHubにアップロードするコマンド。ターミナルで実行する</td></tr>
+<tr><td><strong>localStorage</strong></td><td>ブラウザ内のデータ保存場所。端末ごとに独立。ブラウザのデータを消すと消える</td></tr>
+<tr><td><strong>GAS</strong></td><td>Google Apps Script。Googleのサーバーで動くプログラム。スプレッドシートへの書き込み担当</td></tr>
+<tr><td><strong>キャッシュ</strong></td><td>ブラウザが保存している古いページデータ。クリアすると最新版が表示される</td></tr>
+<tr><td><strong>JSON</strong></td><td>データをやり取りするときのフォーマット。エクスポート/インポートで使う</td></tr>
+<tr><td><strong>index.html</strong></td><td>レジアプリ本体。HTML・CSS・JavaScriptがすべて入った1ファイル</td></tr>
+<tr><td><strong>CLAUDE.md</strong></td><td>Claude Codeがプロジェクトを理解するための技術仕様書。触らなくてよい</td></tr>
+<tr><td><strong>コミット</strong></td><td>Gitでファイルの変更を記録する操作。変更に名前をつけること</td></tr>
+<tr><td><strong>SS_ID</strong></td><td>スプレッドシートの固有ID。gas_script.jsの先頭に書かれている。変更しない</td></tr></tbody>
+</table>
+
+<hr>
+
+<p>*最終更新: 2026/06/11（アプリ v329 時点）*</p>
+
+</body>
+</html>
