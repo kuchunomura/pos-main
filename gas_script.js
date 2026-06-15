@@ -1174,7 +1174,18 @@ function createMonthlySummary(year, month) {
     } else {
       for (var c=2;c<=dcCols;c++) out.getRange(row,c).setValue(0);
     }
-    out.getRange(row,1,1,dcCols).setFontWeight('bold').setBackground(BG_TOTAL).setHorizontalAlignment(C);row+=2;
+    out.getRange(row,1,1,dcCols).setFontWeight('bold').setBackground(BG_TOTAL).setHorizontalAlignment(C);row++;
+    // 合計行の下に見出しを再掲（下スクロール時に商品見出しが見えるように）
+    out.getRange(row,1,1,dcCols).setValues([h1]).setFontWeight('bold').setBackground('#f5f5f5').setHorizontalAlignment(C);
+    if (!dailyActMap) out.getRange(row,2,1,2).merge();
+    var moff2=catColStart;
+    for (var pk2=0;pk2<n;pk2++){if(catCols[pk2]===2)out.getRange(row,moff2,1,2).merge();moff2+=catCols[pk2];}
+    row++;
+    out.getRange(row,1,1,dcCols).setValues([h2]).setFontWeight('bold').setBackground('#f5f5f5').setHorizontalAlignment(C);
+    if (dailyActMap){
+      out.getRange(row,5).setValue('※ ±は重複・データ差異・調整等').setFontSize(8).setFontColor('#888888').setBackground('#ffffff').setHorizontalAlignment('left').setFontWeight('normal');
+    }
+    row+=2;
   }
 
   writeCrossTable('【日別・カテゴリ別売上】　※単価×数量（定価合計・割引前）',days,dailyCrossMap,pgKeysCross,true,dailyMap);
