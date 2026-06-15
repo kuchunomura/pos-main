@@ -1070,8 +1070,9 @@ function createMonthlySummary(year, month) {
   var C='center';
   var BG_HEAD='#2d5016',BG_SEC='#4a7c2f',BG_TOTAL='#e8f0e0',BG_EVEN='#fafafa',BG_SUB='#f0f4e8',BG_CAT='#d4e6c3',BG_CAT2='#eaf3e0';
 
-  out.getRange(row,1,1,8).merge().setValue(year+'年'+month+'月 月別集計')
-    .setFontSize(15).setFontWeight('bold').setBackground(BG_HEAD).setFontColor('#fff').setHorizontalAlignment(C);
+  out.getRange(row,1,1,8).setBackground(BG_HEAD);
+  out.getRange(row,1).setValue(year+'年'+month+'月 月別集計')
+    .setFontSize(15).setFontWeight('bold').setFontColor('#fff').setHorizontalAlignment('left');
   row++;
   var avg=grandPeople>0?Math.round(grandTotal/grandPeople):0;
   out.getRange(row,1,1,8).setValues([['総売上',grandTotal,'件数',grandCount,'人数',grandPeople,'客単価（人）',avg]])
@@ -1080,8 +1081,9 @@ function createMonthlySummary(year, month) {
   row+=2;
 
   function secHead(label,cols,align){
-    out.getRange(row,1,1,cols).merge().setValue(label)
-      .setFontWeight('bold').setBackground(BG_SEC).setFontColor('#fff').setHorizontalAlignment(align||C);row++;
+    out.getRange(row,1,1,cols).setBackground(BG_SEC);
+    out.getRange(row,1).setValue(label)
+      .setFontWeight('bold').setFontColor('#fff').setHorizontalAlignment('left');row++;
   }
   function colHead(headers){
     out.getRange(row,1,1,headers.length).setValues([headers])
@@ -1114,8 +1116,8 @@ function createMonthlySummary(year, month) {
     var catSalesCols={};
     var csoff=catColStart;
     for (var pk=0;pk<n;pk++){if(catCols[pk]===2)csoff++;catSalesCols[csoff]=true;csoff++;}
-    out.getRange(row,1,1,7).merge().setValue(label).setFontWeight('bold').setBackground(BG_SEC).setFontColor('#fff').setHorizontalAlignment(C);
-    if (dcCols>7) out.getRange(row,8,1,dcCols-7).setBackground(BG_SEC);
+    out.getRange(row,1,1,dcCols).setBackground(BG_SEC);
+    out.getRange(row,1).setValue(label).setFontWeight('bold').setFontColor('#fff').setHorizontalAlignment('left');
     row++;
     var h1=['日付'];
     if (dailyActMap){h1.push('合計人数','合計売上（定価）','実決済額','定価合計 − 実決済額 ※');}
@@ -1185,9 +1187,11 @@ function createMonthlySummary(year, month) {
   writeCrossTable('【村民割引（日別・カテゴリ別）】  合計'+mura.count+'件 '+mura.people+'人 '+mura.total.toLocaleString()+'円',days,muraDailyCatMap,muraPgKeys,false);
   writeCrossTable('【年間パス（日別・カテゴリ別）】  合計'+pass.count+'件 '+pass.people+'人 '+pass.total.toLocaleString()+'円',days,passDailyCatMap,passPgKeys,false);
 
-  out.getRange(row,1,1,7).merge().setValue('【団体割引（日別・カテゴリ別）】  合計0件 0人 0円').setFontWeight('bold').setBackground(BG_SEC).setFontColor('#fff').setHorizontalAlignment(C);
+  out.getRange(row,1,1,7).setBackground(BG_SEC);
+  out.getRange(row,1).setValue('【団体割引（日別・カテゴリ別）】  合計0件 0人 0円').setFontWeight('bold').setFontColor('#fff').setHorizontalAlignment('left');
   row++;
-  out.getRange(row,1,1,7).merge().setValue('（団体割引設定が追加された際に自動表示されます）').setFontColor('#888888').setBackground('#f5f5f5').setHorizontalAlignment(C);
+  out.getRange(row,1,1,7).setBackground('#f5f5f5');
+  out.getRange(row,1).setValue('（団体割引設定が追加された際に自動表示されます）').setFontColor('#888888').setHorizontalAlignment('left');
   row+=2;
 
   secHead('【支払方法別】',3);colHead(['支払方法','売上合計','件数']);
@@ -1306,6 +1310,7 @@ function createMonthlySummary(year, month) {
   for (var wc=4;wc<=maxCol;wc++) out.setColumnWidth(wc,wc%2===0?60:90);
   out.setColumnWidth(7,140);out.setColumnWidth(8,90);
 
+  try { out.setFrozenColumns(1); } catch(e0){} // 日付（A列）を横スクロールでも固定
   SpreadsheetApp.flush();
   return sheetName;
 }
