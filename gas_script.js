@@ -1070,23 +1070,26 @@ function createMonthlySummary(year, month) {
   var C='center';
   var BG_HEAD='#2d5016',BG_SEC='#4a7c2f',BG_TOTAL='#e8f0e0',BG_EVEN='#fafafa',BG_SUB='#f0f4e8',BG_CAT='#d4e6c3',BG_CAT2='#eaf3e0';
 
-  out.getRange(row,1,1,8).setBackground(BG_HEAD);
-  out.getRange(row,1).setValue(year+'年'+month+'月 月別集計')
+  out.getRange(row,2,1,8).setBackground(BG_HEAD);
+  out.getRange(row,2).setValue(year+'年'+month+'月 月別集計')
     .setFontSize(15).setFontWeight('bold').setFontColor('#fff').setHorizontalAlignment('left');
   row++;
   var avg=grandPeople>0?Math.round(grandTotal/grandPeople):0;
-  out.getRange(row,1,1,8).setValues([['総売上',grandTotal,'件数',grandCount,'人数',grandPeople,'客単価（人）',avg]])
+  out.getRange(row,2,1,8).setValues([['総売上',grandTotal,'件数',grandCount,'人数',grandPeople,'客単価（人）',avg]])
     .setBackground('#f0f4e8').setFontWeight('bold').setHorizontalAlignment(C);
-  out.getRange(row,2).setNumberFormat('#,##0');out.getRange(row,8).setNumberFormat('#,##0');
+  out.getRange(row,3).setNumberFormat('#,##0');out.getRange(row,9).setNumberFormat('#,##0');
   row+=2;
 
+  // 見出しは常にB列開始（A列固定の境界線が文字を貫通しないように）
   function secHead(label,cols,align){
-    out.getRange(row,1,1,cols).setBackground(BG_SEC);
-    out.getRange(row,1).setValue(label)
+    out.getRange(row,2,1,cols).setBackground(BG_SEC);
+    out.getRange(row,2).setValue(label)
       .setFontWeight('bold').setFontColor('#fff').setHorizontalAlignment('left');row++;
   }
-  function colHead(headers){
-    out.getRange(row,1,1,headers.length).setValues([headers])
+  // baseCol: 表本体の開始列（日別表=1, 村民割引以下=2）
+  function colHead(headers,baseCol){
+    var bc=baseCol||1;
+    out.getRange(row,bc,1,headers.length).setValues([headers])
       .setFontWeight('bold').setBackground('#f5f5f5').setHorizontalAlignment(C);row++;
   }
 
@@ -1105,7 +1108,8 @@ function createMonthlySummary(year, month) {
   for (var c=2;c<=7;c++) out.getRange(row,c).setFormula('=SUM('+colLetter(c)+dailyDataStart+':'+colLetter(c)+dailyDataEnd+')').setNumberFormat('#,##0');
   out.getRange(row,1,1,7).setFontWeight('bold').setBackground(BG_TOTAL).setHorizontalAlignment(C);row+=2;
 
-  function writeCrossTable(label,filteredDays,catMap,usedPgKeys,showAllDays,dailyActMap){
+  function writeCrossTable(label,filteredDays,catMap,usedPgKeys,showAllDays,dailyActMap,startCol){
+    var sc0=(startCol||1)-1; // 列オフセット（村民割引以下はB列開始=1）
     var n=usedPgKeys.length;
     var eCols=dailyActMap?2:0;
     var catColStart=4+eCols;
@@ -1115,25 +1119,25 @@ function createMonthlySummary(year, month) {
     var dcCols=(catColStart-1)+totalCatCols;
     var catSalesCols={};
     var csoff=catColStart;
-    for (var pk=0;pk<n;pk++){if(catCols[pk]===2)csoff++;catSalesCols[csoff]=true;csoff++;}
-    out.getRange(row,1,1,dcCols).setBackground(BG_SEC);
-    out.getRange(row,1).setValue(label).setFontWeight('bold').setFontColor('#fff').setHorizontalAlignment('left');
+    for (var pk=0;pk<n;pk++){if(catCols[pk]===2)csoff++;catSalesCols[csoff+sc0]=true;csoff++;}
+    out.getRange(row,2,1,dcCols).setBackground(BG_SEC);
+    out.getRange(row,2).setValue(label).setFontWeight('bold').setFontColor('#fff').setHorizontalAlignment('left');
     row++;
     var h1=['日付'];
     if (dailyActMap){h1.push('合計人数','合計売上（定価）','実決済額','定価合計 − 実決済額 ※');}
     else{h1.push('合計','');}
     for (var pk=0;pk<n;pk++){h1.push(usedPgKeys[pk]);if(catCols[pk]===2)h1.push('');}
-    out.getRange(row,1,1,dcCols).setValues([h1]).setFontWeight('bold').setBackground('#f5f5f5').setHorizontalAlignment(C);
-    if (!dailyActMap) out.getRange(row,2,1,2).merge();
-    var moff=catColStart;
+    out.getRange(row,1+sc0,1,dcCols).setValues([h1]).setFontWeight('bold').setBackground('#f5f5f5').setHorizontalAlignment(C);
+    if (!dailyActMap) out.getRange(row,2+sc0,1,2).merge();
+    var moff=catColStart+sc0;
     for (var pk=0;pk<n;pk++){if(catCols[pk]===2)out.getRange(row,moff,1,2).merge();moff+=catCols[pk];}
     row++;
     var h2=[''];
     if (dailyActMap){for(var ei=0;ei<catColStart-2;ei++)h2.push('');}else{h2.push('人数','売上');}
     for (var pk=0;pk<n;pk++){if(catCols[pk]===2)h2.push(QTY_GROUPS[usedPgKeys[pk]]?'数量':'人数');h2.push('売上');}
-    out.getRange(row,1,1,dcCols).setValues([h2]).setFontWeight('bold').setBackground('#f5f5f5').setHorizontalAlignment(C);
+    out.getRange(row,1+sc0,1,dcCols).setValues([h2]).setFontWeight('bold').setBackground('#f5f5f5').setHorizontalAlignment(C);
     if (dailyActMap){
-      out.getRange(row,5)
+      out.getRange(row,5+sc0)
         .setValue('※ ±は重複・データ差異・調整等')
         .setFontSize(8).setFontColor('#888888').setBackground('#ffffff').setHorizontalAlignment('left').setFontWeight('normal');
     }
@@ -1158,32 +1162,32 @@ function createMonthlySummary(year, month) {
         rowArr.push(rowSales);
       }
       for (var pv=0;pv<catVals.length;pv++) rowArr.push(catVals[pv]);
-      out.getRange(row,1,1,rowArr.length).setValues([rowArr]).setHorizontalAlignment(C);
-      for (var nc=3;nc<catColStart;nc++) out.getRange(row,nc).setNumberFormat('#,##0');
+      out.getRange(row,1+sc0,1,rowArr.length).setValues([rowArr]).setHorizontalAlignment(C);
+      for (var nc=3;nc<catColStart;nc++) out.getRange(row,nc+sc0).setNumberFormat('#,##0');
       for (var sc in catSalesCols) out.getRange(row,Number(sc)).setNumberFormat('#,##0');
-      if (d%2===0) out.getRange(row,1,1,rowArr.length).setBackground(BG_EVEN);row++;
+      if (d%2===0) out.getRange(row,1+sc0,1,rowArr.length).setBackground(BG_EVEN);row++;
     }
     var ctEnd=row-1;
-    out.getRange(row,1).setValue('合計');
+    out.getRange(row,1+sc0).setValue('合計');
     if (ctEnd>=ctStart){
       for (var c=2;c<=dcCols;c++){
-        out.getRange(row,c).setFormula('=SUM('+colLetter(c)+ctStart+':'+colLetter(c)+ctEnd+')');
-        var isFmt=(c>=3&&c<catColStart)||catSalesCols[c];
-        if (isFmt) out.getRange(row,c).setNumberFormat('#,##0');
+        out.getRange(row,c+sc0).setFormula('=SUM('+colLetter(c+sc0)+ctStart+':'+colLetter(c+sc0)+ctEnd+')');
+        var isFmt=(c>=3&&c<catColStart)||catSalesCols[c+sc0];
+        if (isFmt) out.getRange(row,c+sc0).setNumberFormat('#,##0');
       }
     } else {
-      for (var c=2;c<=dcCols;c++) out.getRange(row,c).setValue(0);
+      for (var c=2;c<=dcCols;c++) out.getRange(row,c+sc0).setValue(0);
     }
-    out.getRange(row,1,1,dcCols).setFontWeight('bold').setBackground(BG_TOTAL).setHorizontalAlignment(C);row++;
+    out.getRange(row,1+sc0,1,dcCols).setFontWeight('bold').setBackground(BG_TOTAL).setHorizontalAlignment(C);row++;
     // 合計行の下に見出しを再掲（下スクロール時に商品見出しが見えるように）
-    out.getRange(row,1,1,dcCols).setValues([h1]).setFontWeight('bold').setBackground('#f5f5f5').setHorizontalAlignment(C);
-    if (!dailyActMap) out.getRange(row,2,1,2).merge();
-    var moff2=catColStart;
+    out.getRange(row,1+sc0,1,dcCols).setValues([h1]).setFontWeight('bold').setBackground('#f5f5f5').setHorizontalAlignment(C);
+    if (!dailyActMap) out.getRange(row,2+sc0,1,2).merge();
+    var moff2=catColStart+sc0;
     for (var pk2=0;pk2<n;pk2++){if(catCols[pk2]===2)out.getRange(row,moff2,1,2).merge();moff2+=catCols[pk2];}
     row++;
-    out.getRange(row,1,1,dcCols).setValues([h2]).setFontWeight('bold').setBackground('#f5f5f5').setHorizontalAlignment(C);
+    out.getRange(row,1+sc0,1,dcCols).setValues([h2]).setFontWeight('bold').setBackground('#f5f5f5').setHorizontalAlignment(C);
     if (dailyActMap){
-      out.getRange(row,5).setValue('※ ±は重複・データ差異・調整等').setFontSize(8).setFontColor('#888888').setBackground('#ffffff').setHorizontalAlignment('left').setFontWeight('normal');
+      out.getRange(row,5+sc0).setValue('※ ±は重複・データ差異・調整等').setFontSize(8).setFontColor('#888888').setBackground('#ffffff').setHorizontalAlignment('left').setFontWeight('normal');
     }
     row+=2;
   }
@@ -1195,43 +1199,43 @@ function createMonthlySummary(year, month) {
   Object.keys(passDailyCatMap).forEach(function(ds){Object.keys(passDailyCatMap[ds]).forEach(function(pg){passPgSet[pg]=true;});});
   var muraPgKeys=Object.keys(muraPgSet); sortByOrder(muraPgKeys,CROSS_ORDER);
   var passPgKeys=Object.keys(passPgSet); sortByOrder(passPgKeys,CROSS_ORDER);
-  writeCrossTable('【村民割引（日別・カテゴリ別）】  合計'+mura.count+'件 '+mura.people+'人 '+mura.total.toLocaleString()+'円',days,muraDailyCatMap,muraPgKeys,false);
-  writeCrossTable('【年間パス（日別・カテゴリ別）】  合計'+pass.count+'件 '+pass.people+'人 '+pass.total.toLocaleString()+'円',days,passDailyCatMap,passPgKeys,false);
+  writeCrossTable('【村民割引（日別・カテゴリ別）】  合計'+mura.count+'件 '+mura.people+'人 '+mura.total.toLocaleString()+'円',days,muraDailyCatMap,muraPgKeys,false,null,2);
+  writeCrossTable('【年間パス（日別・カテゴリ別）】  合計'+pass.count+'件 '+pass.people+'人 '+pass.total.toLocaleString()+'円',days,passDailyCatMap,passPgKeys,false,null,2);
 
-  out.getRange(row,1,1,7).setBackground(BG_SEC);
-  out.getRange(row,1).setValue('【団体割引（日別・カテゴリ別）】  合計0件 0人 0円').setFontWeight('bold').setFontColor('#fff').setHorizontalAlignment('left');
+  out.getRange(row,2,1,7).setBackground(BG_SEC);
+  out.getRange(row,2).setValue('【団体割引（日別・カテゴリ別）】  合計0件 0人 0円').setFontWeight('bold').setFontColor('#fff').setHorizontalAlignment('left');
   row++;
-  out.getRange(row,1,1,7).setBackground('#f5f5f5');
-  out.getRange(row,1).setValue('（団体割引設定が追加された際に自動表示されます）').setFontColor('#888888').setHorizontalAlignment('left');
+  out.getRange(row,2,1,7).setBackground('#f5f5f5');
+  out.getRange(row,2).setValue('（団体割引設定が追加された際に自動表示されます）').setFontColor('#888888').setHorizontalAlignment('left');
   row+=2;
 
-  secHead('【支払方法別】',3);colHead(['支払方法','売上合計','件数']);
+  secHead('【支払方法別】',3);colHead(['支払方法','売上合計','件数'],2);
   var pKeys=Object.keys(payMap);
   for (var p=0;p<pKeys.length;p++){
     var pv=payMap[pKeys[p]];
-    out.getRange(row,1,1,3).setValues([[pKeys[p],pv.total,pv.count]]).setHorizontalAlignment(C);
-    out.getRange(row,2).setNumberFormat('#,##0');
-    if(p%2===0)out.getRange(row,1,1,3).setBackground(BG_EVEN);row++;
+    out.getRange(row,2,1,3).setValues([[pKeys[p],pv.total,pv.count]]).setHorizontalAlignment(C);
+    out.getRange(row,3).setNumberFormat('#,##0');
+    if(p%2===0)out.getRange(row,2,1,3).setBackground(BG_EVEN);row++;
   }
   row++;
 
   secHead('【カテゴリ別・商品別売上】',5);
   var catSectionBodyStart=row;
-  out.getRange(row,1,1,5).setValues([['カテゴリ / 商品名','件数','人数','人数','売上合計']])
+  out.getRange(row,2,1,5).setValues([['カテゴリ / 商品名','件数','人数','人数','売上合計']])
     .setBackground('#f5f5f5').setHorizontalAlignment(C);
-  out.getRange(row,1).setFontWeight('bold');
-  out.getRange(row,2).setFontWeight('normal');
-  out.getRange(row,3).setFontWeight('bold');
+  out.getRange(row,2).setFontWeight('bold');
+  out.getRange(row,3).setFontWeight('normal');
   out.getRange(row,4).setFontWeight('bold');
   out.getRange(row,5).setFontWeight('bold');
+  out.getRange(row,6).setFontWeight('bold');
   row++;
 
   for (var pi=0;pi<pgKeysCat.length;pi++){
     var pg=pgKeysCat[pi],pe=parentMap[pg];
     var showPeople=!!PEOPLE_GROUPS[pg];
-    out.getRange(row,1,1,5).setValues([[pg,pe.count,pe.people,'',pe.total]])
+    out.getRange(row,2,1,5).setValues([[pg,pe.count,pe.people,'',pe.total]])
       .setFontWeight('bold').setBackground(BG_CAT).setFontColor('#1a3a08').setHorizontalAlignment(C);
-    out.getRange(row,5).setNumberFormat('#,##0');row++;
+    out.getRange(row,6).setNumberFormat('#,##0');row++;
 
     var catNames=Object.keys(pe.cats);
     catNames.sort(function(a,b){return pe.cats[b].total-pe.cats[a].total;});
@@ -1239,9 +1243,9 @@ function createMonthlySummary(year, month) {
       var ck=catNames[ci],ce=pe.cats[ck];
       var showCatRow=ck!==''&&catNames.length>1;
       if (showCatRow){
-        out.getRange(row,1,1,5).setValues([['　'+ck,ce.count,ce.people,'',ce.total]])
+        out.getRange(row,2,1,5).setValues([['　'+ck,ce.count,ce.people,'',ce.total]])
           .setFontWeight('bold').setBackground(BG_CAT2).setFontColor('#333').setHorizontalAlignment(C);
-        out.getRange(row,5).setNumberFormat('#,##0');row++;
+        out.getRange(row,6).setNumberFormat('#,##0');row++;
       }
       var itKeys=Object.keys(ce.items);
       itKeys.sort(function(a,b){return ce.items[b].total-ce.items[a].total;});
@@ -1249,9 +1253,9 @@ function createMonthlySummary(year, month) {
       for (var ij=0;ij<itKeys.length;ij++){
         var iv=ce.items[itKeys[ij]];
         var col4Val=showPeople?iv.people:iv.qty;
-        out.getRange(row,1,1,5).setValues([[indent+iv.name,'','',col4Val,iv.total]]).setHorizontalAlignment(C);
-        out.getRange(row,5).setNumberFormat('#,##0');
-        if(ij%2===0)out.getRange(row,1,1,5).setBackground(BG_EVEN);row++;
+        out.getRange(row,2,1,5).setValues([[indent+iv.name,'','',col4Val,iv.total]]).setHorizontalAlignment(C);
+        out.getRange(row,6).setNumberFormat('#,##0');
+        if(ij%2===0)out.getRange(row,2,1,5).setBackground(BG_EVEN);row++;
       }
     }
   }
@@ -1260,20 +1264,20 @@ function createMonthlySummary(year, month) {
   var chartTotal=chartCats.reduce(function(s,c){return s+c.total;},0);
   chartCats.sort(function(a,b){return b.total-a.total;});
   var chartDataRow=catSectionBodyStart;
-  out.getRange(chartDataRow,7).setValue('カテゴリ').setFontWeight('bold');
-  out.getRange(chartDataRow,8).setValue('割合(%)').setFontWeight('bold');
+  out.getRange(chartDataRow,8).setValue('カテゴリ').setFontWeight('bold');
+  out.getRange(chartDataRow,9).setValue('割合(%)').setFontWeight('bold');
   chartDataRow++;
   var catChartDataStart=chartDataRow;
   for (var ci=0;ci<chartCats.length;ci++){
-    out.getRange(chartDataRow,7).setValue(chartCats[ci].name);
+    out.getRange(chartDataRow,8).setValue(chartCats[ci].name);
     var pct=chartTotal>0?Math.round(chartCats[ci].total/chartTotal*1000)/10:0;
-    out.getRange(chartDataRow,8).setValue(pct).setNumberFormat('0.0');
+    out.getRange(chartDataRow,9).setValue(pct).setNumberFormat('0.0');
     chartDataRow++;
   }
 
   SpreadsheetApp.flush();
   try {
-    var catChartRange=out.getRange(catChartDataStart-1,7,chartCats.length+1,2);
+    var catChartRange=out.getRange(catChartDataStart-1,8,chartCats.length+1,2);
     var catBarChart=out.newChart()
       .setChartType(Charts.ChartType.BAR)
       .addRange(catChartRange)
@@ -1281,7 +1285,7 @@ function createMonthlySummary(year, month) {
       .setOption('legend',{position:'none'})
       .setOption('hAxis',{title:'%',format:'0.0'})
       .setOption('width',420).setOption('height',chartCats.length*28+80)
-      .setPosition(catSectionBodyStart,10,0,0)
+      .setPosition(catSectionBodyStart,11,0,0)
       .build();
     out.insertChart(catBarChart);
   } catch(e) {
@@ -1289,37 +1293,37 @@ function createMonthlySummary(year, month) {
   }
   row++;
 
-  secHead('【割引・予約サイト別】',3);colHead(['割引/予約サイト','件数','売上合計']);
+  secHead('【割引・予約サイト別】',3);colHead(['割引/予約サイト','件数','売上合計'],2);
   var dkKeys=Object.keys(discMap);
   for (var dk=0;dk<dkKeys.length;dk++){
     var dv=discMap[dkKeys[dk]];
-    out.getRange(row,1,1,3).setValues([[dkKeys[dk],dv.count,dv.total]]).setHorizontalAlignment(C);
-    out.getRange(row,3).setNumberFormat('#,##0');
-    if(dk%2===0)out.getRange(row,1,1,3).setBackground(BG_EVEN);row++;
+    out.getRange(row,2,1,3).setValues([[dkKeys[dk],dv.count,dv.total]]).setHorizontalAlignment(C);
+    out.getRange(row,4).setNumberFormat('#,##0');
+    if(dk%2===0)out.getRange(row,2,1,3).setBackground(BG_EVEN);row++;
   }
   row++;
 
-  secHead('【年齢層別】',3);colHead(['年齢層','件数（組）','人数']);
+  secHead('【年齢層別】',3);colHead(['年齢層','件数（組）','人数'],2);
   var aKeys=Object.keys(ageMap);
   for (var ak=0;ak<aKeys.length;ak++){
     var av=ageMap[aKeys[ak]];
-    out.getRange(row,1,1,3).setValues([[aKeys[ak],av.groups,av.people]]).setHorizontalAlignment(C);
-    if(ak%2===0)out.getRange(row,1,1,3).setBackground(BG_EVEN);row++;
+    out.getRange(row,2,1,3).setValues([[aKeys[ak],av.groups,av.people]]).setHorizontalAlignment(C);
+    if(ak%2===0)out.getRange(row,2,1,3).setBackground(BG_EVEN);row++;
   }
   row++;
 
-  secHead('【国籍別】',3);colHead(['国籍','件数（組）','人数']);
+  secHead('【国籍別】',3);colHead(['国籍','件数（組）','人数'],2);
   var nkKeys=Object.keys(natMap);
   for (var nk=0;nk<nkKeys.length;nk++){
     var nv=natMap[nkKeys[nk]];
-    out.getRange(row,1,1,3).setValues([[nkKeys[nk],nv.groups,nv.people]]).setHorizontalAlignment(C);
-    if(nk%2===0)out.getRange(row,1,1,3).setBackground(BG_EVEN);row++;
+    out.getRange(row,2,1,3).setValues([[nkKeys[nk],nv.groups,nv.people]]).setHorizontalAlignment(C);
+    if(nk%2===0)out.getRange(row,2,1,3).setBackground(BG_EVEN);row++;
   }
 
-  out.setColumnWidth(1,110);out.setColumnWidth(2,65);out.setColumnWidth(3,90);
-  var maxCol=Math.max(8,3+pgKeysCross.length*2);
+  out.setColumnWidth(1,110);out.setColumnWidth(2,110);out.setColumnWidth(3,90);
+  var maxCol=Math.max(9,4+pgKeysCross.length*2);
   for (var wc=4;wc<=maxCol;wc++) out.setColumnWidth(wc,wc%2===0?60:90);
-  out.setColumnWidth(7,140);out.setColumnWidth(8,90);
+  out.setColumnWidth(8,140);out.setColumnWidth(9,90);
 
   try { out.setFrozenColumns(1); } catch(e0){} // 日付（A列）を横スクロールでも固定
   SpreadsheetApp.flush();
