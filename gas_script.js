@@ -904,7 +904,7 @@ function createMonthlySummary(year, month) {
 
   var dailyMap={},dailyCatMap={},dailyCrossMap={},muraDailyCatMap={},passDailyCatMap={},otaDailyCatMap={},stayDailyCatMap={};
   var parentMap={},payMap={},discMap={},ageMap={},natMap={};
-  var txSeen={},txDiscMap={},txHasItems={},txUniqueRows={},txProcessedRows={};
+  var txSeen={},txDiscMap={},txHasItems={},txUniqueRows={},txProcessedRows={},txTotalPeople={};
   var mura={count:0,people:0,total:0},pass={count:0,people:0,total:0},ota={count:0,people:0,total:0},stay={count:0,people:0,total:0};
   var grandTotal=0,grandCount=0,grandPeople=0;
 
@@ -931,6 +931,7 @@ function createMonthlySummary(year, month) {
           pass1RowSeen[pKey]=true;
           if (!txUniqueRows[ptxId]) txUniqueRows[ptxId]=0;
           txUniqueRows[ptxId]++;
+          txTotalPeople[ptxId]=(txTotalPeople[ptxId]||0)+(Number(pr[7+co])||0); // 取引の総人数（宿泊複数棟も合算）
         }
       }
     }
@@ -967,66 +968,67 @@ function createMonthlySummary(year, month) {
         var pg=getParentGroup(cat);
         if (!parentMap[pg]) parentMap[pg]={count:0,people:0,total:0,txSet:{},cats:{}};
         var pe=parentMap[pg];
-        if (!pe.txSet[txId]){pe.txSet[txId]=true;pe.count++;pe.people+=people;}
+        if (!pe.txSet[txId]){pe.txSet[txId]=true;pe.count++;} pe.people+=people;
         pe.total+=unitPrice*qty;
         if (!pe.cats[cat]) pe.cats[cat]={count:0,people:0,total:0,txSet:{},items:{}};
         var ce=pe.cats[cat];
-        if (!ce.txSet[txId]){ce.txSet[txId]=true;ce.count++;ce.people+=people;}
+        if (!ce.txSet[txId]){ce.txSet[txId]=true;ce.count++;} ce.people+=people;
         ce.total+=unitPrice*qty;
         if (!ce.items[itemName]) ce.items[itemName]={name:itemName,qty:0,total:0,people:0,txSet:{}};
         ce.items[itemName].qty+=qty; ce.items[itemName].total+=unitPrice*qty;
-        if (!ce.items[itemName].txSet[txId]){ce.items[itemName].txSet[txId]=true;ce.items[itemName].people+=people;}
+        ce.items[itemName].people+=people;
 
         if (!dailyCatMap[dateStr][pg]) dailyCatMap[dateStr][pg]={people:0,total:0,txSet:{}};
         var dce=dailyCatMap[dateStr][pg];
-        if (!dce.txSet[txId]){dce.txSet[txId]=true;dce.people+=people;} dce.total+=unitPrice*qty;
+        dce.people+=people; dce.total+=unitPrice*qty;
 
         var crossKey=getParentGroupCross(pg,itemName);
         if (!dailyCrossMap[dateStr][crossKey]) dailyCrossMap[dateStr][crossKey]={people:0,qty:0,total:0,txSet:{}};
         var dcx=dailyCrossMap[dateStr][crossKey];
-        if (!dcx.txSet[txId]){dcx.txSet[txId]=true;dcx.people+=people;} dcx.total+=unitPrice*qty; dcx.qty+=qty;
+        dcx.people+=people; dcx.total+=unitPrice*qty; dcx.qty+=qty;
 
         if (isMura){
           if (!muraDailyCatMap[dateStr][pg]) muraDailyCatMap[dateStr][pg]={people:0,total:0,txSet:{}};
           var mdce=muraDailyCatMap[dateStr][pg];
-          if (!mdce.txSet[txId]){mdce.txSet[txId]=true;mdce.people+=people;} mdce.total+=unitPrice*qty;
+          mdce.people+=people; mdce.total+=unitPrice*qty;
         }
         if (isPass){
           if (!passDailyCatMap[dateStr][pg]) passDailyCatMap[dateStr][pg]={people:0,total:0,txSet:{}};
           var pdce=passDailyCatMap[dateStr][pg];
-          if (!pdce.txSet[txId]){pdce.txSet[txId]=true;pdce.people+=people;} pdce.total+=unitPrice*qty;
+          pdce.people+=people; pdce.total+=unitPrice*qty;
         }
         if (isOTA){
           if (!otaDailyCatMap[dateStr][pg]) otaDailyCatMap[dateStr][pg]={people:0,total:0,txSet:{}};
           var odce=otaDailyCatMap[dateStr][pg];
-          if (!odce.txSet[txId]){odce.txSet[txId]=true;odce.people+=people;} odce.total+=unitPrice*qty;
+          odce.people+=people; odce.total+=unitPrice*qty;
         }
         if (isStay){
           if (!stayDailyCatMap[dateStr][pg]) stayDailyCatMap[dateStr][pg]={people:0,total:0,txSet:{}};
           var sdce=stayDailyCatMap[dateStr][pg];
-          if (!sdce.txSet[txId]){sdce.txSet[txId]=true;sdce.people+=people;} sdce.total+=unitPrice*qty;
+          sdce.people+=people; sdce.total+=unitPrice*qty;
         }
         }
       }
 
       if (!txSeen[txId]) {
         txSeen[txId]=true;
-        dailyMap[dateStr].total+=amount;dailyMap[dateStr].count+=1;dailyMap[dateStr].people+=people;
+        var txPpl=(txTotalPeople[txId]||people); // 取引の総人数（宿泊複数棟も合算）
+        dailyMap[dateStr].total+=amount;dailyMap[dateStr].count+=1;dailyMap[dateStr].people+=txPpl;
         if (payment==='現金') dailyMap[dateStr].cash+=amount;
         else if (payment==='クレジットカード') dailyMap[dateStr].card+=amount;
         else if (payment==='電子決済') dailyMap[dateStr].elec+=amount;
-        grandTotal+=amount;grandCount+=1;grandPeople+=people;
+        grandTotal+=amount;grandCount+=1;grandPeople+=txPpl;
         if (!payMap[payment]) payMap[payment]={total:0,count:0};
         payMap[payment].total+=amount;payMap[payment].count+=1;
         var dKey=(disc&&disc!==''&&disc!=='false')?disc:'なし';
         if (!discMap[dKey]) discMap[dKey]={count:0,total:0};
         discMap[dKey].count++;discMap[dKey].total+=amount;
-        if (isMura){mura.count++;mura.people+=people;mura.total+=amount;dailyMap[dateStr].muraAmt+=amount;}
-        if (isPass){pass.count++;pass.people+=people;pass.total+=amount;dailyMap[dateStr].passAmt+=amount;}
-        if (isOTA){ota.count++;ota.people+=people;ota.total+=amount;dailyMap[dateStr].otaAmt+=amount;}
-        if (isStay){stay.count++;stay.people+=people;stay.total+=amount;dailyMap[dateStr].stayAmt+=amount;}
-        if (ageStr){ageStr.split('・').forEach(function(ag){ag=ag.trim();if(!ag)return;if(!ageMap[ag])ageMap[ag]={groups:0,people:0};ageMap[ag].groups++;ageMap[ag].people+=people;});}
-        if (natStr){natStr.split('・').forEach(function(nat){nat=nat.trim();if(!nat)return;if(!natMap[nat])natMap[nat]={groups:0,people:0};natMap[nat].groups++;natMap[nat].people+=people;});}
+        if (isMura){mura.count++;mura.people+=txPpl;mura.total+=amount;dailyMap[dateStr].muraAmt+=amount;}
+        if (isPass){pass.count++;pass.people+=txPpl;pass.total+=amount;dailyMap[dateStr].passAmt+=amount;}
+        if (isOTA){ota.count++;ota.people+=txPpl;ota.total+=amount;dailyMap[dateStr].otaAmt+=amount;}
+        if (isStay){stay.count++;stay.people+=txPpl;stay.total+=amount;dailyMap[dateStr].stayAmt+=amount;}
+        if (ageStr){ageStr.split('・').forEach(function(ag){ag=ag.trim();if(!ag)return;if(!ageMap[ag])ageMap[ag]={groups:0,people:0};ageMap[ag].groups++;ageMap[ag].people+=txPpl;});}
+        if (natStr){natStr.split('・').forEach(function(nat){nat=nat.trim();if(!nat)return;if(!natMap[nat])natMap[nat]={groups:0,people:0};natMap[nat].groups++;natMap[nat].people+=txPpl;});}
         if (!txHasItems[txId]&&amount>0){
           var sotKey='その他（カテゴリ・商品登録なし）';
           if (!dailyCatMap[dateStr][sotKey]) dailyCatMap[dateStr][sotKey]={people:0,total:0,txSet:{}};
