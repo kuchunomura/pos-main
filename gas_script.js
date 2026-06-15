@@ -267,6 +267,23 @@ function ensureHeaders(sheet) {
   if (sheet.getFrozenColumns() < 1) sheet.setFrozenColumns(1); // 日付（A列）を横スクロールでも固定
 }
 
+// 既存の全日別シートに「日付列の固定」と最新の集計式・ラベルを一括適用（GASエディタから手動実行）
+function fixAllSheets() {
+  var ss = getTargetSS();
+  var sheets = ss.getSheets();
+  var n = 0;
+  for (var i = 0; i < sheets.length; i++) {
+    var name = sheets[i].getName();
+    if (!/^\d+\/\d+/.test(name)) continue; // 「M/D売上」形式の日別シートのみ
+    setTotalsFormulas(sheets[i]);
+    setupCashInputRow(sheets[i]);
+    sheets[i].setFrozenColumns(1);
+    n++;
+  }
+  SpreadsheetApp.flush();
+  return n + '枚の日別シートを更新しました';
+}
+
 // Row1: 集計計算式
 function setTotalsFormulas(sheet) {
   sheet.getRange(1, 1, 1, 17).clearContent().clearFormat();
@@ -317,7 +334,7 @@ function setupCashInputRow(sheet) {
   sheet.getRange(2, 8).setFormula('=SUMIF(J4:J,"クレジットカード",B4:B)+SUMIF(J4:J,"電子決済",B4:B)');
   sheet.getRange(2, 8).setNumberFormat('#,##0').setFontWeight('bold').setHorizontalAlignment('center').setBackground('#e8e4ff');
   // K2: 繰越合計ラベル, L2: SUMIF（繰越を含む行の売上合計）
-  sheet.getRange(2, 11).setValue('繰越合計').setFontWeight('bold').setHorizontalAlignment('center').setBackground('#fff3cd');
+  sheet.getRange(2, 11).setValue('前日繰越合計').setFontWeight('bold').setHorizontalAlignment('center').setBackground('#fff3cd');
   sheet.getRange(2, 12).setFormula('=SUMIF(N4:N,"*繰越*",B4:B)');
   sheet.getRange(2, 12).setNumberFormat('#,##0').setFontWeight('bold').setHorizontalAlignment('center').setBackground('#fff3cd');
 }
@@ -586,6 +603,7 @@ function updateSummary(sheet) {
 
   SpreadsheetApp.flush();
   setSummaryColumnWidths(sheet);
+  sheet.setFrozenColumns(1); // 明細更新時にも日付列を固定
 }
 
 // ==================== 月別集計 ====================
