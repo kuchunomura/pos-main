@@ -264,6 +264,7 @@ function ensureHeaders(sheet) {
     hRange.setFontWeight('bold').setBackground('#f5f5f5').setHorizontalAlignment('center');
     sheet.setFrozenRows(3);
   }
+  if (sheet.getFrozenColumns() < 1) sheet.setFrozenColumns(1); // 日付（A列）を横スクロールでも固定
 }
 
 // Row1: 集計計算式
@@ -486,6 +487,10 @@ function updateSummary(sheet) {
   var natMap  = {};
   var txSeen  = {};
 
+  // 取引ごとの総人数（1売上に宿泊複数でも合算）
+  var txTotalPeople = {};
+  for (var t = 0; t < data.length; t++) { var tId = data[t][14]; if (tId) txTotalPeople[tId] = (txTotalPeople[tId]||0) + (Number(data[t][7])||0); }
+
   for (var i = 0; i < data.length; i++) {
     var r        = data[i];
     var itemName = r[2];   // C: 商品名
@@ -506,7 +511,7 @@ function updateSummary(sheet) {
 
     if (txId && !txSeen[txId]) {
       txSeen[txId] = true;
-      var people = Number(jinzu) || 0;
+      var people = txTotalPeople[txId] || (Number(jinzu) || 0);
 
       if (ageStr) {
         var ages = String(ageStr).split('・');
