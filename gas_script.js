@@ -988,6 +988,12 @@ function createMonthlySummary(year, month) {
         var dcx=dailyCrossMap[dateStr][crossKey];
         dcx.people+=people; dcx.total+=unitPrice*qty; dcx.qty+=qty;
 
+        if (itemName.indexOf('年間パス')!==-1){ // 年間パス販売を【年間パス（日別・カテゴリ別）】表・見出しに計上
+          pass.count++; pass.people+=people; pass.total+=unitPrice*qty;
+          if (!passDailyCatMap[dateStr][pg]) passDailyCatMap[dateStr][pg]={people:0,total:0,txSet:{}};
+          passDailyCatMap[dateStr][pg].people+=people; passDailyCatMap[dateStr][pg].total+=unitPrice*qty;
+        }
+
         if (isMura){
           if (!muraDailyCatMap[dateStr][pg]) muraDailyCatMap[dateStr][pg]={people:0,total:0,txSet:{}};
           var mdce=muraDailyCatMap[dateStr][pg];
