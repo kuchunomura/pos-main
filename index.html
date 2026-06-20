@@ -900,8 +900,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 330;
-const APP_BUILD_DATE = '2026/06/20 16:30';
+const APP_VERSION = 331;
+const APP_BUILD_DATE = '2026/06/20 16:45';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -1644,6 +1644,7 @@ function isStayItem(item){
 }
 
 function getDiscountedPrice(item){
+  if(item.id==='i_passday'||item.id==='i_passnight') return item.price; // 年間パスは常に定価（割引対象外）
   // 年間パス昼：レンタル・空中ウォーク・ツリーハウス昼が無料（ボタン表示用）
   if(activeDiscount==='pass_day'){
     if(item.cat==='cat_rental' || item.cat==='cat_walk' || item.cat==='cat_tree_day') return 0;
@@ -1854,6 +1855,10 @@ function recalcCartPrices(){
     const masterItem = items.find(i=>i.id===cartItem.id);
     const cat = masterItem ? masterItem.cat : cartItem.cat;
     var applied = false;
+    // 手動で価格編集した商品（料金箱回収など）は価格を保持
+    if(cartItem.manualPrice){return;}
+    // 年間パスは常に定価（村民・団体・OTA等すべて割引対象外）
+    if(cartItem.id==='i_passday'||cartItem.id==='i_passnight'){cartItem.price=cartItem.origPrice;cartItem.discounted=false;cartItem.paidLabel='';return;}
     // 年間パス昼：追加時にpassKeyが記憶されたアイテムのみ適用
     if(cartItem.passKey==='pass_day'){
       if(cat==='cat_rental' || cat==='cat_walk' || cat==='cat_tree_day'){
@@ -1969,7 +1974,7 @@ function renderCart(){
           '<span style="font-size:14px;font-weight:600;min-width:20px;text-align:center;">'+item.qty+'</span>'+
           '<button onclick="chgQty('+idx+',1)" style="width:26px;height:26px;border:1px solid var(--border);border-radius:5px;background:#fff;font-size:15px;cursor:pointer;padding:0;line-height:1;">＋</button>'+
         '</div>'+
-        '<div style="font-size:14px;font-weight:700;color:'+priceColor+';">¥'+(item.price*item.qty).toLocaleString()+'</div>'+
+        '<div style="font-size:14px;font-weight:700;color:'+priceColor+';cursor:pointer;text-decoration:underline dotted;" onclick="editCartPrice('+idx+')" title="タップで単価を編集">¥'+(item.price*item.qty).toLocaleString()+'</div>'+
         '<div style="color:#ccc;font-size:16px;cursor:pointer;padding:0 4px;" onclick="removeCart('+idx+')">✕</div>'+
       '</div>';
     c.appendChild(div);
@@ -1984,6 +1989,17 @@ function renderCart(){
   var cb=document.getElementById('checkout-btn');
   if(cb) cb.style.display=invoiceMode?'none':'';
   renderHoldTabs();
+}
+
+// カート内商品の単価を手動編集（料金箱回収など金額が毎回変わる商品用）
+function editCartPrice(idx){
+  var it=cart[idx];
+  var v=prompt(it.name+' の単価を入力してください（円）', it.price);
+  if(v===null) return;
+  var n=Math.round(Number(v));
+  if(isNaN(n)||n<0){ showToast('⚠ 金額が不正です','#c00'); return; }
+  it.price=n; it.manualPrice=true; it.discounted=false; it.paidLabel='';
+  renderCart();
 }
 
 function openCheckoutSummary(){
