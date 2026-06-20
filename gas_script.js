@@ -857,7 +857,7 @@ function getParentGroup(cat) {
   return 'その他（カテゴリ・商品登録なし）';
 }
 
-var CROSS_ORDER = ['空中ウォーク 55分','空中ウォーク 115分','空中ウォーク 1DAY','ツリーハウス昼 55分','ツリーハウス昼 115分','ツリーハウス昼 1DAY','BBQスペース','ツリーハウス宿泊','ドーム','空中テント','ハンモック','備品レンタル','受付飲食','グッズ','ピクニック飲食','無人販売','ペット','その他（カテゴリ・商品登録なし）'];
+var CROSS_ORDER = ['空中ウォーク 55分','空中ウォーク 115分','空中ウォーク 1DAY','ツリーハウス昼 55分','ツリーハウス昼 115分','ツリーハウス昼 1DAY','BBQスペース','ツリーハウス宿泊','ドーム','空中テント','ハンモック','備品レンタル','受付飲食','グッズ','ピクニック飲食','無人販売','ペット','年間パス','その他（カテゴリ・商品登録なし）'];
 var CAT_ORDER   = ['空中ウォーク','ツリーハウス昼','BBQスペース','ツリーハウス宿泊','ドーム','空中テント','ハンモック','消耗品','備品レンタル','受付飲食','グッズ','ピクニック飲食','無人販売','ペット','その他（カテゴリ・商品登録なし）'];
 function sortByOrder(keys, order) {
   keys.sort(function(a, b) {
@@ -966,6 +966,7 @@ function createMonthlySummary(year, month) {
         else {
         txProcessedRows[txId]++;
         var pg=getParentGroup(cat);
+        if(itemName.indexOf('年間パス')!==-1) pg='年間パス'; // 年間パス販売は専用カテゴリ（空中ウォーク等の時間別分類から漏れるのを防ぐ）
         if (!parentMap[pg]) parentMap[pg]={count:0,people:0,total:0,txSet:{},cats:{}};
         var pe=parentMap[pg];
         if (!pe.txSet[txId]){pe.txSet[txId]=true;pe.count++;} pe.people+=people;
