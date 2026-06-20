@@ -900,8 +900,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 329;
-const APP_BUILD_DATE = '2026/06/11 11:44';
+const APP_VERSION = 330;
+const APP_BUILD_DATE = '2026/06/20 16:30';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -991,6 +991,7 @@ const DEFAULT_ITEMS = [
   {id:'i_walk55',  name:'空中ウォーク 55分',      price:2000, cat:'cat_walk', stock:0, free_mura:false},
   {id:'i_walk115', name:'空中ウォーク 115分',      price:2500, cat:'cat_walk', stock:0, free_mura:false},
   {id:'i_walk1day',name:'空中ウォーク 1DAY',       price:3000, cat:'cat_walk', stock:0, free_mura:false},
+  {id:'i_passday', name:'年間パス昼',              price:15000,cat:'cat_walk', stock:0, free_mura:false},
   {id:'i_1777680532193', name:'500円　55分延長',  price:500,  cat:'cat_walk', stock:0, free_mura:false},
   {id:'i_1777557786554', name:'テスト',            price:1,    cat:'cat_walk', stock:0, free_mura:false},
   {id:'i_tree55',  name:'ツリーハウス昼 55分',     price:2000, cat:'cat_tree_day', stock:0, free_mura:false},
@@ -999,6 +1000,7 @@ const DEFAULT_ITEMS = [
   {id:'i_bbq',     name:'BBQスペース',             price:3000, cat:'cat_bbq', stock:0, free_mura:true},
   // 宿泊：ツリーハウス
   {id:'i_st_th',  name:'ツリーハウス',       price:12000,cat:'cat_stay_tree',stock:1, stay_prices:{1:14000,2:12000,3:10000,4:8000,5:8000}, dotColor:'#72A862'},
+  {id:'i_passnight',name:'年間パス夜',            price:30000,cat:'cat_stay_tree',stock:0, free_mura:false},
   // 宿泊：ドーム
   {id:'i_st_dm',  name:'ドーム（ミラー）',   price:10000,cat:'cat_stay_dome',stock:1, stay_prices:{1:12000,2:10000,3:8000,4:7000,5:7000}, dotColor:'#B0B0B0', nameParts:[{text:'ドーム',color:'#1a1a1a'},{text:'（ミラー）',color:'#1a1a1a'}]},
   {id:'i_st_dt',  name:'ドーム（クリア）',     price:10000,cat:'cat_stay_dome',stock:1, stay_prices:{1:12000,2:10000,3:8000,4:7000,5:7000}, dotColor:'#9ABFC9', nameParts:[{text:'ドーム',color:'#1a1a1a'},{text:'（クリア）',color:'#1a1a1a'}]},
@@ -1064,6 +1066,7 @@ const DEFAULT_ITEMS = [
   {id:'i_u08', name:'十津川造林 薪（小）',  price:300,  cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_u09', name:'ヒノキ炭',             price:600,  cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_u10', name:'スウェーデントーチ',   price:1000, cat:'cat_unmanned', stock:0, free_mura:false},
+  {id:'i_kinbako', name:'料金箱回収',          price:0,    cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_s01', name:'マッチ',               price:100,  cat:'cat_shoumouhin',stock:0, free_mura:false},
   {id:'i_s02', name:'歯ブラシ',             price:200,  cat:'cat_shoumouhin',stock:0, free_mura:false},
   {id:'i_s03', name:'ライター',             price:400,  cat:'cat_shoumouhin',stock:0, free_mura:false},
