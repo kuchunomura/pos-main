@@ -900,8 +900,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 333;
-const APP_BUILD_DATE = '2026/06/20 14:20';
+const APP_VERSION = 334;
+const APP_BUILD_DATE = '2026/06/21 10:25';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -1625,6 +1625,19 @@ const STAY_FREE_IDS = ['i_bbq'];
 const SOU_FREE_IDS = ['i_tree115','i_walk115'];
 // 楽天・じゃらん・SOU：支払済み表示設定（設定で変更可能）
 let paidDisplaySettings = ld('pos_paid_display') || {label:'支払済', color:'#c0392b'};
+// OTA（楽天・じゃらん・SOU）：押すと日帰り＋宿泊を一律0円（支払済）にする
+const OTA_KEYS = ['rakuten','jalan','sou'];
+const OTA_FREE_CATS = ['cat_walk','cat_tree_day','cat_bbq'];
+function isOtaActive(){ return OTA_KEYS.includes(activeDiscount); }
+function isOtaFreeCat(cat,id){
+  if(id==='i_passday'||id==='i_passnight') return false; // 年間パスは常に定価
+  return OTA_FREE_CATS.includes(cat) || STAY_CAT_IDS.includes(cat);
+}
+function isOtaFreeItem(item){
+  if(!item) return false;
+  if(item.id==='i_passday'||item.id==='i_passnight') return false;
+  return OTA_FREE_CATS.includes(item.cat) || isStayItem(item);
+}
 
 function isStayInCart(){
   return cart.some(c => {
@@ -1653,15 +1666,8 @@ function getDiscountedPrice(item){
   if(activeDiscount==='pass_night'){
     if(item.cat==='cat_rental' || isStayItem(item)) return 0;
   }
-  if(activeDiscount==='sou'){
-    if(SOU_FREE_IDS.includes(item.id)) return 0;
-  }
-  if(activeDiscount==='rakuten'){
-    if(isStayItem(item)) return 0;
-  }
-  if(activeDiscount==='jalan'){
-    if(item.id==='i_walk1day') return 0;
-  }
+  // OTA（楽天・じゃらん・SOU）：日帰り＋宿泊を一律0円（支払済）
+  if(isOtaActive() && isOtaFreeItem(item)) return 0;
   if(activeDiscount==='stay_guest' || isStayInCart()){
     if(STAY_GUEST_DISC_IDS.includes(item.id)) return item.price - STAY_GUEST_DISC;
   }
@@ -1684,9 +1690,7 @@ function getDiscountedPrice(item){
 function getPaidBadge(item){
   const d = discountItems.find(d=>d.key===activeDiscount);
   if(!d || d.type!=='paid') return null;
-  if(activeDiscount==='sou' && SOU_FREE_IDS.includes(item.id)) return paidDisplaySettings.label;
-  if(activeDiscount==='rakuten' && isStayItem(item)) return paidDisplaySettings.label;
-  if(activeDiscount==='jalan' && item.id==='i_walk1day') return paidDisplaySettings.label;
+  if(isOtaActive() && isOtaFreeItem(item)) return paidDisplaySettings.label;
   return null;
 }
 
@@ -1871,13 +1875,8 @@ function recalcCartPrices(){
         cartItem.price=0; cartItem.discounted=true; cartItem.paidLabel=paidDisplaySettings.label; applied=true;
       }
     }
-    else if(activeDiscount==='sou' && SOU_FREE_IDS.includes(cartItem.id)){
-      cartItem.price=0; cartItem.discounted=true; cartItem.paidLabel=paidDisplaySettings.label; applied=true;
-    }
-    else if(activeDiscount==='rakuten' && cartItem.isStay){
-      cartItem.price=0; cartItem.discounted=true; cartItem.paidLabel=paidDisplaySettings.label; applied=true;
-    }
-    else if(activeDiscount==='jalan' && cartItem.id==='i_walk1day'){
+    // OTA（楽天・じゃらん・SOU）：日帰り＋宿泊を一律0円（支払済）
+    else if(isOtaActive() && (isOtaFreeCat(cat, cartItem.id) || cartItem.isStay)){
       cartItem.price=0; cartItem.discounted=true; cartItem.paidLabel=paidDisplaySettings.label; applied=true;
     }
     if(!applied && (activeDiscount==='stay_guest'||stayInCart) && STAY_GUEST_DISC_IDS.includes(cartItem.id)){
