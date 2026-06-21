@@ -900,8 +900,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 335;
-const APP_BUILD_DATE = '2026/06/21 10:31';
+const APP_VERSION = 336;
+const APP_BUILD_DATE = '2026/06/21 10:42';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -1875,8 +1875,8 @@ function recalcCartPrices(){
         cartItem.price=0; cartItem.discounted=true; cartItem.paidLabel=paidDisplaySettings.label; applied=true;
       }
     }
-    // OTA（楽天・じゃらん・SOU）：日帰り＋宿泊を一律0円（支払済）
-    else if(isOtaActive() && (isOtaFreeCat(cat, cartItem.id) || cartItem.isStay)){
+    // OTA（楽天・じゃらん・SOU）：追加時にotaKeyを記憶した商品のみ0円（支払済）。トグルOFFしてもカート内は維持
+    else if(cartItem.otaKey){
       cartItem.price=0; cartItem.discounted=true; cartItem.paidLabel=paidDisplaySettings.label; applied=true;
     }
     if(!applied && (activeDiscount==='stay_guest'||stayInCart) && STAY_GUEST_DISC_IDS.includes(cartItem.id)){
@@ -1921,11 +1921,12 @@ function addToCart(item,cat){
   const paidBadge = getPaidBadge(item);
   const price = paidBadge ? 0 : getDiscountedPrice(item);
   const newPassKey=(activeDiscount==='pass_day'||activeDiscount==='pass_night')?activeDiscount:'';
+  const newOtaKey=(isOtaActive()&&isOtaFreeItem(item))?activeDiscount:'';
   const newGroupOn=activeGroup&&item.cat!=='cat_rental';
   const newFreeOn=activeFree;
-  const ex=cart.find(c=>c.id===item.id&&c.discounted===(price<item.price)&&!c.paidLabel===!paidBadge&&(c.passKey||'')===(newPassKey)&&!!c.groupOn===!!newGroupOn&&!!c.freeOn===!!newFreeOn);
+  const ex=cart.find(c=>c.id===item.id&&c.discounted===(price<item.price)&&!c.paidLabel===!paidBadge&&(c.passKey||'')===(newPassKey)&&(c.otaKey||'')===(newOtaKey)&&!!c.groupOn===!!newGroupOn&&!!c.freeOn===!!newFreeOn);
   if(ex)ex.qty++;
-  else cart.push({id:item.id,name:item.name,origPrice:item.price,price,qty:1,discounted:price<item.price,paidLabel:paidBadge||'',free_mura:item.free_mura||false,cat:item.cat||'',catColor:cat?cat.bg:'#fff',muraOn:activeMura&&(item.cat==='cat_walk'||item.cat==='cat_tree_day'||item.id==='i_bbq'||!!item.free_mura),groupOn:newGroupOn,freeOn:newFreeOn,passKey:newPassKey});
+  else cart.push({id:item.id,name:item.name,origPrice:item.price,price,qty:1,discounted:price<item.price,paidLabel:paidBadge||'',free_mura:item.free_mura||false,cat:item.cat||'',catColor:cat?cat.bg:'#fff',muraOn:activeMura&&(item.cat==='cat_walk'||item.cat==='cat_tree_day'||item.id==='i_bbq'||!!item.free_mura),groupOn:newGroupOn,freeOn:newFreeOn,passKey:newPassKey,otaKey:newOtaKey});
   if(STAY_CAT_IDS.includes(item.cat)) recalcCartPrices();
   renderPOS();
   renderCart();showToast('✓ '+item.name);
@@ -2280,7 +2281,10 @@ function confirmPayment(){
     const received=parseInt(document.getElementById('cash-received').value)||0;
     if(received<total){showToast('⚠ 受取金額が不足しています','#c00');return;}
   }
-  const isPaid = discountItems.find(d=>d.key===activeDiscount)?.type==='paid';
+  // OTAトグルをOFFにして会計しても、カート内にOTA商品があれば報告書がOTAを取りこぼさないよう割引にOTAキーを記録
+  var saleDiscount=activeDiscount;
+  if(!saleDiscount){var _oi=cart.find(c=>c.otaKey);if(_oi)saleDiscount=_oi.otaKey;}
+  const isPaid = discountItems.find(d=>d.key===saleDiscount)?.type==='paid';
   var saleDatetime;
   if(nextDayMode>0){
     var nd=new Date(); nd.setDate(nd.getDate()+nextDayMode); nd.setHours(8,0,0,0);
@@ -2296,7 +2300,7 @@ function confirmPayment(){
   const record={
     id:'s_'+Date.now(),datetime:saleDatetime,
     items:cart.map(i=>({...i})),total,method:currentPayMethod,
-    attrs:{...selectedAttrs},discount:activeDiscount,paid:isPaid,
+    attrs:{...selectedAttrs},discount:saleDiscount,paid:isPaid,
     memo:saleMemo,
     nextDay:nextDayMode,
     device:localStorage.getItem('pos_device_id')||'',
