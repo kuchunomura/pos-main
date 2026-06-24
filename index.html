@@ -900,8 +900,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 340;
-const APP_BUILD_DATE = '2026/06/21 11:35';
+const APP_VERSION = 341;
+const APP_BUILD_DATE = '2026/06/24 15:28';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -1675,7 +1675,7 @@ function getDiscountedPrice(item){
   // 村民割引：activeMuraがONのとき、空中ウォーク・ツリーハウス昼が半額、BBQ無料
   if(activeMura){
     if(item.id==='i_bbq' || item.free_mura) return 0;
-    if(item.cat==='cat_walk' || item.cat==='cat_tree_day') return Math.floor(item.price/2);
+    if(item.cat==='cat_walk' || item.cat==='cat_tree_day' || STAY_CAT_IDS.includes(item.cat)) return Math.floor(item.price/2);
   }
   if(activeFree) return 0;
   if(activeGroup && item.cat!=='cat_rental'){
@@ -1889,7 +1889,7 @@ function recalcCartPrices(){
     if(!applied && cartItem.muraOn){
       if(cartItem.id==='i_bbq' || cartItem.free_mura){
         cartItem.price=0; cartItem.discounted=true; cartItem.paidLabel=''; applied=true;
-      } else if(cat==='cat_walk' || cat==='cat_tree_day'){
+      } else if(cat==='cat_walk' || cat==='cat_tree_day' || STAY_CAT_IDS.includes(cat)){
         cartItem.price=Math.floor(cartItem.origPrice/2); cartItem.discounted=true; cartItem.paidLabel=''; applied=true;
       }
     }
@@ -4188,6 +4188,7 @@ function selectStayPeople(n){
     isStay: true,
     cat: pendingStayItem.cat || '',
     catColor: cat ? cat.bg : '#fff',
+    muraOn: isMura,
     groupOn: newGroupOn,
     freeOn: newFreeOn,
     passKey: stayPassKey
