@@ -900,8 +900,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 342;
-const APP_BUILD_DATE = '2026/06/25 09:08';
+const APP_VERSION = 343;
+const APP_BUILD_DATE = '2026/06/25 09:32';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -1056,6 +1056,7 @@ const DEFAULT_ITEMS = [
   {id:'i_g19', name:'ターボライター',       price:400,  cat:'cat_goods',    stock:0, free_mura:false},
   {id:'i_g20', name:'マスク',               price:500,  cat:'cat_goods',    stock:0, free_mura:false},
   {id:'i_1777769842699', name:'まな板',     price:1500, cat:'cat_goods',    stock:0, free_mura:false},
+  {id:'i_hinoki_mimi', name:'ひのき耳つき板', price:3000, cat:'cat_goods', stock:0, free_mura:false, variants:[{label:'大',price:3000},{label:'中',price:2000},{label:'小',price:1000}]},
   {id:'i_u01', name:'コーヒー',             price:100,  cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_u02', name:'ひのき着火剤',         price:100,  cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_u03', name:'水 2L',                price:200,  cat:'cat_unmanned', stock:0, free_mura:false},
@@ -1574,14 +1575,16 @@ function makeItemBtn(item, cat, grid){
   btn.style.borderWidth='2px';
   if(inCartQty>0) btn.style.boxShadow='inset 0 0 0 2px '+cat.border+',var(--shadow)';
   const isStayItem2 = item.stay_prices && Object.keys(item.stay_prices).length > 0;
+  const hasVariants = !!(item.variants && item.variants.length > 0);
   const paidBadge = getPaidBadge(item);
-  const dispPrice = isStayItem2 ? null : getDiscountedPrice(item);
+  const dispPrice = (isStayItem2||hasVariants) ? null : getDiscountedPrice(item);
   let priceHtml;
-  if(isStayItem2){
+  if(isStayItem2 || hasVariants){
+    const varLabel = hasVariants ? 'サイズで変動' : '人数で変動';
     if(paidBadge){
-      priceHtml='<div class="item-price"><span style="font-size:10px;color:#aaa;text-decoration:line-through;">人数で変動</span><br><span style="color:'+paidDisplaySettings.color+';font-weight:700;font-size:12px;">'+paidBadge+'</span></div>';
+      priceHtml='<div class="item-price"><span style="font-size:10px;color:#aaa;text-decoration:line-through;">'+varLabel+'</span><br><span style="color:'+paidDisplaySettings.color+';font-weight:700;font-size:12px;">'+paidBadge+'</span></div>';
     } else {
-      priceHtml='<div class="item-price" style="color:'+cat.price+'">人数で変動</div>';
+      priceHtml='<div class="item-price" style="color:'+cat.price+'">'+varLabel+'</div>';
     }
   } else if(paidBadge){
     priceHtml='<div class="item-price"><span style="font-size:10px;color:#aaa;text-decoration:line-through;">¥'+item.price.toLocaleString()+'</span><br><span style="color:'+paidDisplaySettings.color+';font-weight:700;font-size:12px;">'+paidBadge+'</span></div>';
@@ -1913,6 +1916,11 @@ function addToCart(item,cat){
   // 宿泊で人数別料金がある場合はポップアップ
   if(item.stay_prices && Object.keys(item.stay_prices).length > 0){
     openStayModal(item, cat);
+    return;
+  }
+  // バリアント（大中小など）はポップアップで選択
+  if(item.variants && item.variants.length){
+    openVariantModal(item, cat);
     return;
   }
   // カートに追加した時点でlastPaidハイライトをリセット
@@ -4137,6 +4145,34 @@ function toggleDiscount(){
 // ===== 宿泊人数ポップアップ =====
 let pendingStayItem = null;
 let pendingStayCat = null;
+let pendingVariantItem = null;
+let pendingVariantCat = null;
+
+// バリアント（大中小など）選択モーダル。宿泊モーダルのDOMを流用
+function openVariantModal(item, cat){
+  pendingVariantItem = item;
+  pendingVariantCat = cat;
+  let html = '<div style="margin-bottom:12px;font-size:13px;color:var(--text2)">サイズを選択</div>';
+  html += '<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">';
+  item.variants.forEach((v, idx) => {
+    html += `<button onclick="selectVariant(${idx})" style="padding:10px;border:1px solid var(--border);border-radius:8px;background:#f9f9f9;cursor:pointer;font-family:inherit;text-align:left;font-size:13px;">
+      <span style="font-weight:600">${v.label}</span>　<span style="font-weight:700;color:var(--accent2)">¥${v.price.toLocaleString()}</span>
+    </button>`;
+  });
+  html += '</div>';
+  document.getElementById('stay-modal-content').innerHTML = html;
+  document.getElementById('stay-modal-title').textContent = item.name + ' - サイズを選択';
+  document.getElementById('stay-modal').classList.add('open');
+}
+
+function selectVariant(idx){
+  if(!pendingVariantItem) return;
+  const base = pendingVariantItem, cat = pendingVariantCat, v = base.variants[idx];
+  document.getElementById('stay-modal').classList.remove('open');
+  const synth = {id: base.id+'_'+idx, name: base.name+'（'+v.label+'）', price: v.price, cat: base.cat||'', free_mura: base.free_mura||false, stock: 0};
+  pendingVariantItem = null; pendingVariantCat = null;
+  addToCart(synth, cat);
+}
 
 function openStayModal(item, cat){
   pendingStayItem = item;
@@ -4856,6 +4892,13 @@ restoreFromIDB().then(()=>{
   var needSave=false;
   items.forEach(function(it){if(it.id==='i_b04'&&it.name==='チェア・ベンチ'){it.name='ベンチ';needSave=true;}});
   if(needSave) sv(KEYS.items,items);
+  // 新商品「ひのき耳つき板」（大中小バリアント）を未所持なら追加
+  if(!items.some(function(i){return i.id==='i_hinoki_mimi';})){
+    var _mimi={id:'i_hinoki_mimi', name:'ひのき耳つき板', price:3000, cat:'cat_goods', stock:0, free_mura:false, variants:[{label:'大',price:3000},{label:'中',price:2000},{label:'小',price:1000}]};
+    var _gi=-1; for(var _k=items.length-1;_k>=0;_k--){ if(items[_k].cat==='cat_goods'){_gi=_k;break;} }
+    if(_gi>=0) items.splice(_gi+1,0,_mimi); else items.push(_mimi);
+    sv(KEYS.items,items);
+  }
   // 寝袋順序修正: 夏用(i_b19)を冬用(i_b20)の前に
   (function(){
     var i19=items.findIndex(function(i){return i.id==='i_b19';}),i20=items.findIndex(function(i){return i.id==='i_b20';});
