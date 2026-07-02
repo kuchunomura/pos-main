@@ -900,8 +900,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 343;
-const APP_BUILD_DATE = '2026/06/25 09:32';
+const APP_VERSION = 344;
+const APP_BUILD_DATE = '2026/07/02 17:17';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -2292,6 +2292,8 @@ function confirmPayment(){
   // OTAトグルをOFFにして会計しても、カート内にOTA商品があれば報告書がOTAを取りこぼさないよう割引にOTAキーを記録
   var saleDiscount=activeDiscount;
   if(!saleDiscount){var _oi=cart.find(c=>c.otaKey);if(_oi)saleDiscount=_oi.otaKey;}
+  // 村民割引：activeMuraは独立トグルなので会計時に取りこぼさないよう記録（他割引が無い場合のみ）
+  if(!saleDiscount && (activeMura || cart.some(c=>c.muraOn))) saleDiscount='mura';
   const isPaid = discountItems.find(d=>d.key===saleDiscount)?.type==='paid';
   var saleDatetime;
   if(nextDayMode>0){
@@ -2481,6 +2483,7 @@ function calcPeopleByFacility(filtered){
       var catId=i.cat||'';
       var inFacility=facilityCatIds.indexOf(catId)!==-1||!!i.isStay;
       if(!inFacility) return;
+      if((i.name||'').indexOf('延長')!==-1) return; // 55分延長などの追加課金は人数に数えない（別プロダクト扱い）
       var catName=catNameMap[catId]||catId||(i.isStay?'宿泊':'');
       var m=i.name.match(/[（(](\d+)人[）)]/);
       var count=m?parseInt(m[1])*i.qty:i.qty;
@@ -2497,6 +2500,7 @@ function calcPersonCount(filtered){
   filtered.forEach(function(r){
     r.items.forEach(function(i){
       if(facilityCatIds.indexOf(i.cat||'')===-1) return;
+      if((i.name||'').indexOf('延長')!==-1) return; // 55分延長などの追加課金は人数に数えない
       var m=i.name.match(/[（(](\d+)人[）)]/);
       total+=m?parseInt(m[1])*i.qty:i.qty;
     });
@@ -2983,8 +2987,9 @@ function saleToRows(sale){
     var isFirst=idx===0;
     var catName=catNameMap[i.cat||'']||i.cat||(i.isStay?'宿泊':'');
     var isF=FACILITY_CATS.indexOf(i.cat||'')!==-1||!!i.isStay;
+    var isExt=(i.name||'').indexOf('延長')!==-1; // 55分延長などの追加課金は人数に数えない
     var m=i.name.match(/[（(](\d+)人[）)]/);
-    var persons=isF?(m?parseInt(m[1])*i.qty:i.qty):0;
+    var persons=(isF&&!isExt)?(m?parseInt(m[1])*i.qty:i.qty):0;
     return [
       isFirst ? dtStr : '',                           // A: 日時（最初の行のみ）
       isFirst?sale.total:'',                          // B: 売上合計
@@ -3314,7 +3319,8 @@ async function submitInvoiceFromCart(){
       closeInvoiceCartModal();
       if(recordMode!=='none'){
         var saleTs=recordMode==='other'?new Date(document.getElementById('inv-cart-date').value+'T12:00:00').toISOString():new Date().toISOString();
-        var invSale={id:'s_'+Date.now(),datetime:saleTs,items:cart.map(function(i){return Object.assign({},i);}),total:total,method:method,attrs:Object.assign({},selectedAttrs),discount:activeDiscount,paid:false,memo:memo,device:localStorage.getItem('pos_device_id')||'',device_name:localStorage.getItem('pos_device_name')||'',syncStatus:'pending'};
+        var invDiscount=activeDiscount; if(!invDiscount && (activeMura || cart.some(function(c){return c.muraOn;}))) invDiscount='mura';
+        var invSale={id:'s_'+Date.now(),datetime:saleTs,items:cart.map(function(i){return Object.assign({},i);}),total:total,method:method,attrs:Object.assign({},selectedAttrs),discount:invDiscount,paid:false,memo:memo,device:localStorage.getItem('pos_device_id')||'',device_name:localStorage.getItem('pos_device_name')||'',syncStatus:'pending'};
         sales.push(invSale);sv(KEYS.sales,sales);saveSnapshotToIDB();
         autoSyncSale(invSale).then(function(ok){var s=sales.find(function(x){return x.id===invSale.id;});if(s){s.syncStatus=ok?'ok':'fail';sv(KEYS.sales,sales);saveSnapshotToIDB();renderSales();}});
       }
