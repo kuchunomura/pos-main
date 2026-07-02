@@ -833,6 +833,7 @@ function debugSonoTa(yearMonth) {
 
 function getParentGroupCross(pg, itemName) {
   if (pg === '空中ウォーク' || pg === 'ツリーハウス昼') {
+    if (itemName.indexOf('延長') !== -1) return pg + ' 延長'; // 55分延長など追加課金は別プロダクトとして分離（コース人数に混ぜない）
     if (itemName.indexOf('55分') !== -1) return pg + ' 55分';
     if (itemName.indexOf('115分') !== -1) return pg + ' 115分';
     if (itemName.indexOf('1DAY') !== -1) return pg + ' 1DAY';
@@ -857,7 +858,7 @@ function getParentGroup(cat) {
   return 'その他（カテゴリ・商品登録なし）';
 }
 
-var CROSS_ORDER = ['空中ウォーク 55分','空中ウォーク 115分','空中ウォーク 1DAY','ツリーハウス昼 55分','ツリーハウス昼 115分','ツリーハウス昼 1DAY','BBQスペース','ツリーハウス宿泊','ドーム','空中テント','ハンモック','備品レンタル','受付飲食','グッズ','ピクニック飲食','無人販売','ペット','年間パス','その他（カテゴリ・商品登録なし）'];
+var CROSS_ORDER = ['空中ウォーク 55分','空中ウォーク 115分','空中ウォーク 1DAY','空中ウォーク 延長','ツリーハウス昼 55分','ツリーハウス昼 115分','ツリーハウス昼 1DAY','ツリーハウス昼 延長','BBQスペース','ツリーハウス宿泊','ドーム','空中テント','ハンモック','備品レンタル','受付飲食','グッズ','ピクニック飲食','無人販売','ペット','年間パス','その他（カテゴリ・商品登録なし）'];
 var CAT_ORDER   = ['空中ウォーク','ツリーハウス昼','BBQスペース','ツリーハウス宿泊','ドーム','空中テント','ハンモック','消耗品','備品レンタル','受付飲食','グッズ','ピクニック飲食','無人販売','ペット','その他（カテゴリ・商品登録なし）'];
 function sortByOrder(keys, order) {
   keys.sort(function(a, b) {
@@ -931,7 +932,7 @@ function createMonthlySummary(year, month) {
           pass1RowSeen[pKey]=true;
           if (!txUniqueRows[ptxId]) txUniqueRows[ptxId]=0;
           txUniqueRows[ptxId]++;
-          txTotalPeople[ptxId]=(txTotalPeople[ptxId]||0)+(Number(pr[7+co])||0); // 取引の総人数（宿泊複数棟も合算）
+          txTotalPeople[ptxId]=(txTotalPeople[ptxId]||0)+(pItemName.indexOf('延長')!==-1?0:(Number(pr[7+co])||0)); // 取引の総人数（宿泊複数棟も合算。55分延長など追加課金は人数に数えない）
         }
       }
     }
@@ -951,6 +952,7 @@ function createMonthlySummary(year, month) {
       if (!txId||txId==='undefined') continue;
       var amount=Number(r[1+co])||0,itemName=String(r[2+co]||''),cat=String(r[3+co]||'');
       var qty=Number(r[4+co])||0,unitPrice=Number(r[5+co])||0,people=Number(r[7+co])||0;
+      if(itemName.indexOf('延長')!==-1) people=0; // 55分延長などの追加課金は人数に数えない（別プロダクトとして計上）
       var disc=String(r[8+co]||''),payment=String(r[9+co]||'');
       var ageStr=String(r[10+co]||''),natStr=String(r[11+co]||'');
 
