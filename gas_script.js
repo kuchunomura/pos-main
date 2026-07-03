@@ -295,7 +295,7 @@ function setTotalsFormulas(sheet) {
   sheet.getRange(1, 4).setFormula('=SUM(B4:B)');
   sheet.getRange(1, 4).setNumberFormat('#,##0');
   sheet.getRange(1, 5).setValue('総人数');
-  sheet.getRange(1, 6).setFormula('=SUM(H4:H)');
+  sheet.getRange(1, 6).setFormula('=SUM(H4:H)-SUMIF(C4:C,"*延長*",H4:H)'); // 55分延長など追加課金は人数に数えない
   sheet.getRange(1, 1, 1, 6).setFontWeight('bold').setHorizontalAlignment('center');
 
   // クレジット: クレジット色
