@@ -925,8 +925,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 354;
-const APP_BUILD_DATE = '2026/07/08 22:47';
+const APP_VERSION = 355;
+const APP_BUILD_DATE = '2026/07/08 22:50';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -2353,7 +2353,7 @@ function renderYoyakuPicker(data){
       var sit=items.find(function(it){return it.id==='i_'+o.facility;});
       var facName=sit?sit.name:(o.facGroup||'棟未選択');
       label='宿泊 '+facName; sub=(o.nights||1)+'泊 '+(o.ninzu||'')+'名'+((o.petCount||0)>0?'　ペット'+o.petCount:'');
-      bgTint='#eef6ea'; // 宿泊は一律クリアなグリーン
+      bgTint='#fbeee1'; // 宿泊は一律クリアな暖色（ピーチ）
     }
     var tag=o.source?('【'+o.source+'】'):((/年間パス/.test(o.memo||'')?'【年間パス】':'')+(o.mura?'【村内】':''));
     var rentalLine=(o.rental&&o.rental.length)?'<div style="font-size:11px;color:#7a1030;margin-top:2px">レンタル: '+esc(o.rental.map(function(r){return r.name+'×'+(r.qty||1);}).join('、'))+'</div>':'';
