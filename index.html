@@ -456,9 +456,9 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
       <button class="btn-sm2" onclick="updateFilterBtnState();renderSales()">絞込</button>
       <button class="btn-sm2" onclick="clearFilter()">全件</button>
       <span id="sales-app-type-label" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:var(--accent2);color:#fff;"></span>
-      <button class="btn-sm2" onclick="window.open(SS_URL_TEST,'_blank')" style="font-size:10px;padding:3px 8px;background:#e8f4fd;color:#2471a3;border-color:#a0c8e8;">📊 testシート</button>
-      <button class="btn-sm2" onclick="window.open(getCurrentSSUrl(),'_blank')" style="font-size:10px;padding:3px 8px;background:#f0f4e8;color:#2d5016;border-color:#a0c870;">📊 mainシート</button>
-      <button class="btn-sm2" onclick="window.open(getManualSSUrl(),'_blank')" style="font-size:10px;padding:3px 8px;background:#fff9c4;color:#7a5500;border-color:#d4b040;">📊 手動集計シート</button>
+      <button class="btn-sm2" onclick="window.open(SS_URL_TEST,'_blank')" style="font-size:10px;padding:3px 8px;background:#e8f4fd;color:#2471a3;border-color:#a0c8e8;">🔗 testシート リンク</button>
+      <button class="btn-sm2" onclick="window.open(getCurrentSSUrl(),'_blank')" style="font-size:10px;padding:3px 8px;background:#f0f4e8;color:#2d5016;border-color:#a0c870;">🔗 mainシート リンク</button>
+      <button class="btn-sm2" onclick="window.open(getManualSSUrl(),'_blank')" style="font-size:10px;padding:3px 8px;background:#fff9c4;color:#7a5500;border-color:#d4b040;">🔗 手動集計シート リンク</button>
     </div>
     <div class="summary-cards" style="margin-bottom:10px;">
       <div class="summary-card"><div class="sc-label">売上合計</div><div class="sc-value" id="sc-total">¥0</div></div>
@@ -921,8 +921,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 345;
-const APP_BUILD_DATE = '2026/07/08 20:37';
+const APP_VERSION = 346;
+const APP_BUILD_DATE = '2026/07/08 21:05';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -1254,14 +1254,12 @@ function switchTab(t) {
   });
   document.getElementById('tab-'+t).classList.add('active');
   if(t==='sales'){
-    const todayStr=new Date().toISOString().slice(0,10);
+    const todayStr=localDateStr(); // ローカル日付（UTCズレで午前が前日になるのを防ぐ）
     const ff=document.getElementById('filter-from');
     const ft=document.getElementById('filter-to');
-    if(ff&&!ff.value) ff.value=todayStr;
-    if(ft&&!ft.value){
-      const tom=new Date(); tom.setDate(tom.getDate()+1);
-      ft.value=tom.toISOString().slice(0,10);
-    }
+    // 当日をデフォルト表示。空 or 前日以前が残っていたら今日へ更新（日付が変わっても今日の売上を表示）
+    if(ff && (!ff.value || ff.value<todayStr)){ ff.value=todayStr; if(ft) ft.value=todayStr; }
+    else if(ft && !ft.value){ ft.value=todayStr; }
     switchSalesTab(currentSalesTab||'detail');
   }
   if (t==='settings-pos') { renderSettings(); initDeviceNameField(); initVersionInfo(); initYoyakuGasField(); }
@@ -1422,7 +1420,11 @@ function renderCatFilterTabs(){
   allBtn.className='cat-ftab'+(filterCatId==='all'?' active':'');
   allBtn.textContent='すべて';allBtn.onclick=()=>{filterCatId='all';renderCatFilterTabs();renderPOS();};
   c.appendChild(allBtn);
-  getOrderedCats().forEach(cat=>{
+  // 施設・宿泊カテゴリはトップ画面で見えているので絞込タブでは末尾に回す
+  const CAT_LAST=['cat_walk','cat_tree_day','cat_bbq','cat_stay_tree','cat_stay_dome','cat_stay_tent','cat_stay_hm'];
+  const _oc=getOrderedCats();
+  const _catsForFilter=_oc.filter(c=>CAT_LAST.indexOf(c.id)<0).concat(_oc.filter(c=>CAT_LAST.indexOf(c.id)>=0));
+  _catsForFilter.forEach(cat=>{
     if(!items.some(i=>i.cat===cat.id)&&!editMode)return;
     const b=document.createElement('button');
     b.className='cat-ftab'+(filterCatId===cat.id?' active':'');
