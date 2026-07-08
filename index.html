@@ -263,6 +263,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
           <button onclick="openInvoiceFromCart()" style="width:100%;padding:16px;background:#7a5500;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">📄 請求書・見積書を作成</button>
         </div>
         <div class="cart-bottom-btns">
+          <button class="hold-btn" onclick="openYoyakuPicker()" style="border-color:#7a1030;color:#7a1030;">📅 予約</button>
           <button class="hold-btn" onclick="holdCart()">⏸ 保留</button>
           <button class="clear-btn" onclick="clearCart()">🗑 クリア</button>
         </div>
@@ -596,6 +597,14 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
     </div>
   </div>
 
+  <!-- yoyaku予約連携 -->
+  <div class="settings-section">
+    <h3>📅 予約連携（yoyaku）</h3>
+    <div class="form-row"><label>yoyaku GAS WebアプリURL</label><input type="text" id="pos-yoyaku-gas-url" placeholder="https://script.google.com/macros/s/..."></div>
+    <div style="font-size:11px;color:#888;line-height:1.6;margin:4px 0 8px;">予約アプリ(yoyaku)のGAS URLを貼ると、POSのカート下「📅 予約」から本日以降の予約を呼び出して会計を起票できます。URLは非公開チャネルで受け取り手入力してください。</div>
+    <button class="btn-primary2" onclick="saveYoyakuGas()">URLを保存</button>
+  </div>
+
   <!-- 端末名 -->
   <div class="settings-section">
     <h3>📱 端末名（スプレッドシートに表示）</h3>
@@ -856,6 +865,18 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
   </div>
 </div>
 
+<!-- yoyaku予約ピッカー -->
+<div class="modal-overlay" id="yoyaku-modal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal" style="max-width:440px;max-height:82vh;display:flex;flex-direction:column;">
+    <h3>📅 予約から会計を起票</h3>
+    <div id="yoyaku-modal-content" style="margin:8px 0;overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;"></div>
+    <div class="modal-btns">
+      <button onclick="refreshYoyaku(true)">🔄 再取得</button>
+      <button onclick="document.getElementById('yoyaku-modal').classList.remove('open')">閉じる</button>
+    </div>
+  </div>
+</div>
+
 <!-- 決済完了 -->
 <div class="payment-done" id="payment-done" onclick="nextCustomer()">
   <div class="payment-done-inner" onclick="event.stopPropagation()">
@@ -900,8 +921,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 344;
-const APP_BUILD_DATE = '2026/07/02 17:17';
+const APP_VERSION = 345;
+const APP_BUILD_DATE = '2026/07/08 20:37';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -1211,9 +1232,10 @@ let TIMER_FACS = [
 let timerFacId = 'walk';
 let timerCourse = 55;
 let timerResults = [];
-// 保留データ（最大4）
-let holds = ld('pos_holds') || [null,null,null,null,null,null,null,null,null,null];
-let activeHoldIdx = 0; // 現在表示中の保留スロット
+// 保留データ（コンパクトなリスト・最大30件・入れた順に1..N・空欄なし）
+const MAX_HOLDS = 30;
+let holds = (ld('pos_holds')||[]).filter(function(h){return h;}); // 旧nullスロットを詰めて移行
+let activeHoldIdx = -1; // 編集中の保留index（-1＝新規カート）
 
 // ===== タブ切替 =====
 function switchTab(t) {
@@ -1242,9 +1264,10 @@ function switchTab(t) {
     }
     switchSalesTab(currentSalesTab||'detail');
   }
-  if (t==='settings-pos') { renderSettings(); initDeviceNameField(); initVersionInfo(); }
+  if (t==='settings-pos') { renderSettings(); initDeviceNameField(); initVersionInfo(); initYoyakuGasField(); }
   if (t==='agreement') loadAgreementText();
   if (t==='timer') initTimer();
+  if (t==='pos') warmYoyakuCache(); // 予約を裏で先読み（空/3分超のみ）
 }
 
 // ===== カテゴリー =====
@@ -2047,11 +2070,16 @@ function closeCheckoutSummary(){
 function chgQty(idx,d){cart[idx].qty=Math.max(1,cart[idx].qty+d);renderCart();}
 function toggleMuraOff(idx){cart[idx].muraOff=!cart[idx].muraOff;recalcCartPrices();renderCart();}
 function removeCart(idx){cart.splice(idx,1);recalcCartPrices();renderPOS();renderCart();}
+// 編集中の保留をリストから除去して詰める（決済/クリア時）。-1なら何もしない
+function removeActiveHold(){
+  if(activeHoldIdx>=0 && activeHoldIdx<holds.length){ holds.splice(activeHoldIdx,1); sv(KEYS.holds,holds); }
+  activeHoldIdx=-1;
+}
 function clearCart(){
+  _reservationSaleTag='';_pendingHoldTitle='';
   if(editingSaleId){
     // 修正モード中はeditingSaleIdを保持（タブ切り替え時に削除確認できるように）
-    holds[activeHoldIdx]=null;
-    sv(KEYS.holds,holds);
+    removeActiveHold();
     cart=[];selectedAttrs={age:[],nationality:[]};activeDiscount='';activeMura=false;
     attrVisible=false;
     var ai2=document.getElementById('attr-rows-inner'),ab2=document.getElementById('toggle-attr-btn');
@@ -2061,8 +2089,7 @@ function clearCart(){
     return;
   }
   editingSaleId=null;
-  holds[activeHoldIdx]=null;
-  sv(KEYS.holds,holds);
+  removeActiveHold();
   cart=[];selectedAttrs={age:[],nationality:[]};activeDiscount='';activeMura=false;
   attrVisible=false;
   var ai=document.getElementById('attr-rows-inner'),ab=document.getElementById('toggle-attr-btn');
@@ -2071,77 +2098,344 @@ function clearCart(){
   renderCart();renderAttrs();renderDiscountBar();renderPOS();renderHoldTabs();
 }
 
-// ===== 保留 =====
+// ===== 保留（コンパクトなリスト・入れた順に1..N・最大30・空欄なし・繰り上げ）=====
+let _holdsExpanded=false;
+// 丸数字（①〜⑳＝U+2460、㉑〜㉟＝U+3251）。範囲外は「n.」
+function circledNum(n){
+  if(n>=1&&n<=20) return String.fromCharCode(0x2460+n-1);
+  if(n>=21&&n<=35) return String.fromCharCode(0x3251+n-21);
+  return n+'.';
+}
 function renderHoldTabs(){
   const c=document.getElementById('hold-tabs');c.innerHTML='';
-  const usedCount=holds.filter(h=>h!==null).length;
-  const rows=usedCount<=5?1:2;
-  for(let row=0;row<rows;row++){
+  const N=holds.length;
+  if(N===0) return; // 保留なし＝何も出さない（すっきり）
+  const mkBtn=(i)=>{
+    const h=holds[i];
+    const btn=document.createElement('button');
+    btn.className='hold-tab has-data'+(i===activeHoldIdx?' active':'');
+    btn.innerHTML='<span class="hold-dot"></span><b style="font-size:13px">'+circledNum(i+1)+'</b>'+(h.title?' '+h.title:'');
+    btn.onclick=()=>switchHold(i);
+    let pressTimer;
+    btn.addEventListener('touchstart',()=>{pressTimer=setTimeout(()=>editHoldTitle(i),600);});
+    btn.addEventListener('touchend',()=>clearTimeout(pressTimer));
+    return btn;
+  };
+  const perRow=5, totalRows=Math.ceil(N/perRow);
+  const activeRow=activeHoldIdx>=0?Math.floor(activeHoldIdx/perRow):-1;
+  const forceExpand=activeRow>=1;                    // 6件目以降を選択中は自動で全表示
+  const showAll=_holdsExpanded||forceExpand||totalRows<=1;
+  const rowsToShow=showAll?totalRows:1;
+  for(let r=0;r<rowsToShow;r++){
     const rowDiv=document.createElement('div');rowDiv.className='hold-tabs-row';
-    for(let col=0;col<5;col++){
-      const i=row*5+col;
-      const h=holds[i];
-      const btn=document.createElement('button');
-      btn.className='hold-tab'+(i===activeHoldIdx?' active':'')+(h?' has-data':'');
-      btn.innerHTML=(h?'<span class="hold-dot"></span>':'')+(h?h.title:(i+1)+'');
-      btn.onclick=()=>switchHold(i);
-      // 長押しで名前編集
-      let pressTimer;
-      btn.addEventListener('touchstart',()=>{pressTimer=setTimeout(()=>editHoldTitle(i),600);});
-      btn.addEventListener('touchend',()=>clearTimeout(pressTimer));
-      rowDiv.appendChild(btn);
+    for(let col=0;col<perRow;col++){
+      const i=r*perRow+col;
+      if(i<N) rowDiv.appendChild(mkBtn(i));
+      else { const sp=document.createElement('div'); sp.style.flex='1'; rowDiv.appendChild(sp); } // 端数は透明で埋める
     }
     c.appendChild(rowDiv);
+  }
+  if(totalRows>1 && !forceExpand){
+    const tg=document.createElement('button');tg.className='hold-tab';
+    tg.style.cssText='flex:1;font-size:10px;color:var(--text2);border-top:1px dashed var(--border)';
+    tg.textContent=showAll?'▲ 閉じる':('▼ 保留をすべて表示（'+N+'件）');
+    tg.onclick=()=>{ _holdsExpanded=!_holdsExpanded; renderHoldTabs(); };
+    const tr=document.createElement('div');tr.className='hold-tabs-row';tr.appendChild(tg);c.appendChild(tr);
   }
 }
 
 function editHoldTitle(idx){
   const h=holds[idx]; if(!h) return;
   const newTitle=prompt('保留名を変更',h.title||'');
-  if(newTitle!==null){ holds[idx].title=newTitle||h.title; renderHoldTabs(); }
+  if(newTitle!==null){ holds[idx].title=newTitle||h.title; sv(KEYS.holds,holds); renderHoldTabs(); }
+}
+
+// 現在の作業カートを保留へ退避（編集中なら上書き、新規なら末尾に追加）。中身がなければ何もしない
+function parkCurrentCart(){
+  if(!cart.length) return;
+  if(activeHoldIdx>=0 && holds[activeHoldIdx]){
+    const p=holds[activeHoldIdx];
+    holds[activeHoldIdx]={title:p.title,cart:[...cart],attrs:{...selectedAttrs},discount:activeDiscount,resId:p.resId,resTag:p.resTag};
+  } else if(holds.length<MAX_HOLDS){
+    holds.push({title:(_pendingHoldTitle||new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})),cart:[...cart],attrs:{...selectedAttrs},discount:activeDiscount,resTag:_reservationSaleTag||undefined});
+  }
+  sv(KEYS.holds,holds);
 }
 
 function holdCart(){
   if(!cart.length){showToast('⚠ カートが空です','#c00');return;}
-  // 既存の名前があれば引き継ぐ
-  const existingTitle=holds[activeHoldIdx]?.title||'';
+  if(activeHoldIdx<0 && holds.length>=MAX_HOLDS){ showToast('⚠ 保留は最大'+MAX_HOLDS+'件です','#c00'); return; }
+  const existingTitle=(activeHoldIdx>=0&&holds[activeHoldIdx]?holds[activeHoldIdx].title:'')||_pendingHoldTitle||'';
   document.getElementById('hold-title-input').value=existingTitle;
   document.getElementById('hold-modal').classList.add('open');
 }
 
 function confirmHold(){
   const title=document.getElementById('hold-title-input').value.trim()||new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
-  holds[activeHoldIdx]={title,cart:[...cart],attrs:{...selectedAttrs},discount:activeDiscount};
+  if(activeHoldIdx>=0 && holds[activeHoldIdx]){
+    const p=holds[activeHoldIdx];
+    holds[activeHoldIdx]={title,cart:[...cart],attrs:{...selectedAttrs},discount:activeDiscount,resId:p.resId,resTag:p.resTag||_reservationSaleTag||undefined};
+  } else {
+    if(holds.length>=MAX_HOLDS){ showToast('⚠ 保留は最大'+MAX_HOLDS+'件です','#c00'); return; }
+    holds.push({title,cart:[...cart],attrs:{...selectedAttrs},discount:activeDiscount,resTag:_reservationSaleTag||undefined});
+  }
   sv(KEYS.holds,holds);
+  _pendingHoldTitle='';_reservationSaleTag='';
   // 保留後は新しいお客様用にクリア
   cart=[];selectedAttrs={age:[],nationality:[]};activeDiscount='';activeMura=false;
-  // 次の空きスロットへ
-  const next=holds.findIndex((h,i)=>h===null&&i!==activeHoldIdx);
-  if(next!==-1)activeHoldIdx=next;
+  activeHoldIdx=-1;
   document.getElementById('hold-modal').classList.remove('open');
   renderCart();renderAttrs();renderDiscountBar();renderPOS();renderHoldTabs();
   showToast('✓ 保留しました');
 }
 
 function switchHold(idx){
-  // 現在のカートを保存（中身があれば）
-  if(cart.length){
-    const title=holds[activeHoldIdx]?.title||new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
-    holds[activeHoldIdx]={title,cart:[...cart],attrs:{...selectedAttrs},discount:activeDiscount};
-  sv(KEYS.holds,holds);
-  }
+  if(idx<0||idx>=holds.length) return;
+  parkCurrentCart();                 // 現在の作業カートを退避（新規なら末尾へ追加）
+  _reservationSaleTag='';_pendingHoldTitle='';
   activeHoldIdx=idx;
   const h=holds[idx];
-  if(h){
-    cart=[...h.cart];
-    selectedAttrs={...h.attrs};
-    activeDiscount=h.discount||'';
-    // 宿泊がカートに入っていれば空中ウォーク割引を再計算
-    recalcCartPrices();
-  } else {
-    cart=[];selectedAttrs={age:[],nationality:[]};activeDiscount='';activeMura=false;
-  }
+  cart=[...h.cart];
+  selectedAttrs={...h.attrs};
+  activeDiscount=h.discount||'';
+  _reservationSaleTag=h.resTag||''; // 予約由来なら決済メモ用タグを復元
+  _pendingHoldTitle=h.title||'';
+  recalcCartPrices();
   renderCart();renderAttrs();renderDiscountBar();renderPOS();renderHoldTabs();
+}
+
+// ===== yoyaku 予約連携（予約からPOS会計を起票）=====
+const YOYAKU_GAS_KEY='pos_yoyaku_gas';
+// 日帰り：yoyaku facility + course(55/115/0) → POS item id
+const YOYAKU_DAY_MAP={walk:{55:'i_walk55',115:'i_walk115',0:'i_walk1day'},tree:{55:'i_tree55',115:'i_tree115',0:'i_tree1day'},bbq:{0:'i_bbq'}};
+// 宿泊：POS item id = 'i_' + yoyaku stay facility id（st_th→i_st_th 等・stay_prices一致）
+// 棟未選択（facGroupのみ）時の代表棟（同グループは料金同一）
+const YOYAKU_STAY_GROUP_MAP={'ツリーハウス':'i_st_th','透明ドーム':'i_st_dm','空中テント':'i_st_t1','空中ハンモック':'i_st_h1'};
+// 宿泊棟ID→表示名（POS商品名を流用できない棟未選択時のフォールバック用）
+// レンタル名称ゆれ吸収（yoyaku名→POS名）。基本は名称一致
+const YOYAKU_RENTAL_ALIAS={};
+let _yoyakuCache=null;      // 取得結果のキャッシュ（毎回取得しない）
+let _yoyakuCacheTime=0;     // キャッシュ取得時刻
+let _yoyakuFetching=false;  // 二重取得ガード
+let _pendingHoldTitle='';   // 予約読込時に保留の既定名へ引き継ぐ
+let _reservationSaleTag='';  // 予約読込時に決済売上メモへ付与する「予約: 名前（M/D）」（ダブり確認用）
+
+function saveYoyakuGas(){ var el=document.getElementById('pos-yoyaku-gas-url'); if(!el)return; sv(YOYAKU_GAS_KEY,el.value.trim()); _yoyakuCache=null; showToast('✓ yoyaku URLを保存しました'); }
+function initYoyakuGasField(){ var el=document.getElementById('pos-yoyaku-gas-url'); if(el) el.value=ld(YOYAKU_GAS_KEY)||''; }
+
+async function fetchYoyakuReservations(){
+  var url=ld(YOYAKU_GAS_KEY)||'';
+  if(!url) return null;
+  // GASのコールドスタートで初回はHTML/タイムアウトが返ることがあるため最大3回リトライ
+  for(var attempt=0; attempt<3; attempt++){
+    try{
+      var res=await fetch(url,{method:'GET',redirect:'follow'});
+      var txt=await res.text();
+      var json=JSON.parse(txt); // HTMLならここで例外→リトライ
+      if(json.status!=='ok') throw new Error(json.message||'yoyaku取得失敗');
+      return {reservations:json.reservations||[], stays:json.stays||[]};
+    }catch(e){
+      if(attempt<2) await new Promise(function(r){ setTimeout(r, 700*(attempt+1)); }); // 0.7s,1.4s待って再試行
+    }
+  }
+  throw new Error('応答が不正（通信混雑/URL確認）');
+}
+
+// 裏で予約を先読みしてキャッシュを温める（起動時・POSタブ表示時）。空/3分超のときだけ取得
+function warmYoyakuCache(){
+  if(!ld(YOYAKU_GAS_KEY)) return;
+  if(_yoyakuFetching) return;
+  if(_yoyakuCache && (Date.now()-_yoyakuCacheTime)<180000) return;
+  refreshYoyaku(false); // モーダルが閉じていてもキャッシュだけ更新
+}
+// 起動（リロード含む）時に即・裏で先読み（2秒待たない）。UIはブロックしない
+setTimeout(function(){ try{ warmYoyakuCache(); }catch(e){} }, 0);
+
+// POS商品を名称で引く（レンタル用・空白/括弧ゆれを無視して緩く一致）
+function findPosItemByName(name){
+  if(!name) return null;
+  var alias=YOYAKU_RENTAL_ALIAS[name]||name;
+  var it=items.find(function(x){return x.name===alias;});
+  if(it) return it;
+  var norm=function(s){return String(s||'').replace(/[\s　（）\(\)]/g,'');};
+  var n=norm(alias);
+  return items.find(function(x){return norm(x.name)===n;})||null;
+}
+
+// 予約の割引区分をPOSグローバルへ反映
+function applyYoyakuDiscountContext(o,isStay){
+  activeMura=false;activeDiscount='';activeGroup=false;activeFree=false;
+  selectedAttrs={age:[],nationality:[]};
+  var src=o.source||'', memo=o.memo||'';
+  if(!isStay && o.mura) activeMura=true;
+  if(OTA_KEYS.indexOf(src)>=0) activeDiscount=src;
+  else if(src==='pass_day'||src==='pass_night') activeDiscount=src;
+  else if(/年間パス/.test(memo)) activeDiscount=/夜/.test(memo)?'pass_night':(/昼/.test(memo)?'pass_day':(isStay?'pass_night':'pass_day'));
+}
+
+function openYoyakuPicker(){
+  var m=document.getElementById('yoyaku-modal');
+  var c=document.getElementById('yoyaku-modal-content');
+  m.classList.add('open');
+  if(!ld(YOYAKU_GAS_KEY)){ c.innerHTML='<div style="color:#c00;padding:1rem;line-height:1.7">設定タブの「📅 予約連携（yoyaku）」でGAS URLを入力してください。</div>'; return; }
+  if(_yoyakuCache){
+    renderYoyakuPicker(_yoyakuCache);          // キャッシュを即表示（待たない）
+    if(Date.now()-_yoyakuCacheTime>180000) refreshYoyaku(false); // 3分超なら裏で更新
+  } else {
+    c.innerHTML='<div style="text-align:center;color:#888;padding:1.5rem">読み込み中…（初回のみ数秒かかります）</div>';
+    refreshYoyaku(false);
+  }
+}
+
+// 予約を取得。force=trueは🔄再取得ボタン用。取得中は二重に走らせない
+function refreshYoyaku(force){
+  var c=document.getElementById('yoyaku-modal-content');
+  if(_yoyakuFetching) return;
+  _yoyakuFetching=true;
+  if(force && c && !_yoyakuCache) c.innerHTML='<div style="text-align:center;color:#888;padding:1.5rem">読み込み中…（初回のみ数秒かかります）</div>';
+  fetchYoyakuReservations().then(function(data){
+    _yoyakuFetching=false;
+    if(!data){ if(c) c.innerHTML='<div style="color:#c00;padding:1rem">URL未設定</div>'; return; }
+    _yoyakuCache=data; _yoyakuCacheTime=Date.now();
+    if(document.getElementById('yoyaku-modal').classList.contains('open')) renderYoyakuPicker(data);
+  }).catch(function(e){
+    _yoyakuFetching=false;
+    if(_yoyakuCache){ showToast('⚠ 最新取得に失敗（前回分を表示中）','#c07000'); }   // キャッシュは消さない
+    else if(c){ c.innerHTML='<div style="color:#c00;padding:1rem;line-height:1.7">取得エラー: '+e.message+'<br>「🔄 再取得」を押してください。</div>'; }
+  });
+}
+
+function renderYoyakuPicker(data){
+  var c=document.getElementById('yoyaku-modal-content');
+  var _ymd=function(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+  var now=new Date();
+  var today=_ymd(now);
+  var tomorrow=_ymd(new Date(now.getFullYear(),now.getMonth(),now.getDate()+1));
+  var rows=[];
+  (data.reservations||[]).forEach(function(r){ if(r.date) rows.push({type:'day',id:r.id,date:r.date,o:r}); });
+  (data.stays||[]).forEach(function(s){ if(s.checkin) rows.push({type:'stay',id:s.id,date:s.checkin,o:s}); });
+  // 当日＋翌日の2日分のみ（日帰り=予約日／宿泊=チェックイン日）
+  rows=rows.filter(function(x){ return x.date===today||x.date===tomorrow; });
+  rows.sort(function(a,b){ return a.date.localeCompare(b.date)||String((a.o.startTime||a.o.checkin||'')).localeCompare(String(b.o.startTime||b.o.checkin||'')); });
+  if(!rows.length){ c.innerHTML='<div style="color:#888;padding:1rem;text-align:center">当日・翌日の予約はありません</div>'; return; }
+  var esc=function(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
+  var wk=['日','月','火','水','木','金','土'];
+  var fmtHead=function(ds){ var p=ds.split('-'); var w=wk[new Date(+p[0],+p[1]-1,+p[2]).getDay()]; return (+p[1])+'/'+(+p[2])+'（'+w+'）'; };
+  var html='', lastDate='';
+  rows.forEach(function(x){
+    var o=x.o;
+    if(x.date!==lastDate){ lastDate=x.date; html+='<div style="font-weight:700;font-size:14px;color:#333;margin:14px 0 6px;padding-bottom:4px;border-bottom:2px solid #cfcfcf">'+fmtHead(x.date)+' '+(x.date===today?'（本日）':'（翌日）')+'</div>'; }
+    var label,sub;
+    if(x.type==='day'){
+      var fac={walk:'空中ウォーク',tree:'ツリーハウス昼',bbq:'BBQ'}[o.facility]||o.facility;
+      var crs={55:'55分',115:'115分',0:'1DAY'}[o.course]||'';
+      label=fac+' '+crs; sub=(o.startTime||'')+' '+(o.ninzu||'')+'名';
+    } else {
+      var sit=items.find(function(it){return it.id==='i_'+o.facility;});
+      var facName=sit?sit.name:(o.facGroup||'棟未選択');
+      label='宿泊 '+facName; sub=(o.nights||1)+'泊 '+(o.ninzu||'')+'名'+((o.petCount||0)>0?'　ペット'+o.petCount:'');
+    }
+    var tag=o.source?('【'+o.source+'】'):((/年間パス/.test(o.memo||'')?'【年間パス】':'')+(o.mura?'【村内】':''));
+    var rentalLine=(o.rental&&o.rental.length)?'<div style="font-size:11px;color:#7a1030;margin-top:2px">レンタル: '+esc(o.rental.map(function(r){return r.name+'×'+(r.qty||1);}).join('、'))+'</div>':'';
+    var memoHtml='';
+    if(o.memo){
+      var full=esc(o.memo);
+      if(o.memo.length<=50) memoHtml='<div style="font-size:11px;color:#666;margin-top:3px;white-space:pre-wrap">備考: '+full+'</div>';
+      else memoHtml='<details onclick="event.stopPropagation()" style="font-size:11px;color:#666;margin-top:3px"><summary style="cursor:pointer;color:#777;list-style:revert">備考: '+esc(o.memo.replace(/\s+/g,' ').slice(0,30))+'…</summary><div style="white-space:pre-wrap;margin-top:3px">'+full+'</div></details>';
+    }
+    var idAttr=String(x.id).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    var onload="loadReservationToCart('"+x.type+"','"+idAttr+"')";
+    var held=holds.some(function(h){return h&&h.resId===(x.type+':'+x.id);});
+    var heldBadge=held?' <span style="font-size:10px;font-weight:700;color:#c07000;background:#fff3e0;border:1px solid #e0b070;border-radius:8px;padding:0 6px">保留中</span>':'';
+    html+='<div onclick="'+onload+'" style="border:1px solid '+(held?'#e0b070':'var(--border)')+';border-radius:8px;background:'+(held?'#fffaf2':'#fff')+';margin-bottom:6px;padding:9px 11px;cursor:pointer">'+
+        '<div style="font-size:14px;font-weight:700;color:#333">'+esc(o.name||'（無名）')+heldBadge+' <span style="font-size:11px;color:#999;font-weight:400">'+tag+'</span></div>'+
+        '<div style="font-size:12px;color:#666">'+esc(label)+'　'+esc(sub)+'</div>'+
+        rentalLine+
+        memoHtml+
+    '</div>';
+  });
+  html+='<div style="margin-top:12px;padding:9px 11px;background:#f5f5f5;border-radius:8px;font-size:11px;color:#666;line-height:1.8">'+
+    '・カートで数量や商品を変更したら「⏸ 保留」で保存できます。<br>'+
+    '・カートをクリアしても予約は消えません（この画面からいつでも読み込み直せます）。'+
+  '</div>';
+  c.innerHTML=html;
+}
+
+// 宿泊行を直接push（selectStayPeopleを泊数対応で再現）
+function pushStayLine(item,cat,n,nights){
+  var prices=item.stay_prices||{};
+  var unitPrice=prices[n]||item.price;
+  var totalPrice=unitPrice*n;
+  var isMura=activeMura;
+  var isOta=OTA_KEYS.indexOf(activeDiscount)>=0;
+  var stayOtaKey=isOta?activeDiscount:'';
+  var stayPassKey=(activeDiscount==='pass_night')?'pass_night':'';
+  var gdg=discountItems.find(function(x){return x.key==='group';}); var grate=gdg?(Number(gdg.rate)||10):10;
+  var newGroupOn=activeGroup, newFreeOn=activeFree;
+  var finalPrice=(isOta||stayPassKey)?0:newFreeOn?0:isMura?Math.floor(totalPrice/2):newGroupOn?Math.floor(totalPrice*(100-grate)/100):totalPrice;
+  var paidLabel=(isOta||stayPassKey)?paidDisplaySettings.label:'';
+  cart.push({id:item.id+'_'+Date.now(),name:item.name+'（'+n+'人）',origPrice:totalPrice,price:finalPrice,qty:Math.max(1,nights),discounted:finalPrice<totalPrice,paidLabel:paidLabel,free_mura:false,isStay:true,cat:item.cat||'',catColor:cat?cat.bg:'#fff',muraOn:isMura,groupOn:newGroupOn,freeOn:newFreeOn,passKey:stayPassKey,otaKey:stayOtaKey});
+}
+
+function loadReservationToCart(type,id){
+  var data=_yoyakuCache; if(!data){ showToast('⚠ 再取得してください','#c00'); return; }
+  var o=(type==='day'?data.reservations:data.stays).find(function(x){return String(x.id)===String(id);});
+  if(!o){ showToast('⚠ 予約が見つかりません','#c00'); return; }
+  var resId=type+':'+id;
+  // 同じ予約が既に保留にあれば重複作成せず、その保留へ切替
+  var existIdx=holds.findIndex(function(h){return h&&h.resId===resId;});
+  if(existIdx>=0){
+    document.getElementById('yoyaku-modal').classList.remove('open');
+    switchHold(existIdx);
+    switchTab('pos');
+    showToast('既にこの予約は保留にあります：'+(o.name||''),'#c07000');
+    return;
+  }
+  _pendingHoldTitle=o.name||''; // 保留に入れる時の既定名を予約者名に
+  // 決済売上メモへ付与する予約タグ（ダブり確認用）
+  var _rdate=(o.date||o.checkin||'');
+  var _rmd=_rdate?((+_rdate.slice(5,7))+'/'+(+_rdate.slice(8,10))):'';
+  _reservationSaleTag='予約: '+(o.name||'（無名）')+(_rmd?'（'+_rmd+'）':'');
+  parkCurrentCart();      // 現在の作業カートを退避（新規なら末尾へ）
+  cart=[]; activeHoldIdx=-1;
+  applyYoyakuDiscountContext(o,type==='stay');
+  var warn=[];
+  if(type==='day'){
+    var map=YOYAKU_DAY_MAP[o.facility]||{};
+    var iid=map[o.course];
+    var it=iid?items.find(function(x){return x.id===iid;}):null;
+    if(it){ var cat=cats.find(function(c){return c.id===it.cat;}); addToCart(it,cat); var line=cart[cart.length-1]; if(line) line.qty=Math.max(1,parseInt(o.ninzu)||1); }
+    else warn.push('施設'+o.facility+'/コース'+o.course);
+  } else {
+    var sit=items.find(function(x){return x.id==='i_'+o.facility;});
+    if(!sit && o.facGroup){ var gid=YOYAKU_STAY_GROUP_MAP[o.facGroup]; if(gid) sit=items.find(function(x){return x.id===gid;}); }
+    if(sit){ var scat=cats.find(function(c){return c.id===sit.cat;}); pushStayLine(sit,scat,parseInt(o.ninzu)||1,parseInt(o.nights)||1); }
+    else warn.push('宿泊棟未選択');
+    var pc=parseInt(o.petCount)||0;
+    if(pc>0){ var pit=items.find(function(x){return x.id==='i_pet_01';}); if(pit){ var pcat=cats.find(function(c){return c.id===pit.cat;}); addToCart(pit,pcat); var pl=cart[cart.length-1]; if(pl) pl.qty=pc*(parseInt(o.nights)||1); } }
+  }
+  (o.rental||[]).forEach(function(rn){
+    var rit=findPosItemByName(rn.name);
+    if(!rit){ warn.push('レンタル「'+rn.name+'」'); return; }
+    var rcat=cats.find(function(c){return c.id===rit.cat;});
+    addToCart(rit,rcat); var rl=cart[cart.length-1]; if(rl) rl.qty=Math.max(1,parseInt(rn.qty)||1);
+  });
+  recalcCartPrices();
+  // 予約者名つきの保留として末尾に追加（タブに名前表示＋重複防止のresId付与）
+  if(holds.length<MAX_HOLDS){
+    holds.push({title:(o.name||'予約'),cart:cart.map(function(c){return Object.assign({},c);}),attrs:Object.assign({},selectedAttrs),discount:activeDiscount,resId:resId,resTag:_reservationSaleTag});
+    activeHoldIdx=holds.length-1;
+    sv(KEYS.holds,holds);
+  } else {
+    activeHoldIdx=-1;
+    showToast('⚠ 保留が上限（'+MAX_HOLDS+'）のため未保留で読込みました','#c07000');
+  }
+  document.getElementById('yoyaku-modal').classList.remove('open');
+  switchTab('pos');
+  renderCart();renderPOS();renderAttrs();renderDiscountBar();renderHoldTabs();
+  var msg='✓ 「'+(o.name||'予約')+'」を読み込みました';
+  if(warn.length) msg+='（未対応: '+warn.join('・')+'）';
+  showToast(msg, warn.length?'#c07000':'#1a7a3a');
 }
 
 // ===== 顧客属性 =====
@@ -2307,6 +2601,8 @@ function confirmPayment(){
     var carryLabel=nextDayMode===2?'前々日繰越':'前日繰越';
     saleMemo = saleMemo ? carryLabel+' / '+saleMemo : carryLabel;
   }
+  // 予約から読み込んだ会計は予約者名を売上メモ先頭へ（ダブり会計の確認用）
+  if(_reservationSaleTag){ saleMemo = saleMemo ? _reservationSaleTag+' / '+saleMemo : _reservationSaleTag; }
   const record={
     id:'s_'+Date.now(),datetime:saleDatetime,
     items:cart.map(i=>({...i})),total,method:currentPayMethod,
@@ -2324,6 +2620,7 @@ function confirmPayment(){
     editingSaleId=null;
   }
   sales.push(record);sv(KEYS.sales,sales);
+  _reservationSaleTag='';_pendingHoldTitle='';
   saveSnapshotToIDB();
   lastSaleId=record.id;
   autoSyncSale(record).then(function(ok){
@@ -2338,8 +2635,7 @@ function confirmPayment(){
   const methodLabel={cash:'現金',card:'クレジットカード',other:'電子決済'}[currentPayMethod]||currentPayMethod;
   document.getElementById('done-amount').textContent='¥'+total.toLocaleString();
   document.getElementById('done-method').textContent=methodLabel+(isPaid?' ／ 支払済み':'');
-  holds[activeHoldIdx]=null;
-  sv(KEYS.holds,holds);
+  removeActiveHold(); // 会計した保留をリストから除去して繰り上げ
   document.getElementById('payment-done').classList.add('open');
   startPaymentDoneTimer();
 }
@@ -2832,6 +3128,7 @@ function editSaleRecord(id){
   const record=sales.find(s=>s.id===id);if(!record)return;
   // 売上を即削除せず、決済確定まで保持する（キャンセル時に消えないように）
   editingSaleId=id;
+  activeHoldIdx=-1;_reservationSaleTag='';_pendingHoldTitle=''; // 売上修正は保留と無関係（誤って保留を消さない）
   cart=[...record.items];selectedAttrs={...record.attrs};activeDiscount=record.discount||'';
   lastSaleId=null;
   switchTab('pos');
@@ -4406,8 +4703,7 @@ function triggerImport(){
         if(data.holds&&data.holds.length){
           data.holds.forEach(function(h){
             if(!h) return;
-            const idx=holds.findIndex(function(x){return x===null;});
-            if(idx!==-1){holds[idx]=h; addedHolds++;}
+            if(holds.length<MAX_HOLDS){holds.push(h); addedHolds++;}
           });
           sv(KEYS.holds,holds);
         }
@@ -4452,9 +4748,9 @@ function importSettings(e){
       if(data.holds&&data.holds.length){
         data.holds.forEach(h=>{
           if(!h) return;
-          const idx=holds.findIndex(x=>x===null);
-          if(idx!==-1){holds[idx]=h; addedHolds++;}
+          if(holds.length<MAX_HOLDS){holds.push(h); addedHolds++;}
         });
+        sv(KEYS.holds,holds);
       }
       renderCatFilterTabs(); renderPOS(); renderCart();
       renderDiscountBar(); renderAttrs(); renderHoldTabs(); renderSettings();
@@ -4893,7 +5189,7 @@ restoreFromIDB().then(()=>{
   if(hasPending){sv(KEYS.sales,sales);saveSnapshotToIDB();}
   siteNames = ld(KEYS.sites) || {};
   ATTRS = ld('pos_attrs') || JSON.parse(JSON.stringify(DEFAULT_ATTRS));
-  holds = ld(KEYS.holds) || [null,null,null,null,null,null,null,null,null,null];
+  holds = (ld(KEYS.holds)||[]).filter(function(h){return h;}); activeHoldIdx=-1;
   // 名称移行: チェア・ベンチ → ベンチ
   var needSave=false;
   items.forEach(function(it){if(it.id==='i_b04'&&it.name==='チェア・ベンチ'){it.name='ベンチ';needSave=true;}});
