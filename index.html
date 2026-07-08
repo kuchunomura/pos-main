@@ -924,8 +924,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 347;
-const APP_BUILD_DATE = '2026/07/08 21:23';
+const APP_VERSION = 348;
+const APP_BUILD_DATE = '2026/07/08 21:33';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -1016,7 +1016,7 @@ const DEFAULT_ITEMS = [
   {id:'i_walk115', name:'空中ウォーク 115分',      price:2500, cat:'cat_walk', stock:0, free_mura:false},
   {id:'i_walk1day',name:'空中ウォーク 1DAY',       price:3000, cat:'cat_walk', stock:0, free_mura:false},
   {id:'i_passday', name:'年間パス昼',              price:15000,cat:'cat_walk', stock:0, free_mura:false},
-  {id:'i_1777680532193', name:'500円　55分延長',  price:500,  cat:'cat_walk', stock:0, free_mura:false},
+  {id:'i_1777680532193', name:'55分延長',  price:500,  cat:'cat_walk', stock:0, free_mura:false},
   {id:'i_1777557786554', name:'テスト',            price:1,    cat:'cat_walk', stock:0, free_mura:false},
   {id:'i_tree55',  name:'ツリーハウス昼 55分',     price:2000, cat:'cat_tree_day', stock:0, free_mura:false},
   {id:'i_tree115', name:'ツリーハウス昼 115分',    price:3000, cat:'cat_tree_day', stock:0, free_mura:false},
@@ -1629,7 +1629,7 @@ function makeItemBtn(item, cat, grid){
     priceHtml='<div class="item-price" style="color:'+cat.price+'">¥'+dispPrice.toLocaleString()+'</div>';
   }
   var dotHtml='';
-  if(STAY_CAT_IDS.includes(item.cat)){
+  if(STAY_CAT_IDS.includes(item.cat) && item.id!=='i_passnight' && item.id!=='i_passday'){
     var dotColor=item.dotColor||item.nameColor||cat.text;
     dotHtml='<span style="color:'+dotColor+';">●</span>';
   }
@@ -1639,7 +1639,10 @@ function makeItemBtn(item, cat, grid){
     var defColor=item.nameColor||cat.text;
     nameHtml='<div class="item-name" style="'+sizeStyle+'">'+dotHtml+item.nameParts.map(function(p){return '<span style="color:'+(p.color||defColor)+'">'+p.text+'</span>';}).join('')+'</div>';
   } else {
-    nameHtml='<div class="item-name" style="color:'+(item.nameColor||cat.text)+';'+(item.fontSize||cat.fontSize?'font-size:'+(item.fontSize||cat.fontSize)+';':'')+'">'+dotHtml+item.name+'</div>';
+    // 空中ウォーク（日帰り）は「施設名／時間」を改行して1DAYと揃える
+    var _dispName=item.name;
+    if(item.cat==='cat_walk' && item.id!=='i_passday' && /\s/.test(_dispName)) _dispName=_dispName.replace(/\s+/, '<br>');
+    nameHtml='<div class="item-name" style="color:'+(item.nameColor||cat.text)+';'+(item.fontSize||cat.fontSize?'font-size:'+(item.fontSize||cat.fontSize)+';':'')+'">'+dotHtml+_dispName+'</div>';
   }
   btn.innerHTML=
     '<div class="item-drag-handle">⠿</div>'+
@@ -5205,6 +5208,8 @@ restoreFromIDB().then(()=>{
   // 名称移行: チェア・ベンチ → ベンチ
   var needSave=false;
   items.forEach(function(it){if(it.id==='i_b04'&&it.name==='チェア・ベンチ'){it.name='ベンチ';needSave=true;}});
+  // 名称移行: 「500円　55分延長」→「55分延長」（金額と重複するため）
+  items.forEach(function(it){if(it.id==='i_1777680532193'&&/500円/.test(it.name||'')){it.name='55分延長';needSave=true;}});
   if(needSave) sv(KEYS.items,items);
   // 新商品「ひのき耳つき板」（大中小バリアント）を未所持なら追加
   if(!items.some(function(i){return i.id==='i_hinoki_mimi';})){
