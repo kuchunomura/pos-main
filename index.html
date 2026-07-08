@@ -925,8 +925,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 350;
-const APP_BUILD_DATE = '2026/07/08 21:55';
+const APP_VERSION = 351;
+const APP_BUILD_DATE = '2026/07/08 22:16';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -1410,7 +1410,7 @@ function getOrderedCats(){
   });
 }
 
-const PASS_FIRST_IDS=['i_passday','i_passnight']; // 年間パスは常に一番左
+const PASS_FIRST_IDS=['i_passday','i_passnight','i_1777557786554']; // 年間パス（＋テスト）は常に一番左
 function getOrderedItems(catId){
   const filtered=items.filter(i=>i.cat===catId);
   const sorted = itemOrder ? [...filtered].sort((a,b)=>{
@@ -1604,8 +1604,8 @@ function shadeColor(col, pct){
 function makeItemBtn(item, cat, grid){
   const btn=document.createElement('button');
   btn.className='item-btn';btn.dataset.itemId=item.id;
-  // 年間パスは目立たないよう小さめ・淡色表示
-  if(item.id==='i_passday'||item.id==='i_passnight') btn.classList.add('pass-item');
+  // 年間パス・テストは目立たないよう小さめ・淡色表示
+  if(item.id==='i_passday'||item.id==='i_passnight'||item.id==='i_1777557786554') btn.classList.add('pass-item');
   // CSSクラスを維持しつつ色だけ上書き
   const inCartQty=cart.filter(ci=>ci.id===item.id||ci.id.startsWith(item.id+'_')).reduce((s,ci)=>s+ci.qty,0);
   btn.style.background=inCartQty>0 ? shadeColor(cat.bg,-6) : cat.bg;
