@@ -925,8 +925,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 351;
-const APP_BUILD_DATE = '2026/07/08 22:16';
+const APP_VERSION = 352;
+const APP_BUILD_DATE = '2026/07/08 22:28';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -2343,31 +2343,34 @@ function renderYoyakuPicker(data){
   rows.forEach(function(x){
     var o=x.o;
     if(x.date!==lastDate){ lastDate=x.date; html+='<div style="font-weight:700;font-size:14px;color:#333;margin:14px 0 6px;padding-bottom:4px;border-bottom:2px solid #cfcfcf">'+fmtHead(x.date)+' '+(x.date===today?'（本日）':'（翌日）')+'</div>'; }
-    var label,sub;
+    var label,sub,bgTint='#fff';
     if(x.type==='day'){
       var fac={walk:'空中ウォーク',tree:'ツリーハウス昼',bbq:'BBQ'}[o.facility]||o.facility;
       var crs={55:'55分',115:'115分',0:'1DAY'}[o.course]||'';
       label=fac+' '+crs; sub=(o.startTime||'')+' '+(o.ninzu||'')+'名';
+      var _dcid={walk:'cat_walk',tree:'cat_tree_day',bbq:'cat_bbq'}[o.facility];
+      var _dc=cats.find(function(cc){return cc.id===_dcid;}); if(_dc) bgTint=_dc.bg;
     } else {
       var sit=items.find(function(it){return it.id==='i_'+o.facility;});
       var facName=sit?sit.name:(o.facGroup||'棟未選択');
       label='宿泊 '+facName; sub=(o.nights||1)+'泊 '+(o.ninzu||'')+'名'+((o.petCount||0)>0?'　ペット'+o.petCount:'');
+      var _sc=sit&&cats.find(function(cc){return cc.id===sit.cat;}); if(_sc) bgTint=_sc.bg;
     }
     var tag=o.source?('【'+o.source+'】'):((/年間パス/.test(o.memo||'')?'【年間パス】':'')+(o.mura?'【村内】':''));
     var rentalLine=(o.rental&&o.rental.length)?'<div style="font-size:11px;color:#7a1030;margin-top:2px">レンタル: '+esc(o.rental.map(function(r){return r.name+'×'+(r.qty||1);}).join('、'))+'</div>':'';
     var memoHtml='';
     if(o.memo){
       var full=esc(o.memo);
-      if(o.memo.length<=50) memoHtml='<div style="font-size:11px;color:#666;margin-top:3px;white-space:pre-wrap">備考: '+full+'</div>';
-      else memoHtml='<details onclick="event.stopPropagation()" style="font-size:11px;color:#666;margin-top:3px"><summary style="cursor:pointer;color:#777;list-style:revert">備考: '+esc(o.memo.replace(/\s+/g,' ').slice(0,30))+'…</summary><div style="white-space:pre-wrap;margin-top:3px">'+full+'</div></details>';
+      if(o.memo.length<=50) memoHtml='<div style="font-size:11px;color:#111;margin-top:3px;white-space:pre-wrap">備考: '+full+'</div>';
+      else memoHtml='<details onclick="event.stopPropagation()" style="font-size:11px;color:#111;margin-top:3px"><summary style="cursor:pointer;color:#333;list-style:revert">備考: '+esc(o.memo.replace(/\s+/g,' ').slice(0,30))+'…</summary><div style="white-space:pre-wrap;margin-top:3px">'+full+'</div></details>';
     }
     var idAttr=String(x.id).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     var onload="loadReservationToCart('"+x.type+"','"+idAttr+"')";
     var held=holds.some(function(h){return h&&h.resId===(x.type+':'+x.id);});
     var heldBadge=held?' <span style="font-size:10px;font-weight:700;color:#c07000;background:#fff3e0;border:1px solid #e0b070;border-radius:8px;padding:0 6px">保留中</span>':'';
-    html+='<div onclick="'+onload+'" style="border:1px solid '+(held?'#e0b070':'var(--border)')+';border-radius:8px;background:'+(held?'#fffaf2':'#fff')+';margin-bottom:6px;padding:9px 11px;cursor:pointer">'+
-        '<div style="font-size:14px;font-weight:700;color:#333">'+esc(o.name||'（無名）')+heldBadge+' <span style="font-size:11px;color:#999;font-weight:400">'+tag+'</span></div>'+
-        '<div style="font-size:12px;color:#666">'+esc(label)+'　'+esc(sub)+'</div>'+
+    html+='<div onclick="'+onload+'" style="border:1px solid '+(held?'#e0b070':'var(--border)')+';border-radius:8px;background:'+bgTint+';margin-bottom:6px;padding:9px 11px;cursor:pointer">'+
+        '<div style="font-size:14px;font-weight:700;color:#111">'+esc(o.name||'（無名）')+heldBadge+' <span style="font-size:11px;color:#999;font-weight:400">'+tag+'</span></div>'+
+        '<div style="font-size:12px;color:#111">'+esc(label)+'　'+esc(sub)+'</div>'+
         rentalLine+
         memoHtml+
     '</div>';
