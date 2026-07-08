@@ -924,8 +924,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 348;
-const APP_BUILD_DATE = '2026/07/08 21:33';
+const APP_VERSION = 349;
+const APP_BUILD_DATE = '2026/07/08 21:51';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -1091,6 +1091,8 @@ const DEFAULT_ITEMS = [
   {id:'i_u08', name:'十津川造林 薪（小）',  price:300,  cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_u09', name:'ヒノキ炭',             price:600,  cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_u10', name:'スウェーデントーチ',   price:1000, cat:'cat_unmanned', stock:0, free_mura:false},
+  {id:'i_u11', name:'着火剤セット',         price:300,  cat:'cat_unmanned', stock:0, free_mura:false},
+  {id:'i_u12', name:'ドリンク2杯目',        price:200,  cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_kinbako', name:'料金箱回収',          price:0,    cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_s01', name:'マッチ',               price:100,  cat:'cat_shoumouhin',stock:0, free_mura:false},
   {id:'i_s02', name:'歯ブラシ',             price:200,  cat:'cat_shoumouhin',stock:0, free_mura:false},
@@ -5218,6 +5220,18 @@ restoreFromIDB().then(()=>{
     if(_gi>=0) items.splice(_gi+1,0,_mimi); else items.push(_mimi);
     sv(KEYS.items,items);
   }
+  // 新商品「着火剤セット(¥300)」「ドリンク2杯目(¥200)」を無人販売へ未所持なら追加
+  (function(){
+    var toAdd=[];
+    if(!items.some(function(i){return i.id==='i_u11';})) toAdd.push({id:'i_u11',name:'着火剤セット',price:300,cat:'cat_unmanned',stock:0,free_mura:false});
+    if(!items.some(function(i){return i.id==='i_u12';})) toAdd.push({id:'i_u12',name:'ドリンク2杯目',price:200,cat:'cat_unmanned',stock:0,free_mura:false});
+    if(!toAdd.length) return;
+    var _ins=items.findIndex(function(i){return i.id==='i_kinbako';}); // 料金箱回収の前へ
+    if(_ins<0){ for(var _k=items.length-1;_k>=0;_k--){ if(items[_k].cat==='cat_unmanned'){_ins=_k+1;break;} } }
+    if(_ins<0) _ins=items.length;
+    items.splice.apply(items,[_ins,0].concat(toAdd));
+    sv(KEYS.items,items);
+  })();
   // 寝袋順序修正: 夏用(i_b19)を冬用(i_b20)の前に
   (function(){
     var i19=items.findIndex(function(i){return i.id==='i_b19';}),i20=items.findIndex(function(i){return i.id==='i_b20';});
