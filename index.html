@@ -236,6 +236,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
     <div class="pos-right">
       <!-- 現在時刻 -->
       <div style="display:flex;align-items:center;background:#f9f9f9;border-bottom:1px solid var(--border);">
+        <div style="padding:4px 8px;font-size:14px;font-weight:700;color:var(--text2);white-space:nowrap;" id="clock-date">--/--</div>
         <div style="flex:1;text-align:center;padding:4px 8px;font-size:18px;font-weight:700;font-family:monospace;color:var(--accent);letter-spacing:2px;" id="clock-display">00:00:00</div>
         <div onclick="openWeatherPicker()" id="weather-display" style="padding:4px 8px;font-size:16px;cursor:pointer;min-width:32px;text-align:center;" title="天気を選択">🌤</div>
       </div>
@@ -924,8 +925,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 349;
-const APP_BUILD_DATE = '2026/07/08 21:51';
+const APP_VERSION = 350;
+const APP_BUILD_DATE = '2026/07/08 21:55';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -4830,6 +4831,8 @@ function updateClocks(){
   const c2 = document.getElementById('timer-clock');
   if(c1) c1.textContent = t;
   if(c2) c2.textContent = t;
+  const cd = document.getElementById('clock-date');
+  if(cd) cd.textContent = (now.getMonth()+1)+'/'+now.getDate()+'（'+'日月火水木金土'[now.getDay()]+'）';
   updateTimerCountdown();
   // 毎分施設ボタンの残り時間・時間スロットを更新
   if(now.getSeconds() === 0){
