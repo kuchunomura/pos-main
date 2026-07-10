@@ -925,8 +925,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 371;
-const APP_BUILD_DATE = '2026/07/10 09:59';
+const APP_VERSION = 372;
+const APP_BUILD_DATE = '2026/07/10 10:10';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -2242,6 +2242,10 @@ let _yoyakuFetching=false;  // 二重取得ガード
 let _pendingHoldTitle='';   // 予約読込時に保留の既定名へ引き継ぐ
 let _reservationSaleTag='';  // 予約読込時に決済売上メモへ付与する「予約: 名前（M/D）」（ダブり確認用）
 let _reservationResId='';    // 予約読込時のresId（type:id）。決済売上に記録しピッカーの会計済み判定に使う
+let _copyArmKey='';          // 会計済み予約の「＋コピー」2回タップ確定用にアーム中のresKey
+
+// 会計済み予約の再コピーは誤操作防止で2回タップ確定。1回目でアーム→再描画。
+function armCopyReservation(type,id){ _copyArmKey=type+':'+id; if(document.getElementById('yoyaku-modal').classList.contains('open')) renderYoyakuPicker(_yoyakuCache); }
 
 function saveYoyakuGas(){ var el=document.getElementById('pos-yoyaku-gas-url'); if(!el)return; sv(YOYAKU_GAS_KEY,el.value.trim()); _yoyakuCache=null; showToast('✓ yoyaku URLを保存しました'); }
 function initYoyakuGasField(){ var el=document.getElementById('pos-yoyaku-gas-url'); if(el) el.value=ld(YOYAKU_GAS_KEY)||''; }
@@ -2380,13 +2384,17 @@ function renderYoyakuPicker(data){
     var expectTag='予約: '+(o.name||'（無名）')+(_rmd2?'（'+_rmd2+'）':'');
     var paidDone=sales.some(function(s){return s && ((s.resIds&&s.resIds.indexOf(_resKey)>=0) || s.resId===_resKey || (s.memo && s.memo.indexOf(expectTag)>=0));});
     var paidBadge=paidDone?' <span style="font-size:10px;font-weight:700;color:#1a7a3a;background:#e6f5ea;border:1px solid #9ccfab;border-radius:8px;padding:0 6px">✅ 会計済み</span>':'';
-    // カートにコピー（まとめ会計用）：追加済みは「コピー✅」。会計済みは非表示。
+    // カートにコピー（まとめ会計用）：追加済みは「コピー✅」。会計済みは2回タップ確定で再追加可。
     var inCart=cart.some(function(c){return c._resId===_resKey;});
-    var copyBtn='';
-    if(!paidDone){
-      copyBtn = inCart
-        ? '<button disabled style="flex:0 0 auto;font-size:11px;font-weight:700;border-radius:6px;padding:4px 9px;background:#e6f5ea;color:#1a7a3a;border:1px solid #9ccfab">コピー✅</button>'
-        : '<button onclick="event.stopPropagation();copyReservationToCart(\''+x.type+'\',\''+idAttr+'\')" style="flex:0 0 auto;font-size:11px;font-weight:700;border-radius:6px;padding:4px 9px;background:#fff;color:#7a1030;border:1px solid #d0a0b0;cursor:pointer">＋コピー</button>';
+    var copyBtn;
+    if(inCart){
+      copyBtn='<button disabled style="flex:0 0 auto;font-size:11px;font-weight:700;border-radius:6px;padding:4px 9px;background:#e6f5ea;color:#1a7a3a;border:1px solid #9ccfab">コピー✅</button>';
+    } else if(!paidDone){
+      copyBtn='<button onclick="event.stopPropagation();copyReservationToCart(\''+x.type+'\',\''+idAttr+'\')" style="flex:0 0 auto;font-size:11px;font-weight:700;border-radius:6px;padding:4px 9px;background:#fff;color:#7a1030;border:1px solid #d0a0b0;cursor:pointer">＋コピー</button>';
+    } else if(_copyArmKey===_resKey){
+      copyBtn='<button onclick="event.stopPropagation();copyReservationToCart(\''+x.type+'\',\''+idAttr+'\')" style="flex:0 0 auto;font-size:11px;font-weight:700;border-radius:6px;padding:4px 9px;background:#fff3e0;color:#c07000;border:1px solid #e0b070;cursor:pointer">もう1回タップで追加</button>';
+    } else {
+      copyBtn='<button onclick="event.stopPropagation();armCopyReservation(\''+x.type+'\',\''+idAttr+'\')" style="flex:0 0 auto;font-size:11px;font-weight:700;border-radius:6px;padding:4px 9px;background:#fff;color:#999;border:1px solid #ddd;cursor:pointer">＋コピー（済）</button>';
     }
     html+='<div onclick="'+onload+'" style="border:1px solid '+(paidDone?'#9ccfab':(held?'#e0b070':'var(--border)'))+';border-radius:8px;background:'+bgTint+';margin-bottom:6px;padding:9px 11px;cursor:pointer;'+(paidDone?'opacity:0.55':'')+'">'+
         '<div style="display:flex;align-items:flex-start;gap:8px">'+
@@ -2487,6 +2495,7 @@ function loadReservationToCart(type,id){
 // 予約を「現在のカートに追加」（保留を作らず退避もしない・まとめ会計用）。
 // 追加した明細に _resId/_resTag を付与し、会計時に複数予約IDを売上へ記録できるようにする。
 function copyReservationToCart(type,id){
+  _copyArmKey='';
   var data=_yoyakuCache; if(!data){ showToast('⚠ 再取得してください','#c00'); return; }
   var o=(type==='day'?data.reservations:data.stays).find(function(x){return String(x.id)===String(id);});
   if(!o){ showToast('⚠ 予約が見つかりません','#c00'); return; }
