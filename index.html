@@ -925,8 +925,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 368;
-const APP_BUILD_DATE = '2026/07/09 11:20';
+const APP_VERSION = 369;
+const APP_BUILD_DATE = '2026/07/10 09:23';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -2337,6 +2337,8 @@ function renderYoyakuPicker(data){
   var rows=[];
   (data.reservations||[]).forEach(function(r){ if(r.date) rows.push({type:'day',id:r.id,date:r.date,o:r}); });
   (data.stays||[]).forEach(function(s){ if(s.checkin) rows.push({type:'stay',id:s.id,date:s.checkin,o:s}); });
+  // キャンセルは非表示（yoyakuと同じ判定：cancelledフラグ or 備考に「キャンセル」）
+  rows=rows.filter(function(x){ var o=x.o||{}; return !(o.cancelled || /キャンセル/.test(o.memo||'')); });
   // 当日＋翌日の2日分のみ（日帰り=予約日／宿泊=チェックイン日）
   rows=rows.filter(function(x){ return x.date===today||x.date===tomorrow; });
   rows.sort(function(a,b){ return a.date.localeCompare(b.date)||String((a.o.startTime||a.o.checkin||'')).localeCompare(String(b.o.startTime||b.o.checkin||'')); });
