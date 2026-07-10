@@ -401,8 +401,11 @@ function deleteRowsFromSheet(sheet, saleId) {
   var idCol = 15; // O列: 売上ID
   var vals = sheet.getRange(4, idCol, lastRow - 3, 1).getValues();
   var toDelete = [];
+  var sid = String(saleId);
   for (var i = 0; i < vals.length; i++) {
-    if (String(vals[i][0]) === String(saleId)) toDelete.push(4 + i);
+    var v = String(vals[i][0]);
+    // 混在会計は「売上ID#区分」で分割保存されるため前方一致でまとめて削除
+    if (v === sid || v.indexOf(sid + '#') === 0) toDelete.push(4 + i);
   }
   for (var j = toDelete.length - 1; j >= 0; j--) {
     sheet.deleteRow(toDelete[j]);

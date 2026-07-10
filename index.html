@@ -925,8 +925,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 373;
-const APP_BUILD_DATE = '2026/07/10 10:21';
+const APP_VERSION = 374;
+const APP_BUILD_DATE = '2026/07/10 17:10';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -3378,7 +3378,7 @@ function exportCSV(){
 function saleToRows(sale){
   var FACILITY_CATS=['cat_walk','cat_tree_day','cat_bbq','cat_stay_tree','cat_stay_dome','cat_stay_tent','cat_stay_hm'];
   var discountItems2=ld(KEYS.discounts)||discountItems;
-  var discLabel=sale.discount?(discountItems2.find(function(d){return d.key===sale.discount;})||{}).label||sale.discount:'';
+  function labelFor(key){ return key?(((discountItems2.find(function(d){return d.key===key;}))||{}).label||key):''; }
   var method={cash:'現金',card:'クレジットカード',other:'電子決済'}[sale.method]||sale.method||'';
   var attrs=sale.attrs||{};
   var ages=Array.isArray(attrs.age)?attrs.age:(attrs.age?[attrs.age]:[]);
@@ -3395,32 +3395,57 @@ function saleToRows(sale){
   var catNameMap={};
   cats.forEach(function(c){catNameMap[c.id]=c.name;});
   var weatherStr=(todayWeather||[]).map(function(k){var w=WEATHER_OPTIONS.find(function(x){return x.key===k;});return w?w.label:'';}).filter(Boolean).join('/');
-  return (sale.items||[]).map(function(i,idx){
-    var isFirst=idx===0;
+  var items=sale.items||[];
+  // 明細ごとの割引区分（混在会計をシート上で区分別の別取引に分割するためのキー）
+  function grpKeyOf(i){ if(i.otaKey) return i.otaKey; if(i.passKey) return i.passKey; if(i.groupOn) return 'group'; if(i.muraOn) return 'mura'; if(i.freeOn) return 'free'; return ''; }
+  var groupOrder=[]; items.forEach(function(i){var g=grpKeyOf(i); if(groupOrder.indexOf(g)<0) groupOrder.push(g);});
+  var isSplit=groupOrder.length>=2;                       // 割引区分が2種以上＝混在会計
+  var resSet={}; items.forEach(function(i){ if(i._resId) resSet[i._resId]=true; });
+  var isSet=Object.keys(resSet).length>=2;                // 同一決済で複数予約＝セット会計
+  // 1明細→1行を生成
+  function mkRow(i,isFirst,colB,colI,colN,txId){
     var catName=catNameMap[i.cat||'']||i.cat||(i.isStay?'宿泊':'');
     var isF=FACILITY_CATS.indexOf(i.cat||'')!==-1||!!i.isStay;
     var isExt=(i.name||'').indexOf('延長')!==-1; // 55分延長などの追加課金は人数に数えない
-    var m=i.name.match(/[（(](\d+)人[）)]/);
+    var m=(i.name||'').match(/[（(](\d+)人[）)]/);
     var persons=(isF&&!isExt)?(m?parseInt(m[1])*i.qty:i.qty):0;
     return [
-      isFirst ? dtStr : '',                           // A: 日時（最初の行のみ）
-      isFirst?sale.total:'',                          // B: 売上合計
+      isFirst?dtStr:'',                               // A: 日時
+      isFirst?colB:'',                                // B: 売上合計（取引ごと）
       i.name,                                         // C: 商品名
       catName,                                        // D: カテゴリ
       i.qty,                                          // E: 数量
-      i.price,                                        // F: 単価
+      i.price,                                        // F: 単価（割引後）
       i.price*i.qty,                                  // G: 小計
       persons,                                        // H: 人数
-      isFirst?discLabel:'',                           // I: 割引
+      isFirst?colI:'',                                // I: 割引区分（取引ごと）
       isFirst?method:'',                              // J: 支払方法
       isFirst?ageStr:'',                              // K: 年齢層
       isFirst?natStr:'',                              // L: 国籍
       isFirst?weatherStr:'',                          // M: 天気
-      isFirst?sale.memo||'':'',                       // N: メモ
-      sale.id,                                        // O: 売上ID（全行。重複排除用）
+      isFirst?colN:'',                                // N: メモ
+      txId,                                           // O: 売上ID（分割時は #区分 付き。削除は前方一致）
       isFirst?sale.device_name||sale.device||'':'',   // P: 端末名
     ];
+  }
+  var baseMemo=sale.memo||'';
+  if(!isSplit){
+    // 従来どおり1取引。セット会計（同一決済で複数予約）なら注記のみ付与。
+    var memo1=baseMemo+(isSet?' ／【セット会計（同一決済で複数予約）】':'');
+    var discLabel1=sale.discount?labelFor(sale.discount):'';
+    return items.map(function(i,idx){ return mkRow(i,idx===0,sale.total,discLabel1,memo1,sale.id); });
+  }
+  // 混在会計：割引区分ごとに別取引へ分割（各取引に正しい区分が入るので集計はそのまま正確）
+  var out=[], n=groupOrder.length;
+  groupOrder.forEach(function(g,gi){
+    var gItems=items.filter(function(i){return grpKeyOf(i)===g;});
+    var gTotal=gItems.reduce(function(s,i){return s+i.price*i.qty;},0);
+    var gLabel=labelFor(g);
+    var gMemo=baseMemo+' ／【まとめ会計 '+(gi+1)+'/'+n+'・区分:'+(gLabel||'通常')+'（同一決済 '+sale.id+'）】';
+    var suffix='#'+(g||'normal');
+    gItems.forEach(function(i,idx){ out.push(mkRow(i,idx===0,gTotal,gLabel,gMemo,sale.id+suffix)); });
   });
+  return out;
 }
 
 // 同期メニュー表示
