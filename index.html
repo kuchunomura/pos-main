@@ -925,8 +925,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 370;
-const APP_BUILD_DATE = '2026/07/10 09:37';
+const APP_VERSION = 371;
+const APP_BUILD_DATE = '2026/07/10 09:59';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -2378,10 +2378,21 @@ function renderYoyakuPicker(data){
     var _resKey=x.type+':'+x.id;
     var _rmd2=x.date?((+x.date.slice(5,7))+'/'+(+x.date.slice(8,10))):'';
     var expectTag='予約: '+(o.name||'（無名）')+(_rmd2?'（'+_rmd2+'）':'');
-    var paidDone=sales.some(function(s){return s && (s.resId===_resKey || (s.memo && s.memo.indexOf(expectTag)>=0));});
+    var paidDone=sales.some(function(s){return s && ((s.resIds&&s.resIds.indexOf(_resKey)>=0) || s.resId===_resKey || (s.memo && s.memo.indexOf(expectTag)>=0));});
     var paidBadge=paidDone?' <span style="font-size:10px;font-weight:700;color:#1a7a3a;background:#e6f5ea;border:1px solid #9ccfab;border-radius:8px;padding:0 6px">✅ 会計済み</span>':'';
+    // カートにコピー（まとめ会計用）：追加済みは「コピー✅」。会計済みは非表示。
+    var inCart=cart.some(function(c){return c._resId===_resKey;});
+    var copyBtn='';
+    if(!paidDone){
+      copyBtn = inCart
+        ? '<button disabled style="flex:0 0 auto;font-size:11px;font-weight:700;border-radius:6px;padding:4px 9px;background:#e6f5ea;color:#1a7a3a;border:1px solid #9ccfab">コピー✅</button>'
+        : '<button onclick="event.stopPropagation();copyReservationToCart(\''+x.type+'\',\''+idAttr+'\')" style="flex:0 0 auto;font-size:11px;font-weight:700;border-radius:6px;padding:4px 9px;background:#fff;color:#7a1030;border:1px solid #d0a0b0;cursor:pointer">＋コピー</button>';
+    }
     html+='<div onclick="'+onload+'" style="border:1px solid '+(paidDone?'#9ccfab':(held?'#e0b070':'var(--border)'))+';border-radius:8px;background:'+bgTint+';margin-bottom:6px;padding:9px 11px;cursor:pointer;'+(paidDone?'opacity:0.55':'')+'">'+
-        '<div style="font-size:14px;font-weight:700;color:#111">'+esc(o.name||'（無名）')+paidBadge+heldBadge+' <span style="font-size:11px;color:#999;font-weight:400">'+tag+'</span></div>'+
+        '<div style="display:flex;align-items:flex-start;gap:8px">'+
+          '<div style="flex:1;font-size:14px;font-weight:700;color:#111">'+esc(o.name||'（無名）')+paidBadge+heldBadge+' <span style="font-size:11px;color:#999;font-weight:400">'+tag+'</span></div>'+
+          copyBtn+
+        '</div>'+
         '<div style="font-size:12px;color:#111">'+esc(label)+'　'+esc(sub)+'</div>'+
         rentalLine+
         memoHtml+
@@ -2469,6 +2480,52 @@ function loadReservationToCart(type,id){
   switchTab('pos');
   renderCart();renderPOS();renderAttrs();renderDiscountBar();renderHoldTabs();
   var msg='✓ 「'+(o.name||'予約')+'」を読み込みました';
+  if(warn.length) msg+='（未対応: '+warn.join('・')+'）';
+  showToast(msg, warn.length?'#c07000':'#1a7a3a');
+}
+
+// 予約を「現在のカートに追加」（保留を作らず退避もしない・まとめ会計用）。
+// 追加した明細に _resId/_resTag を付与し、会計時に複数予約IDを売上へ記録できるようにする。
+function copyReservationToCart(type,id){
+  var data=_yoyakuCache; if(!data){ showToast('⚠ 再取得してください','#c00'); return; }
+  var o=(type==='day'?data.reservations:data.stays).find(function(x){return String(x.id)===String(id);});
+  if(!o){ showToast('⚠ 予約が見つかりません','#c00'); return; }
+  var resId=type+':'+id;
+  if(cart.some(function(c){return c._resId===resId;})){ showToast('既にカートに追加済みです','#c07000'); return; }
+  var _rdate=(o.date||o.checkin||'');
+  var _rmd=_rdate?((+_rdate.slice(5,7))+'/'+(+_rdate.slice(8,10))):'';
+  var resTag='予約: '+(o.name||'（無名）')+(_rmd?'（'+_rmd+'）':'');
+  var startLen=cart.length;
+  applyYoyakuDiscountContext(o,type==='stay'); // 割引は各明細に焼き込む（既存明細はフラグ保持で不変）
+  var warn=[];
+  if(type==='day'){
+    var map=YOYAKU_DAY_MAP[o.facility]||{};
+    var iid=map[o.course];
+    var it=iid?items.find(function(x){return x.id===iid;}):null;
+    if(it){ var cat=cats.find(function(c){return c.id===it.cat;}); addToCart(it,cat); var line=cart[cart.length-1]; if(line) line.qty=Math.max(1,parseInt(o.ninzu)||1); }
+    else warn.push('施設'+o.facility+'/コース'+o.course);
+  } else {
+    var sit=items.find(function(x){return x.id==='i_'+o.facility;});
+    if(!sit && o.facGroup){ var gid=YOYAKU_STAY_GROUP_MAP[o.facGroup]; if(gid) sit=items.find(function(x){return x.id===gid;}); }
+    if(sit){ var scat=cats.find(function(c){return c.id===sit.cat;}); pushStayLine(sit,scat,parseInt(o.ninzu)||1,parseInt(o.nights)||1); }
+    else warn.push('宿泊棟未選択');
+    var pc=parseInt(o.petCount)||0;
+    if(pc>0){ var pit=items.find(function(x){return x.id==='i_pet_01';}); if(pit){ var pcat=cats.find(function(c){return c.id===pit.cat;}); addToCart(pit,pcat); var pl=cart[cart.length-1]; if(pl) pl.qty=pc*(parseInt(o.nights)||1); } }
+  }
+  (o.rental||[]).forEach(function(rn){
+    var rit=findPosItemByName(rn.name);
+    if(!rit){ warn.push('レンタル「'+rn.name+'」'); return; }
+    var rcat=cats.find(function(c){return c.id===rit.cat;});
+    addToCart(rit,rcat); var rl=cart[cart.length-1]; if(rl) rl.qty=Math.max(1,parseInt(rn.qty)||1);
+  });
+  // 追加した明細に予約タグを付与（まとめ会計＋会計済み判定用）
+  for(var i=startLen;i<cart.length;i++){ cart[i]._resId=resId; cart[i]._resTag=resTag; }
+  recalcCartPrices();
+  _pendingHoldTitle=o.name||_pendingHoldTitle||'';
+  _reservationSaleTag=resTag; _reservationResId=resId;
+  renderCart();renderPOS();renderAttrs();renderDiscountBar();
+  if(document.getElementById('yoyaku-modal').classList.contains('open')) renderYoyakuPicker(_yoyakuCache); // ボタンを「コピー✅」に更新
+  var msg='✓ 「'+(o.name||'予約')+'」をカートに追加';
   if(warn.length) msg+='（未対応: '+warn.join('・')+'）';
   showToast(msg, warn.length?'#c07000':'#1a7a3a');
 }
@@ -2636,14 +2693,23 @@ function confirmPayment(){
     var carryLabel=nextDayMode===2?'前々日繰越':'前日繰越';
     saleMemo = saleMemo ? carryLabel+' / '+saleMemo : carryLabel;
   }
-  // 予約から読み込んだ会計は予約者名を売上メモ先頭へ（ダブり会計の確認用）
-  if(_reservationSaleTag){ saleMemo = saleMemo ? _reservationSaleTag+' / '+saleMemo : _reservationSaleTag; }
+  // 予約から読み込んだ会計は予約者名を売上メモ先頭へ（ダブり会計の確認用）。
+  // まとめ会計（カートに複数予約をコピー）では各明細の_resId/_resTagから全予約分を集約する。
+  var _resIds=[], _resTags=[];
+  cart.forEach(function(c){
+    if(c._resId && _resIds.indexOf(c._resId)<0) _resIds.push(c._resId);
+    if(c._resTag && _resTags.indexOf(c._resTag)<0) _resTags.push(c._resTag);
+  });
+  if(_reservationResId && _resIds.indexOf(_reservationResId)<0) _resIds.push(_reservationResId);
+  if(_reservationSaleTag && _resTags.indexOf(_reservationSaleTag)<0) _resTags.unshift(_reservationSaleTag);
+  if(_resTags.length){ var _rt=_resTags.join(' / '); saleMemo = saleMemo ? _rt+' / '+saleMemo : _rt; }
   const record={
     id:'s_'+Date.now(),datetime:saleDatetime,
     items:cart.map(i=>({...i})),total,method:currentPayMethod,
     attrs:{...selectedAttrs},discount:saleDiscount,paid:isPaid,
     memo:saleMemo,
-    resId:_reservationResId||undefined,
+    resId:_resIds[0]||undefined,
+    resIds:_resIds.length?_resIds:undefined,
     nextDay:nextDayMode,
     device:localStorage.getItem('pos_device_id')||'',
     device_name:localStorage.getItem('pos_device_name')||'',
