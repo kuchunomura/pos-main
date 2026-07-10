@@ -925,8 +925,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 372;
-const APP_BUILD_DATE = '2026/07/10 10:10';
+const APP_VERSION = 373;
+const APP_BUILD_DATE = '2026/07/10 10:21';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -2409,6 +2409,7 @@ function renderYoyakuPicker(data){
   html+='<div style="margin-top:12px;padding:9px 11px;background:#fff;border:1px solid #eee;border-radius:8px;font-size:11px;color:#666;line-height:1.8">'+
     '・カートで数量や商品を変更したら「⏸ 保留」で保存できます。<br>'+
     '・カートをクリアしても予約は消えません（この画面からいつでも読み込み直せます）。<br>'+
+    '・同じ決済者・グループなど、複数の予約をまとめて会計したい時は「＋コピー」で今のカートに追加できます。<br>'+
     '・会計が済んだ予約は「✅ 会計済み」と薄く表示されます（二重会計の防止用）。'+
   '</div>';
   c.innerHTML=html;
