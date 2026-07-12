@@ -398,7 +398,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
       <input type="text" id="switch-peer-input" placeholder="もう一方のアプリ用の新SS（省略可）"
         style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:inherit;box-sizing:border-box;margin-bottom:12px;">
       <div id="switch-peer-gas-wrap" style="display:none;margin-bottom:12px;">
-        <div style="font-size:10px;color:#c00;margin-bottom:4px;line-height:1.5;">⚠ もう一方のGAS URLが未取得（その端末で相手アプリを一度開けば自動取得）。手動で貼る場合のみ入力（初回だけ・以後保存）:</div>
+        <div style="font-size:10px;color:#c00;margin-bottom:4px;line-height:1.5;">もう一方のGAS URL（通常は自動取得済み。切替が「❌」になる時だけ、正しいURLに貼り替えてください）:</div>
         <input type="text" id="switch-peer-gas-input" placeholder="もう一方のGAS Web App URL"
           style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:inherit;box-sizing:border-box;">
       </div>
@@ -934,8 +934,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 375;
-const APP_BUILD_DATE = '2026/07/12 15:29';
+const APP_VERSION = 376;
+const APP_BUILD_DATE = '2026/07/12 20:55';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -3879,7 +3879,7 @@ var PEER_NAME='テスト(test)';
 var SELF_SS_KEY='pos_current_ss_id_main';
 var PEER_SS_KEY='pos_current_ss_id_test';
 var PEER_GAS_KEY='pos_gas_test';
-function getPeerGasUrl(){ return localStorage.getItem(PEER_GAS_KEY) || localStorage.getItem('pos_peer_gas') || ''; }
+function getPeerGasUrl(){ return localStorage.getItem('pos_peer_gas') || localStorage.getItem(PEER_GAS_KEY) || ''; }
 async function openSwitchSSModal(){
   var modal=document.getElementById('switch-ss-modal');
   var cur=document.getElementById('switch-ss-current');
@@ -3910,8 +3910,8 @@ async function openSwitchSSModal(){
   var peerCur=document.getElementById('switch-peer-current');
   if(peerCur){ var pv=localStorage.getItem(PEER_SS_KEY)||''; peerCur.textContent=pv?('現在: '+pv):'（未取得・切替時に相手GASへ送信）'; }
   var peerInp2=document.getElementById('switch-peer-input'); if(peerInp2) peerInp2.value='';
-  var peerGasInp2=document.getElementById('switch-peer-gas-input'); if(peerGasInp2) peerGasInp2.value='';
-  var peerWrap=document.getElementById('switch-peer-gas-wrap'); if(peerWrap) peerWrap.style.display=getPeerGasUrl()?'none':'block';
+  var peerGasInp2=document.getElementById('switch-peer-gas-input'); if(peerGasInp2) peerGasInp2.value=getPeerGasUrl();
+  var peerWrap=document.getElementById('switch-peer-gas-wrap'); if(peerWrap) peerWrap.style.display='block';
   if(modal) modal.style.display='flex';
 }
 function closeSwitchSSModal(){
