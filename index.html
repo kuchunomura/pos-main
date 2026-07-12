@@ -393,6 +393,15 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
       <div id="switch-ss-current" style="background:#f5f5f5;border-radius:6px;padding:6px 10px;font-size:10px;color:#555;word-break:break-all;margin-bottom:6px;"></div>
       <input type="text" id="switch-ss-input" placeholder="新しく作成したスプレッドシートのURL"
         style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:inherit;box-sizing:border-box;margin-bottom:12px;">
+      <div style="font-size:12px;font-weight:700;color:#2a6a9a;margin-bottom:4px;">🔁 <span id="switch-peer-label">もう一方</span>の同期先シート（GAS）</div>
+      <div id="switch-peer-current" style="background:#f5f5f5;border-radius:6px;padding:6px 10px;font-size:10px;color:#555;word-break:break-all;margin-bottom:6px;"></div>
+      <input type="text" id="switch-peer-input" placeholder="もう一方のアプリ用の新SS（省略可）"
+        style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:inherit;box-sizing:border-box;margin-bottom:12px;">
+      <div id="switch-peer-gas-wrap" style="display:none;margin-bottom:12px;">
+        <div style="font-size:10px;color:#c00;margin-bottom:4px;line-height:1.5;">⚠ もう一方のGAS URLが未取得（その端末で相手アプリを一度開けば自動取得）。手動で貼る場合のみ入力（初回だけ・以後保存）:</div>
+        <input type="text" id="switch-peer-gas-input" placeholder="もう一方のGAS Web App URL"
+          style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:inherit;box-sizing:border-box;">
+      </div>
       <div style="font-size:12px;font-weight:700;color:#7a5500;margin-bottom:4px;">📋 手動集計シート（リンク先URL）</div>
       <div id="switch-manual-current" style="background:#f5f5f5;border-radius:6px;padding:6px 10px;font-size:10px;color:#555;word-break:break-all;margin-bottom:6px;"></div>
       <input type="text" id="switch-manual-input" placeholder="URLまたはIDを貼り付け（変更しない場合は空欄）"
@@ -925,8 +934,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 374;
-const APP_BUILD_DATE = '2026/07/10 17:10';
+const APP_VERSION = 375;
+const APP_BUILD_DATE = '2026/07/12 15:29';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -3863,7 +3872,14 @@ function getCurrentSSUrl(){
   var stored=localStorage.getItem('pos_current_ss_id_main');
   return 'https://docs.google.com/spreadsheets/d/'+(stored||'1WopPkAIZJSLjc9kr7C5hKvWCPYN7CYmOiXOvko0Q4iI')+'/edit?pli=1';
 }
-localStorage.setItem('pos_current_ss_id_main','1WopPkAIZJSLjc9kr7C5hKvWCPYN7CYmOiXOvko0Q4iI');
+// 起動時に既定値へ戻さない（切替後の値を保持）。無い時だけ既定を入れる
+if(!localStorage.getItem('pos_current_ss_id_main')) localStorage.setItem('pos_current_ss_id_main','1WopPkAIZJSLjc9kr7C5hKvWCPYN7CYmOiXOvko0Q4iI');
+// もう一方（テストtest）連携用
+var PEER_NAME='テスト(test)';
+var SELF_SS_KEY='pos_current_ss_id_main';
+var PEER_SS_KEY='pos_current_ss_id_test';
+var PEER_GAS_KEY='pos_gas_test';
+function getPeerGasUrl(){ return localStorage.getItem(PEER_GAS_KEY) || localStorage.getItem('pos_peer_gas') || ''; }
 async function openSwitchSSModal(){
   var modal=document.getElementById('switch-ss-modal');
   var cur=document.getElementById('switch-ss-current');
@@ -3889,6 +3905,13 @@ async function openSwitchSSModal(){
   }catch(e){
     if(cur) cur.textContent='取得できませんでした';
   }
+  // もう一方（相手アプリ）の同期先
+  var peerLbl=document.getElementById('switch-peer-label'); if(peerLbl) peerLbl.textContent=PEER_NAME;
+  var peerCur=document.getElementById('switch-peer-current');
+  if(peerCur){ var pv=localStorage.getItem(PEER_SS_KEY)||''; peerCur.textContent=pv?('現在: '+pv):'（未取得・切替時に相手GASへ送信）'; }
+  var peerInp2=document.getElementById('switch-peer-input'); if(peerInp2) peerInp2.value='';
+  var peerGasInp2=document.getElementById('switch-peer-gas-input'); if(peerGasInp2) peerGasInp2.value='';
+  var peerWrap=document.getElementById('switch-peer-gas-wrap'); if(peerWrap) peerWrap.style.display=getPeerGasUrl()?'none':'block';
   if(modal) modal.style.display='flex';
 }
 function closeSwitchSSModal(){
@@ -3897,29 +3920,59 @@ function closeSwitchSSModal(){
 }
 async function doSwitchSS(){
   var inp=document.getElementById('switch-ss-input');
+  var peerInp=document.getElementById('switch-peer-input');
   var manInp=document.getElementById('switch-manual-input');
+  var peerGasInp=document.getElementById('switch-peer-gas-input');
   var res=document.getElementById('switch-ss-result');
   var newId=extractSSId(inp?inp.value:'');
+  var peerId=extractSSId(peerInp?peerInp.value:'');
   var manId=extractSSId(manInp?manInp.value:'');
-  if(!newId&&!manId){if(res)res.textContent='⚠ 少なくとも1つ入力してください';return;}
+  var peerGasManual=(peerGasInp&&peerGasInp.value.trim())?peerGasInp.value.trim():'';
+  if(peerGasManual) localStorage.setItem('pos_peer_gas', peerGasManual);
+  var peerGas=getPeerGasUrl();
+  if(!newId&&!peerId&&!manId){if(res){res.style.color='#c00';res.textContent='⚠ 少なくとも1つ入力してください';}return;}
   if(res){res.style.color='#555';res.textContent='⏳ 切り替え中...';}
   var msgs=[];
-  if(newId){
+  // 自分のGAS（自分の同期先＋手動集計SS）
+  if(newId||manId){
     try{
+      var selfP={type:'switch_ss'}; if(newId)selfP.ss_id=newId; if(manId)selfP.manual_ss_id=manId;
       var url=ld(KEYS.gas)||DEFAULT_GAS_URL;
-      var r=await fetch(url+'?d='+encodeURIComponent(JSON.stringify({type:'switch_ss',ss_id:newId})),{method:'GET',redirect:'follow'});
+      var r=await fetch(url+'?d='+encodeURIComponent(JSON.stringify(selfP)),{method:'GET',redirect:'follow'});
       var json=await r.json();
-      if(json.data&&json.data.switched){msgs.push('同期先 ✅');localStorage.setItem('pos_current_ss_id_main',newId);}
-      else msgs.push('同期先 ❌');
+      if(newId){ if(json.data&&json.data.switched){msgs.push('同期先 ✅');localStorage.setItem(SELF_SS_KEY,newId);} else msgs.push('同期先 ❌'); }
+      if(manId){ localStorage.setItem('pos_manual_ss_id',manId); msgs.push('手動集計 ✅'); }
     }catch(e){ msgs.push('同期先 ❌'); }
   }
-  if(manId){
-    localStorage.setItem('pos_manual_ss_id', manId);
-    msgs.push('手動集計 ✅');
+  // もう一方のGAS（相手の同期先＋手動集計SS）
+  if(peerId||manId){
+    if(peerGas){
+      try{
+        var peerP={type:'switch_ss'}; if(peerId)peerP.ss_id=peerId; if(manId)peerP.manual_ss_id=manId;
+        var r2=await fetch(peerGas+'?d='+encodeURIComponent(JSON.stringify(peerP)),{method:'GET',redirect:'follow'});
+        var json2=await r2.json();
+        if(peerId){ if(json2.data&&json2.data.switched){msgs.push(PEER_NAME+' ✅');localStorage.setItem(PEER_SS_KEY,peerId);} else msgs.push(PEER_NAME+' ❌'); }
+      }catch(e){ if(peerId)msgs.push(PEER_NAME+' ❌'); }
+    } else if(peerId){
+      msgs.push(PEER_NAME+'GAS未登録⚠');
+    }
   }
   if(res){res.style.color='#27ae60';res.textContent=msgs.join('　');}
-  setTimeout(closeSwitchSSModal,1800);
+  setTimeout(closeSwitchSSModal,2400);
 }
+// 起動時：自分のGASから現在の同期先・手動集計SSを取得しlocalStorageへ反映（他デバイス間で追従）
+async function refreshSSFromGAS(){
+  try{
+    var url=ld(KEYS.gas)||DEFAULT_GAS_URL; if(!url)return;
+    var r=await fetch(url+'?d='+encodeURIComponent(JSON.stringify({type:'get_current_ss'})),{method:'GET',redirect:'follow'});
+    var json=await r.json();
+    if(json&&json.data){
+      if(json.data.ss_id) localStorage.setItem(SELF_SS_KEY,json.data.ss_id);
+      if(json.data.manual_ss_id) localStorage.setItem('pos_manual_ss_id',json.data.manual_ss_id);
+    }
+  }catch(e){}
+}
+refreshSSFromGAS();
 
 // GAS接続テスト
 async function testGasConnection(){

@@ -129,12 +129,20 @@ function handleRequest(data) {
     return { rows: rows };
   }
   else if (type === 'switch_ss') {
-    if (!data.ss_id) return { error: 'ss_id missing' };
-    PropertiesService.getScriptProperties().setProperty('CURRENT_SS_ID', data.ss_id);
-    return { switched: true, ss_id: data.ss_id };
+    if (!data.ss_id && !data.manual_ss_id) return { error: 'ss_id missing' };
+    var sw = { switched: false };
+    if (data.ss_id) {
+      PropertiesService.getScriptProperties().setProperty('CURRENT_SS_ID', data.ss_id);
+      sw.switched = true; sw.ss_id = data.ss_id;
+    }
+    if (data.manual_ss_id) {
+      PropertiesService.getScriptProperties().setProperty('MANUAL_SS_ID', data.manual_ss_id);
+      sw.manual_ss_id = data.manual_ss_id;
+    }
+    return sw;
   }
   else if (type === 'get_current_ss') {
-    return { ss_id: getSSId(), is_default: (getSSId() === SS_ID) };
+    return { ss_id: getSSId(), is_default: (getSSId() === SS_ID), manual_ss_id: (PropertiesService.getScriptProperties().getProperty('MANUAL_SS_ID') || '') };
   }
   else if (type === 'create_invoice') {
     var sheetName = createInvoiceSheet(data);
