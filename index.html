@@ -393,13 +393,10 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
       <div id="switch-ss-current" style="background:#f5f5f5;border-radius:6px;padding:6px 10px;font-size:10px;color:#555;word-break:break-all;margin-bottom:6px;"></div>
       <input type="text" id="switch-ss-input" placeholder="新しく作成したスプレッドシートのURL"
         style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:inherit;box-sizing:border-box;margin-bottom:12px;">
-      <div style="font-size:12px;font-weight:700;color:#2a6a9a;margin-bottom:4px;">🔁 <span id="switch-peer-label">もう一方</span>の同期先シート（GAS）</div>
-      <div id="switch-peer-current" style="background:#f5f5f5;border-radius:6px;padding:6px 10px;font-size:10px;color:#555;word-break:break-all;margin-bottom:6px;"></div>
-      <input type="text" id="switch-peer-input" placeholder="もう一方のアプリ用の新SS（省略可）"
-        style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:inherit;box-sizing:border-box;margin-bottom:12px;">
+      <div style="font-size:11px;color:#2a6a9a;background:#eef4fb;border-radius:6px;padding:6px 9px;margin-bottom:10px;line-height:1.6;">🔁 上のSSに切り替えると、<b>testアプリも自動で同じSSに同期</b>されます（予備レジ用）。</div>
       <div id="switch-peer-gas-wrap" style="display:none;margin-bottom:12px;">
-        <div style="font-size:10px;color:#c00;margin-bottom:4px;line-height:1.5;">もう一方のGAS URL（通常は自動取得済み。切替が「❌」になる時だけ、正しいURLに貼り替えてください）:</div>
-        <input type="text" id="switch-peer-gas-input" placeholder="もう一方のGAS Web App URL"
+        <div style="font-size:10px;color:#555;margin-bottom:4px;line-height:1.5;">testアプリのGAS URL（自動同期用。「test同期 ❌」の時だけ、正しいURLに貼り替え）:</div>
+        <input type="text" id="switch-peer-gas-input" placeholder="testアプリのGAS Web App URL"
           style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:inherit;box-sizing:border-box;">
       </div>
       <div style="font-size:12px;font-weight:700;color:#7a5500;margin-bottom:4px;">📋 手動集計シート（リンク先URL）</div>
@@ -934,8 +931,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 376;
-const APP_BUILD_DATE = '2026/07/12 20:55';
+const APP_VERSION = 377;
+const APP_BUILD_DATE = '2026/07/12 21:09';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -3905,11 +3902,7 @@ async function openSwitchSSModal(){
   }catch(e){
     if(cur) cur.textContent='取得できませんでした';
   }
-  // もう一方（相手アプリ）の同期先
-  var peerLbl=document.getElementById('switch-peer-label'); if(peerLbl) peerLbl.textContent=PEER_NAME;
-  var peerCur=document.getElementById('switch-peer-current');
-  if(peerCur){ var pv=localStorage.getItem(PEER_SS_KEY)||''; peerCur.textContent=pv?('現在: '+pv):'（未取得・切替時に相手GASへ送信）'; }
-  var peerInp2=document.getElementById('switch-peer-input'); if(peerInp2) peerInp2.value='';
+  // testを同じSSへ自動同期（GAS URL欄のみ・必要時に修正）
   var peerGasInp2=document.getElementById('switch-peer-gas-input'); if(peerGasInp2) peerGasInp2.value=getPeerGasUrl();
   var peerWrap=document.getElementById('switch-peer-gas-wrap'); if(peerWrap) peerWrap.style.display='block';
   if(modal) modal.style.display='flex';
@@ -3920,20 +3913,18 @@ function closeSwitchSSModal(){
 }
 async function doSwitchSS(){
   var inp=document.getElementById('switch-ss-input');
-  var peerInp=document.getElementById('switch-peer-input');
   var manInp=document.getElementById('switch-manual-input');
   var peerGasInp=document.getElementById('switch-peer-gas-input');
   var res=document.getElementById('switch-ss-result');
   var newId=extractSSId(inp?inp.value:'');
-  var peerId=extractSSId(peerInp?peerInp.value:'');
   var manId=extractSSId(manInp?manInp.value:'');
   var peerGasManual=(peerGasInp&&peerGasInp.value.trim())?peerGasInp.value.trim():'';
   if(peerGasManual) localStorage.setItem('pos_peer_gas', peerGasManual);
   var peerGas=getPeerGasUrl();
-  if(!newId&&!peerId&&!manId){if(res){res.style.color='#c00';res.textContent='⚠ 少なくとも1つ入力してください';}return;}
+  if(!newId&&!manId){if(res){res.style.color='#c00';res.textContent='⚠ 少なくとも1つ入力してください';}return;}
   if(res){res.style.color='#555';res.textContent='⏳ 切り替え中...';}
   var msgs=[];
-  // 自分のGAS（自分の同期先＋手動集計SS）
+  // 自分（main）のGAS（同期先＋手動集計SS）
   if(newId||manId){
     try{
       var selfP={type:'switch_ss'}; if(newId)selfP.ss_id=newId; if(manId)selfP.manual_ss_id=manId;
@@ -3944,17 +3935,18 @@ async function doSwitchSS(){
       if(manId){ localStorage.setItem('pos_manual_ss_id',manId); msgs.push('手動集計 ✅'); }
     }catch(e){ msgs.push('同期先 ❌'); }
   }
-  // もう一方のGAS（相手の同期先＋手動集計SS）
-  if(peerId||manId){
+  // test も「mainと同じSS」へ自動同期（予備レジ用）
+  if(newId){
     if(peerGas){
       try{
-        var peerP={type:'switch_ss'}; if(peerId)peerP.ss_id=peerId; if(manId)peerP.manual_ss_id=manId;
+        var peerP={type:'switch_ss', ss_id:newId}; if(manId)peerP.manual_ss_id=manId;
         var r2=await fetch(peerGas+'?d='+encodeURIComponent(JSON.stringify(peerP)),{method:'GET',redirect:'follow'});
         var json2=await r2.json();
-        if(peerId){ if(json2.data&&json2.data.switched){msgs.push(PEER_NAME+' ✅');localStorage.setItem(PEER_SS_KEY,peerId);} else msgs.push(PEER_NAME+' ❌'); }
-      }catch(e){ if(peerId)msgs.push(PEER_NAME+' ❌'); }
-    } else if(peerId){
-      msgs.push(PEER_NAME+'GAS未登録⚠');
+        if(json2.data&&json2.data.switched){msgs.push('test同期 ✅');localStorage.setItem(PEER_SS_KEY,newId);}
+        else msgs.push('test同期 ❌');
+      }catch(e){ msgs.push('test同期 ❌'); }
+    } else {
+      msgs.push('test GAS未登録⚠');
     }
   }
   if(res){res.style.color='#27ae60';res.textContent=msgs.join('　');}
