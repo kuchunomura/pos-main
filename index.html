@@ -347,7 +347,6 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <div class="tab-content" id="tab-sales">
   <div class="sales-header">
     <h2>📊 売上管理</h2>
-    <button class="btn-sm2" onclick="exportCSV()">📥 CSV</button>
     <div style="position:relative;display:inline-block;">
       <button id="sync-btn" class="btn-sm2 primary" onclick="toggleSyncMenu(event)">📊 同期+取得 ▾</button>
       <div id="sync-menu" style="display:none;position:absolute;right:0;top:32px;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);z-index:300;min-width:110px;padding:4px 0;">
@@ -357,7 +356,6 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
         <button onclick="doSync('all')" style="display:block;width:100%;padding:8px 14px;border:none;background:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;">全件</button>
       </div>
     </div>
-    <button class="btn-sm2" onclick="openMonthlyModal()" style="background:#4a7c2f;color:#fff;border-color:#4a7c2f;">📅 月別集計</button>
     <button class="btn-sm2" onclick="openSwitchSSModal()" style="background:#7a5500;color:#fff;border-color:#7a5500;">📂 月初シート切替</button>
   </div>
   <!-- 月別集計モーダル -->
@@ -466,7 +464,6 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
       <button class="btn-sm2" onclick="updateFilterBtnState();renderSales()">絞込</button>
       <button class="btn-sm2" onclick="clearFilter()">全件</button>
       <span id="sales-app-type-label" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:var(--accent2);color:#fff;"></span>
-      <button class="btn-sm2" onclick="window.open(SS_URL_TEST,'_blank')" style="font-size:10px;padding:3px 8px;background:#e8f4fd;color:#2471a3;border-color:#a0c8e8;">🔗 testシート リンク</button>
       <button class="btn-sm2" onclick="window.open(getCurrentSSUrl(),'_blank')" style="font-size:10px;padding:3px 8px;background:#f0f4e8;color:#2d5016;border-color:#a0c870;">🔗 mainシート リンク</button>
       <button class="btn-sm2" onclick="window.open(getManualSSUrl(),'_blank')" style="font-size:10px;padding:3px 8px;background:#fff9c4;color:#7a5500;border-color:#d4b040;">🔗 手動集計シート リンク</button>
     </div>
@@ -931,8 +928,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 378;
-const APP_BUILD_DATE = '2026/07/12 21:45';
+const APP_VERSION = 379;
+const APP_BUILD_DATE = '2026/07/13 21:36';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -2294,6 +2291,31 @@ function findPosItemByName(name){
   var n=norm(alias);
   return items.find(function(x){return norm(x.name)===n;})||null;
 }
+// 備考テキスト中の「認識できたレンタル語」の直後に橙✓を付ける（yoyaku準拠）。未認識語はそのまま＝スタッフが手動確認できる
+function posMemoRentalChecks(memo, rental){
+  memo=String(memo||'').replace(/✓/g,'');
+  if(!memo) return '';
+  var marks=[];
+  (rental||[]).forEach(function(it){
+    var nm=String(it.name||'').trim(); if(!nm) return;
+    var idx=memo.indexOf(nm); if(idx<0) return;
+    var matchEnd=idx+nm.length;
+    var rest=memo.slice(matchEnd);
+    var sepRel=rest.search(/[・、,，\/\n\s]/);
+    marks.push(sepRel<0?memo.length:matchEnd+sepRel);
+  });
+  var seen={}; marks=marks.filter(function(v){ if(seen[v])return false; seen[v]=true; return true; });
+  if(!marks.length) return esc(memo);
+  marks.sort(function(a,b){return a-b;});
+  var h='',p=0;
+  marks.forEach(function(pos){
+    if(pos<p) return;
+    h+=esc(memo.slice(p,pos))+'<span style="color:#e67700;font-weight:700">✓</span>';
+    p=pos;
+  });
+  h+=esc(memo.slice(p));
+  return h;
+}
 
 // 予約の割引区分をPOSグローバルへ反映
 function applyYoyakuDiscountContext(o,isStay){
@@ -2376,7 +2398,7 @@ function renderYoyakuPicker(data){
     var rentalLine=(o.rental&&o.rental.length)?'<div style="font-size:11px;color:#7a1030;margin-top:2px">レンタル: '+esc(o.rental.map(function(r){return r.name+'×'+(r.qty||1);}).join('、'))+'</div>':'';
     var memoHtml='';
     if(o.memo){
-      var full=esc(o.memo);
+      var full=posMemoRentalChecks(o.memo,o.rental);
       if(o.memo.length<=50) memoHtml='<div style="font-size:11px;color:#111;margin-top:3px;white-space:pre-wrap">備考: '+full+'</div>';
       else memoHtml='<details onclick="event.stopPropagation()" style="font-size:11px;color:#111;margin-top:3px"><summary style="cursor:pointer;color:#333;list-style:revert">備考: '+esc(o.memo.replace(/\s+/g,' ').slice(0,30))+'…</summary><div style="white-space:pre-wrap;margin-top:3px">'+full+'</div></details>';
     }
