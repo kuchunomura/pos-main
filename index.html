@@ -604,6 +604,16 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
     </div>
   </div>
 
+  <!-- 月別集計 -->
+  <div class="settings-section">
+    <h3>📅 月別集計</h3>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.7;">
+      指定した月の「月別集計」シートを、上のGAS URLがつながっている<strong>現在の同期先スプレッドシート</strong>に作成します。<br>
+      普段の集計は手動集計シートでやるため、主に数字の確認用。
+    </div>
+    <button class="btn-sm2" onclick="openMonthlyModal()" style="background:#4a7c2f;color:#fff;border-color:#4a7c2f;padding:8px 14px;">📅 月別集計を作成</button>
+  </div>
+
   <!-- yoyaku予約連携 -->
   <div class="settings-section">
     <h3>📅 予約連携（yoyaku）</h3>
@@ -928,8 +938,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 382;
-const APP_BUILD_DATE = '2026/07/15 21:19';
+const APP_VERSION = 383;
+const APP_BUILD_DATE = '2026/07/15 21:27';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
