@@ -358,30 +358,6 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
     </div>
     <button class="btn-sm2" onclick="openSwitchSSModal()" style="background:#7a5500;color:#fff;border-color:#7a5500;">📂 月初シート切替</button>
   </div>
-  <!-- 月別集計モーダル -->
-  <div class="modal-overlay" id="monthly-modal">
-    <div class="modal" style="max-width:320px;">
-      <h3>📅 月別集計シートを作成</h3>
-      <p style="font-size:12px;color:var(--text2);margin-bottom:12px;">指定した月のスプレッドシートに「月別集計」シートを自動作成します。</p>
-      <div class="form-row">
-        <label>年</label>
-        <input type="number" id="monthly-year" min="2020" max="2099" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:15px;">
-      </div>
-      <div class="form-row">
-        <label>月</label>
-        <select id="monthly-month" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:15px;">
-          <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
-          <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
-          <option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
-          <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
-        </select>
-      </div>
-      <div class="modal-btns">
-        <button onclick="closeMonthlyModal()">キャンセル</button>
-        <button class="confirm" id="monthly-exec-btn" onclick="doMonthlySummary()">作成する</button>
-      </div>
-    </div>
-  </div>
   <!-- SS切替モーダル -->
   <div class="modal-overlay" id="switch-ss-modal" style="display:none;align-items:center;justify-content:center;">
     <div class="modal" style="max-width:380px;padding:20px;">
@@ -694,6 +670,31 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
   </div>
 </div>
 
+<!-- 月別集計モーダル（タブの外に置くこと。tab-content の中だと display:none の親に隠れて開かない） -->
+<div class="modal-overlay" id="monthly-modal">
+  <div class="modal" style="max-width:320px;">
+    <h3>📅 月別集計シートを作成</h3>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:12px;">指定した月のスプレッドシートに「月別集計」シートを自動作成します。</p>
+    <div class="form-row">
+      <label>年</label>
+      <input type="number" id="monthly-year" min="2020" max="2099" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:15px;">
+    </div>
+    <div class="form-row">
+      <label>月</label>
+      <select id="monthly-month" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:15px;">
+        <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
+        <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
+        <option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
+        <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button onclick="closeMonthlyModal()">キャンセル</button>
+      <button class="confirm" id="monthly-exec-btn" onclick="doMonthlySummary()">作成する</button>
+    </div>
+  </div>
+</div>
+
 <!-- 宿泊人数選択モーダル -->
 <div class="modal-overlay" id="stay-modal">
   <div class="modal">
@@ -938,8 +939,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 383;
-const APP_BUILD_DATE = '2026/07/15 21:27';
+const APP_VERSION = 384;
+const APP_BUILD_DATE = '2026/07/15 21:47';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
