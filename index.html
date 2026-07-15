@@ -138,6 +138,12 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 #tab-settings-pos{flex-direction:column;overflow-y:auto;padding:14px;}
 .settings-section{background:var(--surface);border-radius:10px;padding:14px;margin-bottom:14px;box-shadow:var(--shadow);}
 .settings-section h3{font-size:13px;font-weight:700;margin-bottom:10px;color:var(--accent);}
+/* 折りたたみセクション（details/summary） */
+details.settings-section > summary{font-size:13px;font-weight:700;color:var(--accent);cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px;}
+details.settings-section > summary::-webkit-details-marker{display:none;}
+details.settings-section > summary::before{content:'▶';font-size:9px;color:var(--text2);}
+details.settings-section[open] > summary::before{content:'▼';}
+details.settings-section[open] > summary{margin-bottom:10px;}
 .form-row{margin-bottom:8px;}
 .form-row label{font-size:11px;color:var(--text2);display:block;margin-bottom:3px;}
 .form-row input,.form-row select,.form-row textarea{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;}
@@ -468,8 +474,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
   </div>
 
   <!-- カテゴリー管理 -->
-  <div class="settings-section">
-    <h3>🏷 カテゴリー管理</h3>
+  <details class="settings-section">
+    <summary>🏷 カテゴリー管理</summary>
     <div id="cat-mgmt-list"></div>
     <div style="display:flex;gap:6px;align-items:flex-end;margin-top:6px">
       <div class="form-row" style="flex:1;margin:0"><label>カテゴリー名</label><input type="text" id="new-cat-name" placeholder="例：ランチ"></div>
@@ -480,18 +486,18 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
       <button class="btn-sm2 primary" onclick="addCategory()" style="height:36px;margin-bottom:0">追加</button>
     </div>
     <button class="btn-primary2" onclick="saveCatSettings()">カテゴリーを保存</button>
-  </div>
+  </details>
 
   <!-- 商品登録 -->
-  <div class="settings-section">
-    <h3>🛍 商品登録</h3>
+  <details class="settings-section">
+    <summary>🛍 商品登録</summary>
     <div class="item-list" id="item-list"></div>
     <div class="form-row"><label>商品名</label><input type="text" id="new-item-name" placeholder="例：コーヒー"></div>
     <div class="form-row"><label>金額（円）</label><input type="number" id="new-item-price" min="0" placeholder="500"></div>
     <div class="form-row"><label>カテゴリー</label><select id="new-item-cat"></select></div>
     <div class="form-row"><label>在庫数（0=非表示）</label><input type="number" id="new-item-stock" min="0" value="0" placeholder="0"></div>
     <button class="btn-primary2" onclick="addItem()">＋ 商品を追加</button>
-  </div>
+  </details>
 
   <!-- 予約サイト名 -->
   <div class="settings-section">
@@ -513,34 +519,14 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 
 
   <!-- 属性設定 -->
-  <div class="settings-section">
-    <h3>👥 属性設定</h3>
+  <details class="settings-section">
+    <summary>👥 属性設定</summary>
     <div id="attr-settings-area"></div>
     <div style="display:flex;gap:8px;">
       <button class="btn-primary2" onclick="sv('pos_attrs',ATTRS);showToast('✓ 属性を保存しました');">保存</button>
       <button class="btn-primary2" style="background:#888;" onclick="resetAttrsToDefault()">デフォルトに戻す</button>
     </div>
-  </div>
-  <!-- 時間計算設定 -->
-  <div class="settings-section">
-    <h3>⏱ 時間計算設定</h3>
-    <div id="timer-fac-settings"></div>
-    <button class="btn-primary2" onclick="saveTimerSettings()">保存</button>
-  </div>
-
-  <!-- 表示サイズ -->
-  <div class="settings-section">
-    <h3>📐 表示サイズ調整</h3>
-    <div class="form-row">
-      <label>文字サイズ（現在: <span id="font-scale-val">100</span>%）</label>
-      <input type="range" id="font-scale" min="70" max="130" value="100" oninput="applyFontScale(this.value)">
-    </div>
-    <div class="form-row">
-      <label>カート幅（現在: <span id="cart-width-val">28</span>vw）</label>
-      <input type="range" id="cart-width" min="20" max="45" value="28" oninput="applyCartWidth(this.value)">
-    </div>
-    <button class="btn-primary2" onclick="saveDisplaySettings()">保存</button>
-  </div>
+  </details>
 
   <!-- 支払済み表示設定 -->
   <div class="settings-section" style="display:none;">
@@ -562,16 +548,11 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
     <h3>📊 スプレッドシート連携 - GAS URL</h3>
     <div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.7;">
       売上データをスプレッドシートに同期するのに必要なURL。<br>
-      test版はtest用・main版はmain用のURLになっている必要がある。<br>
-      キャッシュなどの要因で別のURLになっていたら正しいほうを選択。
+      下の表示が <b>✓</b> なら正常。キャッシュなどの要因で別のURLになった場合だけ修復ボタンが出る。
     </div>
     <div id="gas-url-status" style="font-size:12px;padding:6px 10px;background:#f5f5f5;border-radius:6px;margin-bottom:8px;line-height:1.7;"></div>
-    <div class="form-row" style="margin-bottom:8px;">
-      <label>GAS URLを選択して適用</label>
-      <select id="gas-url-select" onchange="applyGasUrlFromSelect()" style="width:100%;padding:10px;font-size:14px;border:1px solid var(--border);border-radius:8px;font-family:inherit;">
-        <option value="test">test用 GAS URL</option>
-        <option value="main">main用 GAS URL</option>
-      </select>
+    <div id="gas-url-fix-row" style="margin-bottom:8px;display:none;">
+      <button class="btn-sm2" onclick="applyCorrectGasUrl()" style="background:#7a5500;color:#fff;border-color:#7a5500;padding:8px 14px;">🔧 main用の正しいURLに直す</button>
     </div>
     <div class="form-row"><label>GAS WebアプリURL（直接入力）</label><input type="text" id="pos-gas-url" placeholder="https://script.google.com/macros/s/..."></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
@@ -667,6 +648,27 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
     <button onclick="executeReset()" style="width:100%;padding:12px;background:var(--red);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">
       選択した項目をリセットする
     </button>
+  </div>
+
+  <!-- 時間計算設定 -->
+  <div class="settings-section">
+    <h3>⏱ 時間計算設定</h3>
+    <div id="timer-fac-settings"></div>
+    <button class="btn-primary2" onclick="saveTimerSettings()">保存</button>
+  </div>
+
+  <!-- 表示サイズ -->
+  <div class="settings-section">
+    <h3>📐 表示サイズ調整</h3>
+    <div class="form-row">
+      <label>文字サイズ（現在: <span id="font-scale-val">100</span>%）</label>
+      <input type="range" id="font-scale" min="70" max="130" value="100" oninput="applyFontScale(this.value)">
+    </div>
+    <div class="form-row">
+      <label>カート幅（現在: <span id="cart-width-val">28</span>vw）</label>
+      <input type="range" id="cart-width" min="20" max="45" value="28" oninput="applyCartWidth(this.value)">
+    </div>
+    <button class="btn-primary2" onclick="saveDisplaySettings()">保存</button>
   </div>
 </div>
 
@@ -939,8 +941,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 384;
-const APP_BUILD_DATE = '2026/07/15 21:47';
+const APP_VERSION = 385;
+const APP_BUILD_DATE = '2026/07/15 22:31';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -1191,6 +1193,7 @@ const DEFAULT_DISCOUNTS = [
   {key:'pass_day',  label:'年間パス（昼）',type:'paid',     fixed:false},
   {key:'pass_night',label:'年間パス（夜）',type:'paid',     fixed:false},
   {key:'group',     label:'団体',          type:'discount', fixed:false, rate:10},
+  {key:'half',      label:'50%引き',       type:'discount', fixed:false, rate:50},
   {key:'free',      label:'無料',          type:'discount', fixed:false},
 ];
 let discountItems = ld(KEYS.discounts) || DEFAULT_DISCOUNTS;
@@ -1209,13 +1212,22 @@ let discountItems = ld(KEYS.discounts) || DEFAULT_DISCOUNTS;
   if(!discountItems.find(function(d){return d.key==='free';})){
     discountItems.push({key:'free',label:'無料',type:'discount',fixed:true}); changed=true;
   }
+  // 50%引き：無料の手前に入れる
+  if(!discountItems.find(function(d){return d.key==='half';})){
+    var fi=discountItems.findIndex(function(d){return d.key==='free';});
+    var half={key:'half',label:'50%引き',type:'discount',fixed:false,rate:50};
+    if(fi>=0) discountItems.splice(fi,0,half); else discountItems.push(half);
+    changed=true;
+  }
   if(changed) sv(KEYS.discounts,discountItems);
 })();
 let cart = [];
 let selectedAttrs = {age:[],nationality:[]};
 let activeDiscount = ''; // site key or 'pass_day' or 'pass_night' or 'stay_guest'
 let activeMura = false;  // 村民割引トグル（activeDiscountとは独立）
-let activeGroup = false; // 団体割引トグル
+// 率割引（団体・50%引き・自作の割引）のうち今ONになっているキー。''ならOFF。
+// カート行の groupOn にも同じキーを入れる（旧データは true が入っていることがあり、その場合は団体扱い）
+let activeRateKey = '';
 let activeFree = false;  // 無料トグル
 let nextDayMode = 0; // 翌日計上モード: 0=OFF, 1=翌日, 2=翌々日
 let paymentDoneTimer = null;
@@ -1466,20 +1478,43 @@ function renderCatFilterTabs(){
 }
 
 // ===== 割引・予約サイトバー =====
+// 率割引（団体・50%引き・自作の割引）か？ 設定画面で割引率を出す条件と揃えてある
+function isRateDiscount(d){
+  return !!d && d.type==='discount' && d.key!=='mura' && d.key!=='stay_guest' && d.key!=='free';
+}
+// key の割引率(%)。旧カートの groupOn===true は団体扱い
+function getDiscRate(key){
+  var k=(typeof key==='string'&&key)?key:'group';
+  var d=discountItems.find(function(x){return x.key===k;});
+  return d?(Number(d.rate)||10):10;
+}
+function getDiscLabel(key){
+  var k=(typeof key==='string'&&key)?key:'group';
+  var d=discountItems.find(function(x){return x.key===k;});
+  return d?d.label:'団体';
+}
+// カート行の groupOn を割引キーに正規化（旧データの true は団体）
+function getDiscKeyOf(v){ return (typeof v==='string'&&v)?v:(v?'group':''); }
+// 「団体-10%」のような表示用。ラベル自体に%が入っていれば率は付けない（「50%引き-50%」を防ぐ）
+function rateDiscText(key){
+  var l=getDiscLabel(key);
+  return l.indexOf('%')>=0?l:l+'-'+getDiscRate(key)+'%';
+}
+
 function renderDiscountBar(){
   const c=document.getElementById('discount-bar');if(!c)return;c.innerHTML='';
   discountItems.forEach(d=>{
     const b=document.createElement('button');
     const isMuraKey=d.key==='mura';
-    const isGroupKey=d.key==='group';
+    const isRateKey=isRateDiscount(d);
     const isFreeKey=d.key==='free';
-    const isActive=isMuraKey?activeMura:isGroupKey?activeGroup:isFreeKey?activeFree:activeDiscount===d.key;
+    const isActive=isMuraKey?activeMura:isRateKey?activeRateKey===d.key:isFreeKey?activeFree:activeDiscount===d.key;
     const isPaid=d.type==='paid';
     b.className='disc-btn'+(isActive?(isPaid?' paid-active':' active'):'');
-    b.textContent=d.label+(d.rate&&d.type==='discount'&&!isMuraKey&&d.key!=='stay_guest'?' -'+d.rate+'%':'')+(isPaid&&isActive?' ✓支払済':'');
+    b.textContent=d.label+(isRateKey&&d.rate&&d.label.indexOf('%')<0?' -'+d.rate+'%':'')+(isPaid&&isActive?' ✓支払済':'');
     b.onclick=()=>{
       if(isMuraKey){ activeMura=!activeMura; }
-      else if(isGroupKey){ activeGroup=!activeGroup; }
+      else if(isRateKey){ activeRateKey=isActive?'':d.key; } // 率割引どうしは排他
       else if(isFreeKey){ activeFree=!activeFree; }
       else { activeDiscount=isActive?'':d.key; }
       recalcCartPrices();
@@ -1739,10 +1774,8 @@ function getDiscountedPrice(item){
     if(item.cat==='cat_walk' || item.cat==='cat_tree_day' || STAY_CAT_IDS.includes(item.cat)) return Math.floor(item.price/2);
   }
   if(activeFree) return 0;
-  if(activeGroup && item.cat!=='cat_rental'){
-    var gd=discountItems.find(function(x){return x.key==='group';});
-    var grate=gd?(Number(gd.rate)||10):10;
-    return Math.floor(item.price*(100-grate)/100);
+  if(activeRateKey && item.cat!=='cat_rental'){
+    return Math.floor(item.price*(100-getDiscRate(activeRateKey))/100);
   }
   return item.price;
 }
@@ -1955,9 +1988,7 @@ function recalcCartPrices(){
       }
     }
     if(!applied&&cartItem.groupOn){
-      var gdg=discountItems.find(function(x){return x.key==='group';});
-      var grate=gdg?(Number(gdg.rate)||10):10;
-      cartItem.price=Math.floor(cartItem.origPrice*(100-grate)/100);
+      cartItem.price=Math.floor(cartItem.origPrice*(100-getDiscRate(cartItem.groupOn))/100);
       cartItem.discounted=true;cartItem.paidLabel='';applied=true;
     }
     if(!applied&&cartItem.freeOn){
@@ -1988,9 +2019,9 @@ function addToCart(item,cat){
   const price = paidBadge ? 0 : getDiscountedPrice(item);
   const newPassKey=(activeDiscount==='pass_day'||activeDiscount==='pass_night')?activeDiscount:'';
   const newOtaKey=(isOtaActive()&&isOtaFreeItem(item))?activeDiscount:'';
-  const newGroupOn=activeGroup&&item.cat!=='cat_rental';
+  const newGroupOn=(activeRateKey&&item.cat!=='cat_rental')?activeRateKey:'';
   const newFreeOn=activeFree;
-  const ex=cart.find(c=>c.id===item.id&&c.discounted===(price<item.price)&&!c.paidLabel===!paidBadge&&(c.passKey||'')===(newPassKey)&&(c.otaKey||'')===(newOtaKey)&&!!c.groupOn===!!newGroupOn&&!!c.freeOn===!!newFreeOn);
+  const ex=cart.find(c=>c.id===item.id&&c.discounted===(price<item.price)&&!c.paidLabel===!paidBadge&&(c.passKey||'')===(newPassKey)&&(c.otaKey||'')===(newOtaKey)&&(c.groupOn?getDiscKeyOf(c.groupOn):'')===(newGroupOn||'')&&!!c.freeOn===!!newFreeOn);
   if(ex)ex.qty++;
   else cart.push({id:item.id,name:item.name,origPrice:item.price,price,qty:1,discounted:price<item.price,paidLabel:paidBadge||'',free_mura:item.free_mura||false,cat:item.cat||'',catColor:cat?cat.bg:'#fff',muraOn:activeMura&&(item.cat==='cat_walk'||item.cat==='cat_tree_day'||item.id==='i_bbq'||!!item.free_mura),groupOn:newGroupOn,freeOn:newFreeOn,passKey:newPassKey,otaKey:newOtaKey});
   if(STAY_CAT_IDS.includes(item.cat)) recalcCartPrices();
@@ -2026,8 +2057,7 @@ function renderCart(){
     } else if(item.freeOn){
       discTag='<span style="font-size:10px;background:#fde8e8;color:var(--red);border:1px solid #f5c0c0;border-radius:4px;padding:1px 5px;margin-left:4px;font-weight:600;">無料</span>';
     } else if(item.groupOn){
-      var gdLabel=discountItems.find(function(x){return x.key==='group';}); var gr=(gdLabel?gdLabel.rate:10)||10;
-      discTag='<span style="font-size:10px;background:#fde8e8;color:var(--red);border:1px solid #f5c0c0;border-radius:4px;padding:1px 5px;margin-left:4px;font-weight:600;">団体-'+gr+'%</span>';
+      discTag='<span style="font-size:10px;background:#fde8e8;color:var(--red);border:1px solid #f5c0c0;border-radius:4px;padding:1px 5px;margin-left:4px;font-weight:600;">'+rateDiscText(item.groupOn)+'</span>';
     } else if(item.discounted){
       discTag='<span style="font-size:10px;background:#fde8e8;color:var(--red);border:1px solid #f5c0c0;border-radius:4px;padding:1px 5px;margin-left:4px;font-weight:600;">'+(item.free_mura?'無料':'割引')+'</span>';
     }
@@ -2330,7 +2360,7 @@ function posMemoRentalChecks(memo, rental){
 
 // 予約の割引区分をPOSグローバルへ反映
 function applyYoyakuDiscountContext(o,isStay){
-  activeMura=false;activeDiscount='';activeGroup=false;activeFree=false;
+  activeMura=false;activeDiscount='';activeRateKey='';activeFree=false;
   selectedAttrs={age:[],nationality:[]};
   var src=o.source||'', memo=o.memo||'';
   if(!isStay && o.mura) activeMura=true;
@@ -2463,8 +2493,8 @@ function pushStayLine(item,cat,n,nights){
   var isOta=OTA_KEYS.indexOf(activeDiscount)>=0;
   var stayOtaKey=isOta?activeDiscount:'';
   var stayPassKey=(activeDiscount==='pass_night')?'pass_night':'';
-  var gdg=discountItems.find(function(x){return x.key==='group';}); var grate=gdg?(Number(gdg.rate)||10):10;
-  var newGroupOn=activeGroup, newFreeOn=activeFree;
+  var newGroupOn=activeRateKey, newFreeOn=activeFree;
+  var grate=getDiscRate(newGroupOn);
   var finalPrice=(isOta||stayPassKey)?0:newFreeOn?0:isMura?Math.floor(totalPrice/2):newGroupOn?Math.floor(totalPrice*(100-grate)/100):totalPrice;
   var paidLabel=(isOta||stayPassKey)?paidDisplaySettings.label:'';
   cart.push({id:item.id+'_'+Date.now(),name:item.name+'（'+n+'人）',origPrice:totalPrice,price:finalPrice,qty:Math.max(1,nights),discounted:finalPrice<totalPrice,paidLabel:paidLabel,free_mura:false,isStay:true,cat:item.cat||'',catColor:cat?cat.bg:'#fff',muraOn:isMura,groupOn:newGroupOn,freeOn:newFreeOn,passKey:stayPassKey,otaKey:stayOtaKey});
@@ -3436,7 +3466,7 @@ function saleToRows(sale){
   var weatherStr=(todayWeather||[]).map(function(k){var w=WEATHER_OPTIONS.find(function(x){return x.key===k;});return w?w.label:'';}).filter(Boolean).join('/');
   var items=sale.items||[];
   // 明細ごとの割引区分（混在会計をシート上で区分別の別取引に分割するためのキー）
-  function grpKeyOf(i){ if(i.otaKey) return i.otaKey; if(i.passKey) return i.passKey; if(i.groupOn) return 'group'; if(i.muraOn) return 'mura'; if(i.freeOn) return 'free'; return ''; }
+  function grpKeyOf(i){ if(i.otaKey) return i.otaKey; if(i.passKey) return i.passKey; if(i.groupOn) return getDiscKeyOf(i.groupOn); if(i.muraOn) return 'mura'; if(i.freeOn) return 'free'; return ''; }
   var groupOrder=[]; items.forEach(function(i){var g=grpKeyOf(i); if(groupOrder.indexOf(g)<0) groupOrder.push(g);});
   var isSplit=groupOrder.length>=2;                       // 割引区分が2種以上＝混在会計
   var resSet={}; items.forEach(function(i){ if(i._resId) resSet[i._resId]=true; });
@@ -4085,19 +4115,20 @@ function updateGasUrlStatus(){
   var isCorrect=(appType==='test'&&urlType==='test用')||(appType==='main'&&urlType==='main用');
   var el=document.getElementById('gas-url-status');
   if(el) el.innerHTML='このアプリ: <b>'+appType+'版</b>　GAS URL: <b style="color:'+(isCorrect?'#27ae60':'#c0392b')+'">'+urlType+(isCorrect?' ✓':' ⚠')+'</b>';
-  var sel=document.getElementById('gas-url-select');
-  if(sel) sel.value=(urlType==='main用')?'main':'test';
+  // 修復ボタンはURLが間違っているときだけ出す（正常時は選ぶものが無いので隠す）
+  var fix=document.getElementById('gas-url-fix-row');
+  if(fix) fix.style.display=isCorrect?'none':'block';
   var appLabel=document.getElementById('sales-app-type-label');
   if(appLabel) appLabel.textContent=appType+'版';
 }
-function applyGasUrlFromSelect(){
-  var sel=document.getElementById('gas-url-select');
-  var url=sel.value==='main'?GAS_URL_MAIN:GAS_URL_TEST;
+// このアプリ（main版/test版）用の正しいGAS URLに戻す
+function applyCorrectGasUrl(){
+  var url=APP_VERSION_TYPE==='main'?GAS_URL_MAIN:GAS_URL_TEST;
   sv(KEYS.gas,url);
   var gasEl=document.getElementById('pos-gas-url');
   if(gasEl) gasEl.value=url;
   updateGasUrlStatus();
-  showToast('✅ GAS URLを'+sel.value+'用に変更しました',null,3000);
+  showToast('✅ GAS URLを'+APP_VERSION_TYPE+'用に直しました',null,3000);
 }
 function savePosGasUrl(){
   const el=document.getElementById('pos-gas-url');
@@ -4724,9 +4755,9 @@ function selectStayPeople(n){
   const isOta = OTA_KEYS.includes(activeDiscount); // 楽天・じゃらん・SOU
   const stayOtaKey = isOta ? activeDiscount : '';
   const stayPassKey = (activeDiscount==='pass_night')?'pass_night':'';
-  var gdg=discountItems.find(function(x){return x.key==='group';}); var grate=gdg?(Number(gdg.rate)||10):10;
-  const newGroupOn = activeGroup;
+  const newGroupOn = activeRateKey;
   const newFreeOn = activeFree;
+  var grate = getDiscRate(newGroupOn);
   const finalPrice = (isOta||stayPassKey) ? 0
     : newFreeOn ? 0
     : isMura ? Math.floor(totalPrice / 2)
