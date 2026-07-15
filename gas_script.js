@@ -655,11 +655,15 @@ function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('📅 集計')
     .addItem('月別集計を作成...', 'promptMonthlySummary')
-    .addSeparator()
-    .addItem('📂 新しい月のSSに切り替え...', 'promptSwitchSpreadsheet')
     .addToUi();
 }
 
+// 「📂 新しい月のSSに切り替え...」はメニューから外した（v382）。
+// 理由: SSを月次コピーするとこのスクリプトも複製され、複製側で実行しても
+// そのコピーのプロパティにCURRENT_SS_IDを書くだけでアプリには何も反映されないのに
+// 「✅切り替えました」と出る＝誤爆の元だったため。
+// v377以降、SS切替はアプリの「📊 同期先スプレッドシート」欄からやる運用。
+// 下の2関数はアプリ側が壊れたときの緊急脱出用に残してある（GASエディタから直接実行可）。
 function promptSwitchSpreadsheet() {
   var currentId = getSSId();
   var isDefault = (currentId === SS_ID);
