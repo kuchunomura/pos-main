@@ -697,6 +697,13 @@ function switchSpreadsheetFromDialog(newSsId) {
   PropertiesService.getScriptProperties().setProperty('CURRENT_SS_ID', newSsId);
 }
 
+// メニューから呼ぶ用。CURRENT_SS_IDを見ずに「今開いているSS」を集計対象にする。
+// （月次でSSをコピーするとこのスクリプトも複製され、複製側はプロパティが空で
+//   CURRENT_SS_IDが無いため元祖SSにフォールバックしてしまう。それを防ぐ）
+function createMonthlySummaryHere(year, month) {
+  return createMonthlySummary(year, month, SpreadsheetApp.getActiveSpreadsheet());
+}
+
 function promptMonthlySummary() {
   var now = new Date();
   var btns = '';
@@ -720,7 +727,7 @@ function promptMonthlySummary() {
     + 'google.script.run'
     + '.withSuccessHandler(function(s){document.getElementById("res").textContent="✅ "+s+" 作成完了";})'
     + '.withFailureHandler(function(e){document.getElementById("res").textContent="❌ "+e.message;})'
-    + '.createMonthlySummary(y,m);'
+    + '.createMonthlySummaryHere(y,m);'
     + '}<\/script>';
   SpreadsheetApp.getUi().showModalDialog(
     HtmlService.createHtmlOutput(html).setWidth(260).setHeight(430), '📅 月別集計'
@@ -901,8 +908,10 @@ function colLetter(n) {
 }
 
 // 月別集計シートを作成して返す
-function createMonthlySummary(year, month) {
-  var ss = getTargetSS();
+// ssOverride を渡すとそのSSを対象にする（メニュー実行時は「今開いているSS」を渡す）
+// 省略時は CURRENT_SS_ID（アプリ・自動タイマーからの実行用）
+function createMonthlySummary(year, month, ssOverride) {
+  var ss = ssOverride || getTargetSS();
   var sheets = ss.getSheets();
 
   var monthSheets=[];
