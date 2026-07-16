@@ -1,5 +1,9 @@
 ﻿// ===== POS レジ GAS スクリプト (main用) =====
-const SS_ID = '1WopPkAIZJSLjc9kr7C5hKvWCPYN7CYmOiXOvko0Q4iI'; // デフォルト（フォールバック用）
+// このスクリプトは【独立プロジェクト】として script.google.com に置くこと。
+// スプレッドシートにバインドしない。理由: 下の getTargetSS() が openById() で対象を開くので
+// バインドする必要が無く、v383でシートのメニュー(onOpen)も廃止済み。バインドすると
+// 「そのスプレッドシートを消すとスクリプトごと消える」ため（2026/07/16に実際にそれで全部消えた）。
+const SS_ID = '1LzF3bDb9-JYJXFwNaqHv5zm5g0vVRKaZBj0sS_9_UI0'; // 7月POS main（2026/07/16 再作成）。フォールバック用
 
 // PropertiesServiceからSS_IDを取得（切り替え対応）
 function getSSId() {

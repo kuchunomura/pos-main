@@ -976,15 +976,20 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 389;
-const APP_BUILD_DATE = '2026/07/16 13:02';
+const APP_VERSION = 390;
+const APP_BUILD_DATE = '2026/07/16 14:44';
 
 // ===== ストレージ =====
-const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
+// 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
+// 新しいGASは独立プロジェクト（スプレッドシートにバインドしない）＝シートを消しても生き残る。
+const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbz4LOBG2EX_RPBDuX0-Qfzfdlbh9SIY_dZu_kTiIJveTp2iP_EOiaiy_70QvVBnCbUG/exec';
 const GAS_URL_TEST='https://script.google.com/macros/s/AKfycbys-bK-HCuRJxFWNXYSO6w72b9qsGbuUjt_4B5GpeitG01GFgBPMXoh8TiagccpUBdBnA/exec';
-const GAS_URL_MAIN='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
+const GAS_URL_MAIN='https://script.google.com/macros/s/AKfycbz4LOBG2EX_RPBDuX0-Qfzfdlbh9SIY_dZu_kTiIJveTp2iP_EOiaiy_70QvVBnCbUG/exec';
 const SS_URL_TEST='https://docs.google.com/spreadsheets/d/1_iNytjWzVi6vvd_nSecG_uZJEnzkoL8zynY12UkNrNM/edit?pli=1';
-const SS_URL_MAIN='https://docs.google.com/spreadsheets/d/1WopPkAIZJSLjc9kr7C5hKvWCPYN7CYmOiXOvko0Q4iI/edit?pli=1';
+// mainの同期先スプレッドシートID。URLもここから作る（IDを2か所に書かないため）
+const SS_ID_MAIN='1LzF3bDb9-JYJXFwNaqHv5zm5g0vVRKaZBj0sS_9_UI0'; // 7月POS main（2026/07/16 再作成）
+const SS_ID_MAIN_DEAD='1WopPkAIZJSLjc9kr7C5hKvWCPYN7CYmOiXOvko0Q4iI'; // 2026/07/16に消えた旧SS。端末に残る古い値の掃除用
+const SS_URL_MAIN='https://docs.google.com/spreadsheets/d/'+SS_ID_MAIN+'/edit?pli=1';
 const SS_URL_MANUAL='https://docs.google.com/spreadsheets/d/167eC69tlzoFxyhg2AT6BWY3FqwdDnfKxQX1GAIKhkb0/edit?pli=1';
 const KEYS = {items:'pos_items',sales:'pos_sales',gas:'pos_gas',cats:'pos_cats',itemOrder:'pos_item_order',catOrder:'pos_cat_order',sites:'pos_sites',discounts:'pos_discounts',attrs:'pos_attrs',holds:'pos_holds',deviceId:'pos_device_id'};
 // デバイスID自動生成（初回のみ）
@@ -3950,7 +3955,7 @@ async function submitInvoiceFromCart(){
     items: cart.map(function(i){return {name:i.name,qty:i.qty,price:i.price};}),
     total: total,
     method: method,
-    ss_id_override: '1WopPkAIZJSLjc9kr7C5hKvWCPYN7CYmOiXOvko0Q4iI'
+    ss_id_override: SS_ID_MAIN
   };
   try{
     var url = GAS_URL_TEST;
@@ -4025,7 +4030,7 @@ async function submitInvoice(){
     items: r.items.map(function(i){return {name:i.name,qty:i.qty,price:i.price};}),
     total: r.total,
     method: r.method,
-    ss_id_override: '1WopPkAIZJSLjc9kr7C5hKvWCPYN7CYmOiXOvko0Q4iI'
+    ss_id_override: SS_ID_MAIN
   };
   try{
     var url = GAS_URL_TEST;
@@ -4068,10 +4073,14 @@ function getManualSSUrl(){
 }
 function getCurrentSSUrl(){
   var stored=localStorage.getItem('pos_current_ss_id_main');
-  return 'https://docs.google.com/spreadsheets/d/'+(stored||'1WopPkAIZJSLjc9kr7C5hKvWCPYN7CYmOiXOvko0Q4iI')+'/edit?pli=1';
+  return 'https://docs.google.com/spreadsheets/d/'+(stored||SS_ID_MAIN)+'/edit?pli=1';
 }
-// 起動時に既定値へ戻さない（切替後の値を保持）。無い時だけ既定を入れる
-if(!localStorage.getItem('pos_current_ss_id_main')) localStorage.setItem('pos_current_ss_id_main','1WopPkAIZJSLjc9kr7C5hKvWCPYN7CYmOiXOvko0Q4iI');
+// 消えた旧SSのIDが端末に残っていたら新しいIDへ差し替える（2026/07/16のドライブ削除対応）。
+// 「無い時だけ既定を入れる」だけでは、既に古いIDが入っている端末が古いままリンク切れになる。
+(function(){
+  var cur=localStorage.getItem('pos_current_ss_id_main');
+  if(!cur || cur===SS_ID_MAIN_DEAD) localStorage.setItem('pos_current_ss_id_main',SS_ID_MAIN);
+})();
 // もう一方（テストtest）連携用
 var PEER_NAME='テスト(test)';
 var SELF_SS_KEY='pos_current_ss_id_main';
