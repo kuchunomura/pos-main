@@ -976,8 +976,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 388;
-const APP_BUILD_DATE = '2026/07/16 11:43';
+const APP_VERSION = 389;
+const APP_BUILD_DATE = '2026/07/16 13:02';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -2402,19 +2402,36 @@ function initYoyakuGasField(){ var el=document.getElementById('pos-yoyaku-gas-ur
 async function fetchYoyakuReservations(){
   var url=ld(YOYAKU_GAS_KEY)||'';
   if(!url) return null;
-  // GASのコールドスタートで初回はHTML/タイムアウトが返ることがあるため最大3回リトライ
+  // GASのコールドスタートで初回はHTML/タイムアウトが返ることがあるため最大3回リトライ。
+  // ただしリトライしても直らない種類の失敗（GAS側のエラー・権限・URL違い）は
+  // 原因が分かるようそのまま投げる。以前は全部「応答が不正」に潰していて診断できなかった。
+  var lastErr='';
   for(var attempt=0; attempt<3; attempt++){
     try{
       var res=await fetch(url,{method:'GET',redirect:'follow'});
       var txt=await res.text();
-      var json=JSON.parse(txt); // HTMLならここで例外→リトライ
-      if(json.status!=='ok') throw new Error(json.message||'yoyaku取得失敗');
+      var json;
+      try{ json=JSON.parse(txt); }
+      catch(pe){
+        // JSONでない＝GoogleのHTML（ログイン画面/権限エラー/デプロイ無し）が返っている
+        var head=String(txt||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().slice(0,120);
+        if(/アカウント|ログイン|Sign in|Google Account/i.test(txt)) throw new Error('GASがログイン画面を返しました。デプロイの「アクセスできるユーザー」を全員にするか、URLを確認してください');
+        if(/承認|権限|Authorization|permission|Unauthorized/i.test(txt)) throw new Error('GASが権限エラーを返しました。yoyakuのGASを開いて実行→承認、または再デプロイしてください');
+        lastErr='HTMLが返りました: '+head;
+        throw new Error(lastErr); // コールドスタートの可能性もあるのでリトライ対象
+      }
+      // GAS側が status:'error' を返した＝スプレッドシート消失など。リトライしても直らないので即座に出す
+      if(json.status!=='ok') throw new Error('GASエラー: '+(json.message||'不明'));
       return {reservations:json.reservations||[], stays:json.stays||[]};
     }catch(e){
+      var msg=String(e&&e.message||e);
+      // リトライしても無駄なものはここで確定させる
+      if(msg.indexOf('GASエラー:')===0 || msg.indexOf('GASが')===0) throw e;
+      lastErr=msg;
       if(attempt<2) await new Promise(function(r){ setTimeout(r, 700*(attempt+1)); }); // 0.7s,1.4s待って再試行
     }
   }
-  throw new Error('応答が不正（通信混雑/URL確認）');
+  throw new Error(lastErr||'応答が不正（通信混雑/URL確認）');
 }
 
 // 裏で予約を先読みしてキャッシュを温める（起動時・POSタブ表示時）。空/3分超のときだけ取得
@@ -2502,7 +2519,16 @@ function refreshYoyaku(force){
   }).catch(function(e){
     _yoyakuFetching=false;
     if(_yoyakuCache){ showToast('⚠ 最新取得に失敗（前回分を表示中）','#c07000'); }   // キャッシュは消さない
-    else if(c){ c.innerHTML='<div style="color:#c00;padding:1rem;line-height:1.7">取得エラー: '+e.message+'<br>「🔄 再取得」を押してください。</div>'; }
+    else if(c){
+      // URLの末尾だけ出す（全体は秘密なので出さない）。設定タブを開かずに貼り間違いを確認できる
+      var _u=ld(YOYAKU_GAS_KEY)||'';
+      var _tail=_u?('…'+_u.slice(-14)):'未設定';
+      c.innerHTML='<div style="color:#c00;padding:1rem;line-height:1.8">'
+        +'<b>取得エラー</b><br>'+String(e.message||e)
+        +'<div style="margin-top:8px;font-size:11px;color:#888">yoyaku GAS URL: '+_tail+'</div>'
+        +'<div style="margin-top:8px;font-size:12px;color:#555">ブラウザでそのURLを直接開くと、GASが何を返しているか確認できます。</div>'
+        +'<div style="margin-top:6px">「🔄 再取得」を押してください。</div></div>';
+    }
   });
 }
 
