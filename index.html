@@ -976,8 +976,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 392;
-const APP_BUILD_DATE = '2026/07/16 15:13';
+const APP_VERSION = 393;
+const APP_BUILD_DATE = '2026/07/16 16:49';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2513,27 +2513,38 @@ function openYoyakuPicker(){
 // 予約を取得。force=trueは🔄再取得ボタン用。取得中は二重に走らせない
 function refreshYoyaku(force){
   var c=document.getElementById('yoyaku-modal-content');
-  if(_yoyakuFetching) return;
+  // 取得中でも、モーダルが開いているのに中身が空なら「読み込み中」を出す。
+  // 以前は _yoyakuFetching が立っていると即returnしていたため、前回の取得が
+  // 例外で中断してフラグが立ちっぱなしだと画面が永久に空のままになっていた（2026/07/16）。
+  if(_yoyakuFetching){
+    if(force && c && !_yoyakuCache) c.innerHTML='<div style="text-align:center;color:#888;padding:1.5rem">読み込み中…</div>';
+    return;
+  }
   _yoyakuFetching=true;
-  if(force && c && !_yoyakuCache) c.innerHTML='<div style="text-align:center;color:#888;padding:1.5rem">読み込み中…（初回のみ数秒かかります）</div>';
+  if(c && !_yoyakuCache) c.innerHTML='<div style="text-align:center;color:#888;padding:1.5rem">読み込み中…（初回のみ数秒かかります）</div>';
+  var showErr=function(e){
+    // 描画側(renderYoyakuPicker)の例外もここへ来るので、キャッシュがあってもエラーを画面に出す。
+    // 「キャッシュがあるからトーストだけ」で済ませると、描画で落ちたとき画面が空のままになる。
+    if(!c) return;
+    var _u=ld(YOYAKU_GAS_KEY)||'';
+    var _tail=_u?('…'+_u.slice(-14)):'未設定';
+    c.innerHTML='<div style="color:#c00;padding:1rem;line-height:1.8">'
+      +'<b>取得エラー</b><br>'+String((e&&e.message)||e)
+      +'<div style="margin-top:8px;font-size:11px;color:#888">yoyaku GAS URL: '+_tail+'</div>'
+      +'<div style="margin-top:8px;font-size:12px;color:#555">ブラウザでそのURLを直接開くと、GASが何を返しているか確認できます。</div>'
+      +'<div style="margin-top:6px">「🔄 再取得」を押してください。</div></div>';
+  };
   fetchYoyakuReservations().then(function(data){
-    _yoyakuFetching=false;
     if(!data){ if(c) c.innerHTML='<div style="color:#c00;padding:1rem">URL未設定</div>'; return; }
     _yoyakuCache=data; _yoyakuCacheTime=Date.now();
-    if(document.getElementById('yoyaku-modal').classList.contains('open')) renderYoyakuPicker(data);
-  }).catch(function(e){
-    _yoyakuFetching=false;
-    if(_yoyakuCache){ showToast('⚠ 最新取得に失敗（前回分を表示中）','#c07000'); }   // キャッシュは消さない
-    else if(c){
-      // URLの末尾だけ出す（全体は秘密なので出さない）。設定タブを開かずに貼り間違いを確認できる
-      var _u=ld(YOYAKU_GAS_KEY)||'';
-      var _tail=_u?('…'+_u.slice(-14)):'未設定';
-      c.innerHTML='<div style="color:#c00;padding:1rem;line-height:1.8">'
-        +'<b>取得エラー</b><br>'+String(e.message||e)
-        +'<div style="margin-top:8px;font-size:11px;color:#888">yoyaku GAS URL: '+_tail+'</div>'
-        +'<div style="margin-top:8px;font-size:12px;color:#555">ブラウザでそのURLを直接開くと、GASが何を返しているか確認できます。</div>'
-        +'<div style="margin-top:6px">「🔄 再取得」を押してください。</div></div>';
+    if(document.getElementById('yoyaku-modal').classList.contains('open')){
+      try{ renderYoyakuPicker(data); }
+      catch(re){ showErr(new Error('表示エラー: '+((re&&re.message)||re))); }
     }
+  }).catch(function(e){
+    showErr(e); // 通信・GAS側のエラー。ここでは必ず画面に出す（トーストで隠さない）
+  }).then(function(){
+    _yoyakuFetching=false; // 成功/失敗どちらでも必ずフラグを戻す（固まり防止）
   });
 }
 
