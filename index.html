@@ -976,8 +976,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 394;
-const APP_BUILD_DATE = '2026/07/16 16:57';
+const APP_VERSION = 395;
+const APP_BUILD_DATE = '2026/07/16 22:18';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2461,6 +2461,13 @@ function findPosItemByName(name){
 }
 // HTMLエスケープ（複数の関数から使うのでトップレベルに置く）
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+// 日帰り予約の開始時刻をUTC→日本時間に正規化して表示。yoyaku側が未補正でもレジ単体で正しく出す。
+// 日帰り施設は最早9時開園＝9時前はあり得ない＝UTCとみなし+9h。9時以降は日本時間なのでそのまま（二重補正しない）。
+function normDayTimeJST(t){
+  var m=String(t||'').match(/^(\d{1,2}):(\d{2})$/); if(!m) return t||'';
+  var hh=+m[1]; if(hh>=9) return ('0'+hh).slice(-2)+':'+m[2];
+  return ('0'+((hh+9)%24)).slice(-2)+':'+m[2];
+}
 // 備考テキスト中の「認識できたレンタル語」の直後に橙✓を付ける（yoyaku準拠）。未認識語はそのまま＝スタッフが手動確認できる
 function posMemoRentalChecks(memo, rental){
   memo=String(memo||'').replace(/✓/g,'');
@@ -2575,7 +2582,7 @@ function renderYoyakuPicker(data){
     if(x.type==='day'){
       var fac={walk:'空中ウォーク',tree:'ツリーハウス昼',bbq:'BBQ'}[o.facility]||o.facility;
       var crs={55:'55分',115:'115分',0:'1DAY'}[o.course]||'';
-      label=fac+' '+crs; sub=(o.startTime||'')+' '+(o.ninzu||'')+'名';
+      label=fac+' '+crs; sub=normDayTimeJST(o.startTime)+' '+(o.ninzu||'')+'名';
       bgTint='#eaf2fb'; // 昼（日帰り）は一律クリアなブルー
     } else {
       var sit=items.find(function(it){return it.id==='i_'+o.facility;});
