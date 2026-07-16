@@ -25,6 +25,19 @@ const NAT_COL     = 27; // AA列: 国籍別
 
 // ==================== エントリーポイント ====================
 
+// 【GASエディタから手で実行する用】スプレッドシートを本当に開けるか確認する。
+// アプリの「🔗 接続テスト」は type:'test' で ok() を返すだけでシートに触らないため、
+// URLが届くことしか分からない。openById の権限が無い/IDが違う場合はここで初めて分かる。
+// 新しく作り直したときは必ず一度これを実行して、権限の承認を済ませること。
+function checkSpreadsheetAccess() {
+  var id = getSSId();
+  var ss = SpreadsheetApp.openById(id);
+  var names = ss.getSheets().map(function (s) { return s.getName(); });
+  var msg = '✅ 開けました\n\nID: ' + id + '\n名前: ' + ss.getName() + '\nシート' + names.length + '枚: ' + names.join(', ');
+  Logger.log(msg);
+  return msg;
+}
+
 function doGet(e) {
   try {
     if (e && e.parameter && e.parameter.action === 'getCarryOver') {

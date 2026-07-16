@@ -976,8 +976,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 390;
-const APP_BUILD_DATE = '2026/07/16 14:44';
+const APP_VERSION = 391;
+const APP_BUILD_DATE = '2026/07/16 15:01';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -3695,11 +3695,26 @@ async function gasGet(url, data){
   await fetch(url+qs,{method:'GET',mode:'no-cors'});
 }
 // POSTで一括送信（全件同期用）
+// 失敗したら理由を含めて投げる。以前は catch で null を返し、呼び出し側も戻り値を見ていなかったので
+// 送信が失敗しても「同期完了」と表示されていた（2026/07/16、実際にシートが空なのに完了と出た）。
+// Content-Type は text/plain。application/json だとブラウザが事前確認(preflight)を送り、
+// GASがそれに応答できず失敗する（yoyakuのsyncToSheetも text/plain で動いている）。
 async function gasPost(url, data){
+  var res;
   try{
-    var res=await fetch(url,{method:'POST',redirect:'follow',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-    return await res.json();
-  }catch(e){return null;}
+    res=await fetch(url,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(data)});
+  }catch(e){
+    throw new Error('送信できませんでした（通信/CORS）: '+e.message);
+  }
+  var txt=await res.text();
+  var json;
+  try{ json=JSON.parse(txt); }
+  catch(pe){
+    var head=String(txt||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().slice(0,100);
+    throw new Error('GASがJSON以外を返しました（デプロイのアクセス権限を「全員」にしてください）: '+head);
+  }
+  if(json.status!=='ok') throw new Error('GASエラー: '+(json.message||'不明'));
+  return json;
 }
 
 // 実際の同期処理
