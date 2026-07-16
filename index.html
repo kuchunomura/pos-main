@@ -500,8 +500,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
   </details>
 
   <!-- 予約サイト名 -->
-  <div class="settings-section">
-    <h3>🌐 割引・予約サイト設定</h3>
+  <details class="settings-section">
+    <summary>🌐 割引・予約サイト設定</summary>
     <div id="discount-settings-list"></div>
     <div style="display:flex;gap:6px;align-items:flex-end;margin-top:8px;flex-wrap:wrap;">
       <div class="form-row" style="flex:1;margin:0"><label>ラベル名</label><input type="text" id="new-disc-label" placeholder="例：Airbnb"></div>
@@ -515,7 +515,7 @@ details.settings-section[open] > summary{margin-bottom:10px;}
       <button class="btn-sm2 primary" onclick="addDiscountItem()" style="height:36px;margin-bottom:0;">追加</button>
     </div>
     <button class="btn-primary2" onclick="saveDiscountSettings()">保存</button>
-  </div>
+  </details>
 
 
   <!-- 属性設定 -->
@@ -941,8 +941,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 386;
-const APP_BUILD_DATE = '2026/07/16 10:44';
+const APP_VERSION = 387;
+const APP_BUILD_DATE = '2026/07/16 10:55';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -1122,6 +1122,7 @@ const DEFAULT_ITEMS = [
   {id:'i_p01b', name:'ホワイトチョコマカダミアクッキー', price:300, cat:'cat_picnic', stock:0, free_mura:false},
   {id:'i_p02', name:'キッシュ',             price:400,  cat:'cat_picnic',   stock:0, free_mura:false},
   {id:'i_p03', name:'洋ナシタルト',         price:500,  cat:'cat_picnic',   stock:0, free_mura:false},
+  {id:'i_p03b', name:'胡桃のタルト',        price:500,  cat:'cat_picnic',   stock:0, free_mura:false},
   {id:'i_p04', name:'紙パック飲料',         price:200,  cat:'cat_picnic',   stock:0, free_mura:false},
   {id:'i_p05', name:'ミックスナッツ',        price:300,  cat:'cat_picnic',   stock:0, free_mura:false},
   {id:'i_p06', name:'レーズン',             price:300,  cat:'cat_picnic',   stock:0, free_mura:false},
@@ -1172,6 +1173,16 @@ let cats = ld(KEYS.cats) || DEFAULT_CATS;
   if(changed) sv(KEYS.cats,cats);
 })();
 let items = ld(KEYS.items) || DEFAULT_ITEMS;
+// 胡桃のタルト追加マイグレーション（洋ナシタルトの右）
+// ※DEFAULT_ITEMSに足すだけでは既存端末に出ない（localStorageの商品が優先されるため）。
+//   リセットを使わせると手で直した商品まで消えるので、足りない分だけ差し込む。
+(function(){
+  if(items.find(function(x){return x.id==='i_p03b';})) return;
+  var it={id:'i_p03b',name:'胡桃のタルト',price:500,cat:'cat_picnic',stock:0,free_mura:false};
+  var idx=items.findIndex(function(x){return x.id==='i_p03';});
+  if(idx>=0) items.splice(idx+1,0,it); else items.push(it);
+  sv(KEYS.items,items);
+})();
 let sales = ld(KEYS.sales) || [];
 // 既存売上データにデバイスIDを補完（初回のみ）
 (function(){
