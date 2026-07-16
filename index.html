@@ -976,8 +976,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 393;
-const APP_BUILD_DATE = '2026/07/16 16:49';
+const APP_VERSION = 394;
+const APP_BUILD_DATE = '2026/07/16 16:57';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2459,6 +2459,8 @@ function findPosItemByName(name){
   var n=norm(alias);
   return items.find(function(x){return norm(x.name)===n;})||null;
 }
+// HTMLエスケープ（複数の関数から使うのでトップレベルに置く）
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 // 備考テキスト中の「認識できたレンタル語」の直後に橙✓を付ける（yoyaku準拠）。未認識語はそのまま＝スタッフが手動確認できる
 function posMemoRentalChecks(memo, rental){
   memo=String(memo||'').replace(/✓/g,'');
@@ -2563,7 +2565,6 @@ function renderYoyakuPicker(data){
   rows=rows.filter(function(x){ return x.date===today||x.date===tomorrow; });
   rows.sort(function(a,b){ return a.date.localeCompare(b.date)||String((a.o.startTime||a.o.checkin||'')).localeCompare(String(b.o.startTime||b.o.checkin||'')); });
   if(!rows.length){ c.innerHTML='<div style="color:#888;padding:1rem;text-align:center">当日・翌日の予約はありません</div>'; return; }
-  var esc=function(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
   var wk=['日','月','火','水','木','金','土'];
   var fmtHead=function(ds){ var p=ds.split('-'); var w=wk[new Date(+p[0],+p[1]-1,+p[2]).getDay()]; return (+p[1])+'/'+(+p[2])+'（'+w+'）'; };
   var html='', lastDate='';
