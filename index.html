@@ -976,8 +976,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 391;
-const APP_BUILD_DATE = '2026/07/16 15:01';
+const APP_VERSION = 392;
+const APP_BUILD_DATE = '2026/07/16 15:13';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -3737,6 +3737,14 @@ async function syncSalesData(data, label){
       if(syncBtn) syncBtn.textContent='⏳ '+groupOrder[i]+' 同期中 ('+(i+1)+'/'+groupOrder.length+'日)';
       await gasPost(url,{type:'bulk_merge',sales:grouped[groupOrder[i]]});
     }
+    // 送信できたので「要再送」バッジを消す。ここまで来ていれば gasPost は成功している
+    // （失敗すると例外を投げるので下のcatchへ行く）。
+    // 以前は syncStatus を会計時の自動同期でしか更新しておらず、一括同期で送り直しても
+    // 「要再送」が残ったままだった（2026/07/16）。
+    var _syncedIds={}; data.forEach(function(s){ _syncedIds[s.id]=true; });
+    var _fixed=0;
+    sales.forEach(function(s){ if(_syncedIds[s.id] && s.syncStatus!=='ok'){ s.syncStatus='ok'; _fixed++; } });
+    if(_fixed){ sv(KEYS.sales,sales); saveSnapshotToIDB(); }
     // Step2: pull（GAS全件取得 → マージ）
     if(syncBtn) syncBtn.textContent='⏳ 全データ取得中...';
     var qs='?d='+encodeURIComponent(JSON.stringify({type:'get_all_sales'}));
@@ -3746,11 +3754,11 @@ async function syncSalesData(data, label){
     if(json.status==='ok' && json.data && Array.isArray(json.data.rows)){
       var remoteSales=rowsToSales(json.data.rows);
       var added=mergeSalesFromGas(remoteSales);
-      renderSales();
       msg='✓ '+label+'同期完了（'+added+'件取得）';
     } else {
       msg='✓ '+label+'を同期しました（'+data.length+'件）';
     }
+    renderSales(); // どちらの分岐でも再描画（上で消した「要再送」バッジを反映するため）
     if(syncBtn) syncBtn.textContent='✓ 完了';
     alert(msg);
   }catch(e){
