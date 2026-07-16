@@ -264,6 +264,9 @@ details.settings-section[open] > summary{margin-bottom:10px;}
           <button onclick="openCheckoutSummary()" id="checkout-btn"
             style="position:absolute;top:-2px;right:0;background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:none;">決済へ</button>
         </div>
+        <div id="point-btn-row" style="padding:0 8px 6px;">
+          <button id="point-btn" onclick="openPointModal()" style="width:100%;padding:10px;background:#fff;border:1px solid #b8860b;color:#b8860b;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">🎫 ポイント決済</button>
+        </div>
         <div class="pay-btns" id="pay-btns-normal">
           <button class="pay-cash-btn" onclick="openPayment('cash')">💴 現金</button>
           <button class="pay-card-btn" style="flex:1;padding:16px 6px;" onclick="openPayment('card')">💳 カード</button>
@@ -805,6 +808,38 @@ details.settings-section[open] > summary{margin-bottom:10px;}
   </div>
 </div>
 
+<!-- ポイント決済モーダル（タブの外に置くこと。tab-content の中だと display:none の親に隠れて開かない） -->
+<div class="modal-overlay" id="point-modal">
+  <div class="modal" style="max-width:380px;">
+    <h3>🎫 ポイント決済</h3>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.7;">
+      使うポイント分を合計から引きます。<br>
+      引いた<strong>残りの金額</strong>を、いつもどおり現金・カード・電子決済のどれかで受け取ってください。
+    </div>
+    <div style="text-align:center;margin-bottom:10px;">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:2px;">ポイントを引く前の合計</div>
+      <div style="font-size:20px;font-weight:700;" id="point-modal-subtotal">¥0</div>
+    </div>
+    <div style="text-align:center;margin-bottom:8px;">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:4px;">使用ポイント（円分）</div>
+      <input type="number" id="point-used" min="0" oninput="calcPointRemain()" placeholder="0"
+        style="width:100%;text-align:center;font-size:26px;font-weight:700;color:#b8860b;padding:8px 10px;border:2px solid #b8860b;border-radius:10px;font-family:inherit;box-sizing:border-box;">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 2fr;gap:6px;margin-bottom:10px;">
+      <button onclick="document.getElementById('point-used').value='';calcPointRemain();" style="padding:11px 4px;border:1px solid #fcc;border-radius:10px;background:#fff;color:var(--red);font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;">C</button>
+      <button onclick="setPointAll()" style="padding:11px 4px;border:1px solid #b8860b;border-radius:10px;background:#fff8e8;color:#b8860b;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">全額ポイント</button>
+    </div>
+    <div style="text-align:center;padding:10px;background:#f0f7e8;border-radius:8px;">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:2px;">お客様からもらう金額</div>
+      <div style="font-size:26px;font-weight:700;color:var(--green)" id="point-remain">¥0</div>
+    </div>
+    <div class="modal-btns">
+      <button onclick="closePointModal()">キャンセル</button>
+      <button class="confirm" onclick="applyPoint()">適用する</button>
+    </div>
+  </div>
+</div>
+
 <!-- 決済モーダル -->
 <div class="modal-overlay" id="payment-modal">
   <div class="modal" style="max-width:480px;">
@@ -941,8 +976,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 387;
-const APP_BUILD_DATE = '2026/07/16 10:55';
+const APP_VERSION = 388;
+const APP_BUILD_DATE = '2026/07/16 11:43';
 
 // ===== ストレージ =====
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbwbvsW8niGqZCsNz9JVfZhJ-0yFJMMJOht412DeSDQeJLZHUwjj5d8tgtCGL8PgdtwK1Q/exec';
@@ -2042,6 +2077,51 @@ function addToCart(item,cat){
   renderCart();showToast('✓ '+item.name);
 }
 
+// ===== ポイント決済 =====
+// ポイントは「決済方法」ではなく、合計から引く行としてカートに入れる。
+// こうすると売上シートのB列（取引の売上合計）とG列（商品ごとの小計）が両方ポイント適用後で揃い、
+// 「総売上＝商品別の合計＝支払方法別の合計」という集計の前提が崩れない。GAS側の変更も要らない。
+const POINT_ITEM_ID='i_point';
+function cartSubtotalExPoint(){
+  return cart.reduce(function(s,i){ return s+(i.id===POINT_ITEM_ID?0:i.price*i.qty); },0);
+}
+function getPointLine(){ return cart.find(function(i){return i.id===POINT_ITEM_ID;}); }
+function openPointModal(){
+  if(!cart.length){showToast('⚠ カートが空です','#c00');return;}
+  var pl=getPointLine();
+  document.getElementById('point-used').value=pl?Math.abs(pl.price):'';
+  document.getElementById('point-modal-subtotal').textContent='¥'+cartSubtotalExPoint().toLocaleString();
+  calcPointRemain();
+  document.getElementById('point-modal').classList.add('open');
+}
+function closePointModal(){document.getElementById('point-modal').classList.remove('open');}
+function setPointAll(){
+  document.getElementById('point-used').value=cartSubtotalExPoint();
+  calcPointRemain();
+}
+function calcPointRemain(){
+  var sub=cartSubtotalExPoint();
+  var p=parseInt(document.getElementById('point-used').value)||0;
+  if(p<0)p=0;
+  var el=document.getElementById('point-remain');
+  if(p>sub){ el.textContent='ポイントが多すぎます'; el.style.color='var(--red)'; }
+  else { el.textContent='¥'+(sub-p).toLocaleString(); el.style.color='var(--green)'; }
+}
+function applyPoint(){
+  var sub=cartSubtotalExPoint();
+  var p=parseInt(document.getElementById('point-used').value)||0;
+  if(p<0)p=0;
+  if(p>sub){showToast('⚠ 合計より多いポイントは使えません','#c00');return;}
+  cart=cart.filter(function(i){return i.id!==POINT_ITEM_ID;});
+  if(p>0){
+    // manualPrice:true で recalcCartPrices の対象外にする（割引を切り替えても金額を保つ）
+    cart.push({id:POINT_ITEM_ID,name:'ポイント利用',origPrice:-p,price:-p,qty:1,discounted:false,manualPrice:true,cat:'',catColor:'#fff8e8'});
+  }
+  closePointModal();
+  renderCart();
+  showToast(p>0?'✓ ポイント '+p.toLocaleString()+'円分を適用しました':'✓ ポイントを解除しました');
+}
+
 function addCustomItem(){
   const p=parseInt(document.getElementById('custom-price').value);
   if(!p||p<=0)return;
@@ -2075,6 +2155,18 @@ function renderCart(){
       discTag='<span style="font-size:10px;background:#fde8e8;color:var(--red);border:1px solid #f5c0c0;border-radius:4px;padding:1px 5px;margin-left:4px;font-weight:600;">'+(item.free_mura?'無料':'割引')+'</span>';
     }
     const priceColor = item.paidLabel ? paidDisplaySettings.color : (item.discounted ? 'var(--red)' : 'var(--accent2)');
+    // ポイント利用の行は数量も単価編集も意味が無いので、金額と✕だけにする（金額はポイントモーダルで変更）
+    if(item.id===POINT_ITEM_ID){
+      div.innerHTML=
+        '<div style="font-size:13px;font-weight:700;line-height:1.4;color:#b8860b;">🎫 '+item.name+'</div>'+
+        '<div style="display:flex;align-items:center;gap:4px;">'+
+          '<div style="flex:1;font-size:11px;color:var(--text2);cursor:pointer;text-decoration:underline dotted;" onclick="openPointModal()">タップで金額を変更</div>'+
+          '<div style="font-size:14px;font-weight:700;color:#b8860b;">¥'+(item.price*item.qty).toLocaleString()+'</div>'+
+          '<div style="color:#ccc;font-size:16px;cursor:pointer;padding:0 4px;" onclick="removeCart('+idx+')">✕</div>'+
+        '</div>';
+      c.appendChild(div);
+      return;
+    }
     div.innerHTML=
       '<div style="font-size:13px;font-weight:500;line-height:1.4;">'+item.name+discTag+'</div>'+
       '<div style="display:flex;align-items:center;gap:4px;">'+
@@ -2718,6 +2810,8 @@ function openPayment(method){
   if(!cart.length){showToast('⚠ カートが空です','#c00');return;}
   currentPayMethod=method;
   const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  // ポイント適用後に商品を減らすと合計がマイナスになりうる
+  if(total<0){showToast('⚠ ポイントが合計を超えています。🎫ポイント決済で金額を直してください','#c00');return;}
   const labels={cash:'現金で決済',card:'カードで決済',other:'電子決済'};
   document.getElementById('payment-modal-title').textContent=labels[method]||method;
   var cb=document.getElementById('payment-confirm-btn');
@@ -2763,6 +2857,7 @@ function closePaymentModal(){document.getElementById('payment-modal').classList.
 
 function confirmPayment(){
   const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  if(total<0){showToast('⚠ ポイントが合計を超えています。🎫ポイント決済で金額を直してください','#c00');return;}
   if(currentPayMethod==='cash'){
     const received=parseInt(document.getElementById('cash-received').value)||0;
     if(received<total){showToast('⚠ 受取金額が不足しています','#c00');return;}
@@ -3480,7 +3575,10 @@ function saleToRows(sale){
   var items=sale.items||[];
   // 明細ごとの割引区分（混在会計をシート上で区分別の別取引に分割するためのキー）
   function grpKeyOf(i){ if(i.otaKey) return i.otaKey; if(i.passKey) return i.passKey; if(i.groupOn) return getDiscKeyOf(i.groupOn); if(i.muraOn) return 'mura'; if(i.freeOn) return 'free'; return ''; }
-  var groupOrder=[]; items.forEach(function(i){var g=grpKeyOf(i); if(groupOrder.indexOf(g)<0) groupOrder.push(g);});
+  // ポイント利用は割引区分を持たないので、混在会計の判定から外す。
+  // 外さないと「区分なし＝ポイントだけの取引（マイナス）」に分割されてしまう。
+  function isPointRow(i){ return i.id===POINT_ITEM_ID; }
+  var groupOrder=[]; items.forEach(function(i){if(isPointRow(i))return;var g=grpKeyOf(i); if(groupOrder.indexOf(g)<0) groupOrder.push(g);});
   var isSplit=groupOrder.length>=2;                       // 割引区分が2種以上＝混在会計
   var resSet={}; items.forEach(function(i){ if(i._resId) resSet[i._resId]=true; });
   var isSet=Object.keys(resSet).length>=2;                // 同一決済で複数予約＝セット会計
@@ -3520,7 +3618,8 @@ function saleToRows(sale){
   // 混在会計：割引区分ごとに別取引へ分割（各取引に正しい区分が入るので集計はそのまま正確）
   var out=[], n=groupOrder.length;
   groupOrder.forEach(function(g,gi){
-    var gItems=items.filter(function(i){return grpKeyOf(i)===g;});
+    var gItems=items.filter(function(i){return !isPointRow(i)&&grpKeyOf(i)===g;});
+    if(gi===0) gItems=gItems.concat(items.filter(isPointRow)); // ポイント利用は先頭の取引にまとめる
     var gTotal=gItems.reduce(function(s,i){return s+i.price*i.qty;},0);
     var gLabel=labelFor(g);
     var gMemo=baseMemo+' ／【まとめ会計 '+(gi+1)+'/'+n+'・区分:'+(gLabel||'通常')+'（同一決済 '+sale.id+'）】';
