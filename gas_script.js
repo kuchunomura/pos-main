@@ -320,8 +320,8 @@ function setTotalsFormulas(sheet) {
   sheet.getRange(1, 2).setNumberFormat('#,##0');
   sheet.getRange(1, 1, 1, 2).setFontWeight('bold').setHorizontalAlignment('center');
 
-  // 🎫ポイント/券: ポイント利用＋奈良県職員券の合計（G列マイナスを正に）＝後日振込分（手元に入らない）
-  sheet.getRange(1, 3).setValue('🎫ポイント/券');
+  // 🎫ポイント+奈良職員券: ポイント利用＋奈良県職員券の合計（G列マイナスを正に）＝後日振込分（手元に入らない）
+  sheet.getRange(1, 3).setValue('🎫ポイント+奈良職員券');
   sheet.getRange(1, 4).setFormula('=-SUMIF(C4:C,"ポイント利用",G4:G)-SUMIF(C4:C,"奈良県職員券",G4:G)');
   sheet.getRange(1, 4).setNumberFormat('#,##0');
   sheet.getRange(1, 3, 1, 2).setFontWeight('bold').setHorizontalAlignment('center');
