@@ -975,6 +975,8 @@ function createMonthlySummary(year, month, ssOverride) {
   var txSeen={},txDiscMap={},txHasItems={},txUniqueRows={},txProcessedRows={},txTotalPeople={};
   var mura={count:0,people:0,total:0},pass={count:0,people:0,total:0},ota={count:0,people:0,total:0},stay={count:0,people:0,total:0};
   var grandTotal=0,grandCount=0,grandPeople=0;
+  // 🎫ポイント: 商品売上には混ぜず別集計（各商品は定価満額＝ポイント込み単価のまま）
+  var pointTotal=0,pointTxList=[],pointTxSeen={},txItemNames={},txPaymentMap={};
 
   for (var si=0;si<monthSheets.length;si++) {
     var sheet=monthSheets[si].sheet,lastRow=sheet.getLastRow();
@@ -1022,6 +1024,7 @@ function createMonthlySummary(year, month, ssOverride) {
       if(itemName.indexOf('延長')!==-1) people=0; // 55分延長などの追加課金は人数に数えない（別プロダクトとして計上）
       var disc=String(r[8+co]||''),payment=String(r[9+co]||'');
       var ageStr=String(r[10+co]||''),natStr=String(r[11+co]||'');
+      if (payment&&payment!=='') txPaymentMap[txId]=payment; // ポイント明細で「どの支払方法の売上か」参照用
 
       var txDisc=txDiscMap[txId]||'';
       var isMura=(txDisc==='mura'||txDisc.indexOf('村')!==-1);
@@ -1029,8 +1032,12 @@ function createMonthlySummary(year, month, ssOverride) {
       var isOTA=(txDisc==='rakuten'||txDisc==='jalan'||txDisc==='sou'||txDisc.indexOf('楽天')!==-1||txDisc.indexOf('じゃらん')!==-1||txDisc.indexOf('ブッキング')!==-1||txDisc.indexOf('booking')!==-1||txDisc.indexOf('Booking')!==-1||txDisc.indexOf('そうエクスペリエンス')!==-1||txDisc.indexOf('そう体験')!==-1||txDisc.indexOf('sou')!==-1);
       var isStay=(txDisc==='stay_guest'||txDisc.indexOf('宿泊')!==-1);
 
-      if (itemName&&itemName!=='') {
+      if (itemName==='ポイント利用') {
+        // 🎫ポイント利用は商品別に入れず、txごとに1回だけ別集計（後日振込分）
+        if (!pointTxSeen[txId]) { pointTxSeen[txId]=true; var _ptAmt=-(unitPrice*qty); pointTotal+=_ptAmt; pointTxList.push({date:dateStr,txId:txId,amount:_ptAmt}); }
+      } else if (itemName&&itemName!=='') {
         if (!txProcessedRows[txId]) txProcessedRows[txId]=0;
+        if (!txItemNames[txId]) txItemNames[txId]=[]; if (txItemNames[txId].indexOf(itemName)<0) txItemNames[txId].push(itemName);
         if (txProcessedRows[txId]>=(txUniqueRows[txId]||0)) { /* 重複行スキップ */ }
         else {
         txProcessedRows[txId]++;
@@ -1151,9 +1158,14 @@ function createMonthlySummary(year, month, ssOverride) {
     .setFontSize(15).setFontWeight('bold').setFontColor('#fff').setHorizontalAlignment('left');
   row++;
   var avg=grandPeople>0?Math.round(grandTotal/grandPeople):0;
-  out.getRange(row,2,1,8).setValues([['総売上',grandTotal,'件数',grandCount,'人数',grandPeople,'客単価（人）',avg]])
+  out.getRange(row,2,1,8).setValues([['総売上(実受取)',grandTotal,'件数',grandCount,'人数',grandPeople,'客単価（人）',avg]])
     .setBackground('#f0f4e8').setFontWeight('bold').setHorizontalAlignment(C);
   out.getRange(row,3).setNumberFormat('#,##0');out.getRange(row,9).setNumberFormat('#,##0');
+  row++;
+  // ポイント込みの本来の総売上（＝実受取＋🎫ポイント。ポイントは後日振込＝実受取には含まれない）
+  out.getRange(row,2,1,8).setValues([['本来の総売上(P込)',grandTotal+pointTotal,'🎫ポイント利用',pointTotal,'（後日振込）','','','']])
+    .setBackground('#fff8e8').setFontWeight('bold').setHorizontalAlignment(C);
+  out.getRange(row,3).setNumberFormat('#,##0');out.getRange(row,5).setNumberFormat('#,##0');
   row+=2;
 
   // 見出しは常にB列開始（A列固定の境界線が文字を貫通しないように）
@@ -1294,6 +1306,22 @@ function createMonthlySummary(year, month, ssOverride) {
     if(p%2===0)out.getRange(row,2,1,3).setBackground(BG_EVEN);row++;
   }
   row++;
+
+  // 🎫 ポイント利用明細（どの売上にポイントが使われたか）
+  if (pointTxList.length>0){
+    secHead('【🎫 ポイント利用明細】　合計'+pointTotal.toLocaleString()+'円（後日振込・実受取には含まず）',5);
+    colHead(['日付','商品','支払方法','ポイント額'],2);
+    pointTxList.sort(function(a,b){return parseInt(a.date.split('/')[1])-parseInt(b.date.split('/')[1]);});
+    for (var pxi=0;pxi<pointTxList.length;pxi++){
+      var px=pointTxList[pxi];
+      var pxNames=(txItemNames[px.txId]||[]).join('・');
+      var pxPay=txPaymentMap[px.txId]||'';
+      out.getRange(row,2,1,4).setValues([[dateDowLabel(px.date,year,month,parseInt(px.date.split('/')[1])),pxNames,pxPay,px.amount]]).setHorizontalAlignment(C);
+      out.getRange(row,5).setNumberFormat('#,##0');
+      if (pxi%2===0) out.getRange(row,2,1,4).setBackground(BG_EVEN);row++;
+    }
+    row++;
+  }
 
   secHead('【カテゴリ別・商品別売上】',5);
   var catSectionBodyStart=row;
