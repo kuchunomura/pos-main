@@ -976,8 +976,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 396;
-const APP_BUILD_DATE = '2026/07/17 11:58';
+const APP_VERSION = 397;
+const APP_BUILD_DATE = '2026/07/17 12:11';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -3304,13 +3304,19 @@ function renderSales(){
   // ===== 統計 =====
   const statsEl = document.getElementById('sales-stats');
   if(statsEl && filtered.length > 0){
-    // 商品別
+    // 商品別＋支払方法別（レジ締め用）＋ポイント利用合計
     const itemMap = {};
-    filtered.forEach(r=>r.items.forEach(i=>{
-      itemMap[i.name]=(itemMap[i.name]||{count:0,total:0});
-      itemMap[i.name].count+=i.qty;
-      itemMap[i.name].total+=i.price*i.qty;
-    }));
+    const payMapS = {}; let pointTotalS = 0;
+    filtered.forEach(r=>{
+      const pm={cash:'現金',card:'カード',other:'電子決済'}[r.method]||r.method||'不明';
+      payMapS[pm]=(payMapS[pm]||0)+r.total; // r.total はポイントを引いた後＝実際に受け取った額
+      r.items.forEach(i=>{
+        if(i.id===POINT_ITEM_ID||i.name==='ポイント利用'){ pointTotalS+=Math.abs(i.price*i.qty); return; }
+        itemMap[i.name]=(itemMap[i.name]||{count:0,total:0});
+        itemMap[i.name].count+=i.qty;
+        itemMap[i.name].total+=i.price*i.qty;
+      });
+    });
     const makeStatCard = (title, rows) =>
       '<div style="background:#fff;border-radius:10px;padding:12px;box-shadow:var(--shadow);">'+
         '<div style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:8px;">'+title+'</div>'+
@@ -3352,7 +3358,16 @@ function renderSales(){
         '<button onclick="var d=document.getElementById(\'sales-item-more\');var s=d.style.display===\'none\';d.style.display=s?\'\':\'none\';this.textContent=s?\'▲ 折りたたむ\':\'▼ 全て表示 ('+hiddenCountS+'件)\'" style="margin-top:6px;font-size:10px;color:var(--accent2);background:none;border:none;cursor:pointer;padding:2px 0;font-family:inherit;">▼ 全て表示 ('+hiddenCountS+'件)</button>';
     }
     itemCardS+='</div>';
+    // 支払方法別（レジ締め用）：現金/カード/電子=実際に受け取った額（ドロワーと一致）。ポイントは別枠＝後日振込
+    const payRowsS=Object.entries(payMapS).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[k,'¥'+v.toLocaleString()]);
+    if(pointTotalS>0) payRowsS.push(['🎫 ポイント利用','¥'+pointTotalS.toLocaleString()]);
+    var payCardS=payRowsS.length?('<div style="background:#fff;border-radius:10px;padding:12px;box-shadow:var(--shadow);">'+
+      '<div style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:8px;">💳 支払方法別（レジ締め用）</div>'+
+      payRowsS.map(([k,v])=>'<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid #f5f5f5;"><span style="color:var(--text2);">'+k+'</span><span style="font-weight:600;">'+v+'</span></div>').join('')+
+      (pointTotalS>0?'<div style="font-size:10px;color:#b8860b;margin-top:6px;line-height:1.5">🎫 ポイント利用は手元に入らない分（後日振込）。<br>現金＋カード＋電子＝ドロワーの中身。</div>':'')+
+    '</div>'):'';
     statsEl.innerHTML =
+      payCardS+
       itemCardS+
       (Object.keys(facilityPeopleS).length?makeStatCard('🏕 施設別人数',Object.entries(facilityPeopleS).map(([k,v])=>[k,v+'人'])):'')+
       (Object.keys(ageMapS).length?makeStatCard('👤 年齢層',Object.entries(ageMapS).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[k,v+'件'])):'')+
