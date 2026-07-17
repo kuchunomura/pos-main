@@ -264,8 +264,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
           <button onclick="openCheckoutSummary()" id="checkout-btn"
             style="position:absolute;top:-2px;right:0;background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:none;">決済へ</button>
         </div>
-        <div id="point-btn-row" style="padding:0 8px 6px;">
-          <button id="point-btn" onclick="openPointModal()" style="width:100%;padding:10px;background:#fff;border:1px solid #b8860b;color:#b8860b;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">🎫 ポイント決済</button>
+        <div id="point-btn-row" style="display:flex;justify-content:flex-end;padding:0 0 6px;">
+          <button id="point-btn" onclick="openPointModal()" style="width:calc((100% - 12px)/3);box-sizing:border-box;padding:10px 4px;background:#fff;border:1px solid #b8860b;color:#b8860b;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">🎫 ポイント決済</button>
         </div>
         <div class="pay-btns" id="pay-btns-normal">
           <button class="pay-cash-btn" onclick="openPayment('cash')">💴 現金</button>
@@ -976,8 +976,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 395;
-const APP_BUILD_DATE = '2026/07/16 22:18';
+const APP_VERSION = 396;
+const APP_BUILD_DATE = '2026/07/17 11:58';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
