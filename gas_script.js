@@ -317,19 +317,19 @@ function setTotalsFormulas(sheet) {
   sheet.getRange(1, 1).setValue('本来の総売上');
   sheet.getRange(1, 2).setFormula('=SUM(B4:B)-SUMIF(C4:C,"ポイント利用",G4:G)');
   sheet.getRange(1, 2).setNumberFormat('#,##0');
-  sheet.getRange(1, 1, 1, 2).setFontWeight('bold').setBackground('#e8fff0').setHorizontalAlignment('center');
+  sheet.getRange(1, 1, 1, 2).setFontWeight('bold').setHorizontalAlignment('center');
 
   // 🎫ポイント: 商品名"ポイント利用"の小計（G列・マイナス）を正にした合計＝後日振込分（手元に入らない）
   sheet.getRange(1, 3).setValue('🎫ポイント');
   sheet.getRange(1, 4).setFormula('=-SUMIF(C4:C,"ポイント利用",G4:G)');
   sheet.getRange(1, 4).setNumberFormat('#,##0');
-  sheet.getRange(1, 3, 1, 2).setFontWeight('bold').setBackground('#fff8e8').setHorizontalAlignment('center');
+  sheet.getRange(1, 3, 1, 2).setFontWeight('bold').setHorizontalAlignment('center');
 
-  // 総売上(差引後): 実際に現金/カード/電子で受け取った合計＝レジ締め・ドロワー照合用
-  sheet.getRange(1, 5).setValue('総売上(差引後)');
+  // 総売上(P差引後): 実際に現金/カード/電子で受け取った合計＝レジ締め・ドロワー照合用（一番重要なので強調背景）
+  sheet.getRange(1, 5).setValue('総売上(P差引後)');
   sheet.getRange(1, 6).setFormula('=SUM(B4:B)');
   sheet.getRange(1, 6).setNumberFormat('#,##0');
-  sheet.getRange(1, 5, 1, 2).setFontWeight('bold').setBackground('#f5f5f5').setHorizontalAlignment('center');
+  sheet.getRange(1, 5, 1, 2).setFontWeight('bold').setBackground('#fff2cc').setHorizontalAlignment('center');
 
   // 総件数・総人数: 背景なし
   sheet.getRange(1, 7).setValue('総件数');
