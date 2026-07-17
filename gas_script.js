@@ -302,6 +302,7 @@ function fixAllSheets() {
     if (!/^\d+\/\d+/.test(name)) continue; // 「M/D売上」形式の日別シートのみ
     setTotalsFormulas(sheets[i]);
     setupCashInputRow(sheets[i]);
+    setDataColumnWidths(sheets[i]);
     sheets[i].setFrozenColumns(1);
     n++;
   }
@@ -479,7 +480,7 @@ function setDataColumnWidths(sheet) {
   sheet.setColumnWidth(2,   85);  // B: 売上合計
   sheet.setColumnWidth(3,  150);  // C: 商品名
   sheet.setColumnWidth(4,  100);  // D: カテゴリ
-  sheet.setColumnWidth(5,   65);  // E: 数量
+  sheet.setColumnWidth(5,  135);  // E: 数量（Row1の「総売上(P差引後)」ラベルが全部見える幅）
   sheet.setColumnWidth(6,   70);  // F: 単価
   sheet.setColumnWidth(7,   85);  // G: 小計
   sheet.setColumnWidth(8,   55);  // H: 人数
