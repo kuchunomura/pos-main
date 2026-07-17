@@ -264,7 +264,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
           <button onclick="openCheckoutSummary()" id="checkout-btn"
             style="position:absolute;top:-2px;right:0;background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:none;">決済へ</button>
         </div>
-        <div id="point-btn-row" style="display:flex;justify-content:flex-end;padding:0 0 6px;">
+        <div id="point-btn-row" style="display:flex;justify-content:flex-end;gap:6px;padding:0 0 6px;">
+          <button id="nara-btn" onclick="addNaraTicket()" style="width:calc((100% - 12px)/3);box-sizing:border-box;padding:8px 4px;background:#fff;border:1px solid #2a7d2a;color:#2a7d2a;border-radius:8px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;line-height:1.25;">🎫 奈良県職員券<br>(+グッズ1)</button>
           <button id="point-btn" onclick="openPointModal()" style="width:calc((100% - 12px)/3);box-sizing:border-box;padding:10px 4px;background:#fff;border:1px solid #b8860b;color:#b8860b;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">🎫 ポイント決済</button>
         </div>
         <div class="pay-btns" id="pay-btns-normal">
@@ -976,8 +977,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 403;
-const APP_BUILD_DATE = '2026/07/17 14:58';
+const APP_VERSION = 404;
+const APP_BUILD_DATE = '2026/07/17 20:56';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2127,6 +2128,24 @@ function applyPoint(){
   showToast(p>0?'✓ ポイント '+p.toLocaleString()+'円分を適用しました':'✓ ポイントを解除しました');
 }
 
+// ===== 奈良県職員券（空中ウォーク55分＋グッズ1）=====
+// ポイントと同じ「後日振込ボウチャー」。レジ受取は0円だが、奈良県が後日満額を施設に振り込むので
+// 空中ウォーク55分は満額で売上計上し、奈良県職員券のマイナス行で受取を0にする。集計・報告書では
+// 奈良県職員券行を商品/施設収入から除外して本来の総売上へ足し戻す（GAS側でポイントと同じ扱い）。
+const NARA_ITEM_ID='i_nara';
+function addNaraTicket(){
+  var walk=items.find(function(i){return i.id==='i_walk55';});
+  if(!walk){showToast('⚠ 空中ウォーク55分の商品が見つかりません','#c00');return;}
+  var p=walk.price; // 満額（割引を無視して固定＝奈良県は満額振込のため）
+  var wcat=(typeof cats!=='undefined'&&cats.find)?cats.find(function(c){return c.id==='cat_walk';}):null;
+  // 空中ウォーク55分を満額で追加（manualPrice:true で割引の影響を受けない。人数・55分列に計上される）
+  cart.push({id:'i_walk55',name:walk.name,origPrice:p,price:p,qty:1,discounted:false,manualPrice:true,cat:'cat_walk',catColor:wcat?wcat.bg:'#f0f6ff'});
+  // 奈良県職員券マイナス行（受取を0円にする）
+  cart.push({id:NARA_ITEM_ID,name:'奈良県職員券',origPrice:-p,price:-p,qty:1,discounted:false,manualPrice:true,cat:'',catColor:'#e8fff0'});
+  renderCart();
+  showToast('✓ 奈良県職員券（空中ウォーク55分＋グッズ1）を追加');
+}
+
 function addCustomItem(){
   const p=parseInt(document.getElementById('custom-price').value);
   if(!p||p<=0)return;
@@ -2160,6 +2179,18 @@ function renderCart(){
       discTag='<span style="font-size:10px;background:#fde8e8;color:var(--red);border:1px solid #f5c0c0;border-radius:4px;padding:1px 5px;margin-left:4px;font-weight:600;">'+(item.free_mura?'無料':'割引')+'</span>';
     }
     const priceColor = item.paidLabel ? paidDisplaySettings.color : (item.discounted ? 'var(--red)' : 'var(--accent2)');
+    // 奈良県職員券の行は数量・単価編集不要。金額と✕だけ（後日奈良県振込・空中ウォーク55分＋グッズ1）
+    if(item.id===NARA_ITEM_ID){
+      div.innerHTML=
+        '<div style="font-size:13px;font-weight:700;line-height:1.4;color:#2a7d2a;">🎫 '+item.name+'</div>'+
+        '<div style="display:flex;align-items:center;gap:4px;">'+
+          '<div style="flex:1;font-size:11px;color:var(--text2);">空中ウォーク55分＋グッズ1（後日奈良県振込）</div>'+
+          '<div style="font-size:14px;font-weight:700;color:#2a7d2a;">¥'+(item.price*item.qty).toLocaleString()+'</div>'+
+          '<div style="color:#ccc;font-size:16px;cursor:pointer;padding:0 4px;" onclick="removeCart('+idx+')">✕</div>'+
+        '</div>';
+      c.appendChild(div);
+      return;
+    }
     // ポイント利用の行は数量も単価編集も意味が無いので、金額と✕だけにする（金額はポイントモーダルで変更）
     if(item.id===POINT_ITEM_ID){
       div.innerHTML=
@@ -3654,7 +3685,7 @@ function saleToRows(sale){
   function grpKeyOf(i){ if(i.otaKey) return i.otaKey; if(i.passKey) return i.passKey; if(i.groupOn) return getDiscKeyOf(i.groupOn); if(i.muraOn) return 'mura'; if(i.freeOn) return 'free'; return ''; }
   // ポイント利用は割引区分を持たないので、混在会計の判定から外す。
   // 外さないと「区分なし＝ポイントだけの取引（マイナス）」に分割されてしまう。
-  function isPointRow(i){ return i.id===POINT_ITEM_ID; }
+  function isPointRow(i){ return i.id===POINT_ITEM_ID||i.id===NARA_ITEM_ID; }
   var groupOrder=[]; items.forEach(function(i){if(isPointRow(i))return;var g=grpKeyOf(i); if(groupOrder.indexOf(g)<0) groupOrder.push(g);});
   var isSplit=groupOrder.length>=2;                       // 割引区分が2種以上＝混在会計
   var resSet={}; items.forEach(function(i){ if(i._resId) resSet[i._resId]=true; });

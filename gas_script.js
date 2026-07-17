@@ -314,15 +314,15 @@ function fixAllSheets() {
 function setTotalsFormulas(sheet) {
   sheet.getRange(1, 1, 1, 17).clearContent().clearFormat();
 
-  // 本来の総売上: ポイント差引前の実際の商品売上＝差引後総売上＋ポイント利用（ポイントも後日振込＝売上）
+  // 本来の総売上: ポイント差引前の実際の売上＝差引後総売上＋ポイント利用＋奈良県職員券（どちらも後日振込＝売上）
   sheet.getRange(1, 1).setValue('本来の総売上');
-  sheet.getRange(1, 2).setFormula('=SUM(B4:B)-SUMIF(C4:C,"ポイント利用",G4:G)');
+  sheet.getRange(1, 2).setFormula('=SUM(B4:B)-SUMIF(C4:C,"ポイント利用",G4:G)-SUMIF(C4:C,"奈良県職員券",G4:G)');
   sheet.getRange(1, 2).setNumberFormat('#,##0');
   sheet.getRange(1, 1, 1, 2).setFontWeight('bold').setHorizontalAlignment('center');
 
-  // 🎫ポイント: 商品名"ポイント利用"の小計（G列・マイナス）を正にした合計＝後日振込分（手元に入らない）
-  sheet.getRange(1, 3).setValue('🎫ポイント');
-  sheet.getRange(1, 4).setFormula('=-SUMIF(C4:C,"ポイント利用",G4:G)');
+  // 🎫ポイント/券: ポイント利用＋奈良県職員券の合計（G列マイナスを正に）＝後日振込分（手元に入らない）
+  sheet.getRange(1, 3).setValue('🎫ポイント/券');
+  sheet.getRange(1, 4).setFormula('=-SUMIF(C4:C,"ポイント利用",G4:G)-SUMIF(C4:C,"奈良県職員券",G4:G)');
   sheet.getRange(1, 4).setNumberFormat('#,##0');
   sheet.getRange(1, 3, 1, 2).setFontWeight('bold').setHorizontalAlignment('center');
 
@@ -976,7 +976,7 @@ function createMonthlySummary(year, month, ssOverride) {
   var mura={count:0,people:0,total:0},pass={count:0,people:0,total:0},ota={count:0,people:0,total:0},stay={count:0,people:0,total:0};
   var grandTotal=0,grandCount=0,grandPeople=0;
   // 🎫ポイント: 商品売上には混ぜず別集計（各商品は定価満額＝ポイント込み単価のまま）
-  var pointTotal=0,pointTxList=[],pointTxSeen={},txItemNames={},txPaymentMap={};
+  var pointTotal=0,naraTotal=0,pointTxList=[],pointTxSeen={},voucherSeen={},txItemNames={},txPaymentMap={};
 
   for (var si=0;si<monthSheets.length;si++) {
     var sheet=monthSheets[si].sheet,lastRow=sheet.getLastRow();
@@ -1032,9 +1032,13 @@ function createMonthlySummary(year, month, ssOverride) {
       var isOTA=(txDisc==='rakuten'||txDisc==='jalan'||txDisc==='sou'||txDisc.indexOf('楽天')!==-1||txDisc.indexOf('じゃらん')!==-1||txDisc.indexOf('ブッキング')!==-1||txDisc.indexOf('booking')!==-1||txDisc.indexOf('Booking')!==-1||txDisc.indexOf('そうエクスペリエンス')!==-1||txDisc.indexOf('そう体験')!==-1||txDisc.indexOf('sou')!==-1);
       var isStay=(txDisc==='stay_guest'||txDisc.indexOf('宿泊')!==-1);
 
-      if (itemName==='ポイント利用') {
-        // 🎫ポイント利用は商品別に入れず、txごとに1回だけ別集計（後日振込分）
-        if (!pointTxSeen[txId]) { pointTxSeen[txId]=true; var _ptAmt=-(unitPrice*qty); pointTotal+=_ptAmt; pointTxList.push({date:dateStr,txId:txId,amount:_ptAmt}); }
+      if (itemName==='ポイント利用' || itemName==='奈良県職員券') {
+        // 🎫ポイント利用・奈良県職員券は商品別に入れず別集計（後日振込分）。tx×種別で1回だけ加算
+        pointTxSeen[txId]=true;
+        var _vk=txId+'|'+itemName;
+        if (!voucherSeen[_vk]) { voucherSeen[_vk]=true; var _vAmt=-(unitPrice*qty);
+          if (itemName==='奈良県職員券') naraTotal+=_vAmt; else pointTotal+=_vAmt;
+          pointTxList.push({date:dateStr,txId:txId,amount:_vAmt,type:itemName}); }
       } else if (itemName&&itemName!=='') {
         if (!txProcessedRows[txId]) txProcessedRows[txId]=0;
         if (!txItemNames[txId]) txItemNames[txId]=[]; if (txItemNames[txId].indexOf(itemName)<0) txItemNames[txId].push(itemName);
@@ -1162,10 +1166,10 @@ function createMonthlySummary(year, month, ssOverride) {
     .setBackground('#f0f4e8').setFontWeight('bold').setHorizontalAlignment(C);
   out.getRange(row,3).setNumberFormat('#,##0');out.getRange(row,9).setNumberFormat('#,##0');
   row++;
-  // ポイント込みの本来の総売上（＝実受取＋🎫ポイント。ポイントは後日振込＝実受取には含まれない）
-  out.getRange(row,2,1,8).setValues([['本来の総売上(P込)',grandTotal+pointTotal,'🎫ポイント利用',pointTotal,'（後日振込）','','','']])
+  // ポイント込みの本来の総売上（＝実受取＋🎫ポイント＋奈良県職員券。どちらも後日振込＝実受取には含まれない）
+  out.getRange(row,2,1,8).setValues([['本来の総売上(P込)',grandTotal+pointTotal+naraTotal,'🎫ポイント',pointTotal,'奈良県職員券',naraTotal,'（後日振込）','']])
     .setBackground('#fff8e8').setFontWeight('bold').setHorizontalAlignment(C);
-  out.getRange(row,3).setNumberFormat('#,##0');out.getRange(row,5).setNumberFormat('#,##0');
+  out.getRange(row,3).setNumberFormat('#,##0');out.getRange(row,5).setNumberFormat('#,##0');out.getRange(row,7).setNumberFormat('#,##0');
   row+=2;
 
   // 見出しは常にB列開始（A列固定の境界線が文字を貫通しないように）
@@ -1307,18 +1311,18 @@ function createMonthlySummary(year, month, ssOverride) {
   }
   row++;
 
-  // 🎫 ポイント利用明細（どの売上にポイントが使われたか）
+  // 🎫 後日振込明細（ポイント/奈良県職員券がどの売上に使われたか）
   if (pointTxList.length>0){
-    secHead('【🎫 ポイント利用明細】　合計'+pointTotal.toLocaleString()+'円（後日振込・実受取には含まず）',5);
-    colHead(['日付','商品','支払方法','ポイント額'],2);
+    secHead('【🎫 後日振込明細（ポイント/奈良県職員券）】　ポイント計'+pointTotal.toLocaleString()+'円・奈良県職員券計'+naraTotal.toLocaleString()+'円（実受取には含まず）',5);
+    colHead(['日付','種別','商品','支払方法','金額'],2);
     pointTxList.sort(function(a,b){return parseInt(a.date.split('/')[1])-parseInt(b.date.split('/')[1]);});
     for (var pxi=0;pxi<pointTxList.length;pxi++){
       var px=pointTxList[pxi];
       var pxNames=(txItemNames[px.txId]||[]).join('・');
       var pxPay=txPaymentMap[px.txId]||'';
-      out.getRange(row,2,1,4).setValues([[dateDowLabel(px.date,year,month,parseInt(px.date.split('/')[1])),pxNames,pxPay,px.amount]]).setHorizontalAlignment(C);
-      out.getRange(row,5).setNumberFormat('#,##0');
-      if (pxi%2===0) out.getRange(row,2,1,4).setBackground(BG_EVEN);row++;
+      out.getRange(row,2,1,5).setValues([[dateDowLabel(px.date,year,month,parseInt(px.date.split('/')[1])),px.type||'ポイント利用',pxNames,pxPay,px.amount]]).setHorizontalAlignment(C);
+      out.getRange(row,6).setNumberFormat('#,##0');
+      if (pxi%2===0) out.getRange(row,2,1,5).setBackground(BG_EVEN);row++;
     }
     row++;
   }
@@ -1326,7 +1330,7 @@ function createMonthlySummary(year, month, ssOverride) {
   // 🎫ポイント利用があった取引の商品名セット（該当商品セルに色を付ける）
   var pointItemSet={};
   Object.keys(pointTxSeen).forEach(function(tx){ (txItemNames[tx]||[]).forEach(function(nm){ pointItemSet[nm]=true; }); });
-  secHead('【カテゴリ別・商品別売上】'+(pointTotal>0?'　※黄色セル＝🎫ポイント利用があった商品':''),5);
+  secHead('【カテゴリ別・商品別売上】'+((pointTotal+naraTotal)>0?'　※黄色セル＝🎫ポイント/奈良県職員券があった商品':''),5);
   var catSectionBodyStart=row;
   out.getRange(row,2,1,5).setValues([['カテゴリ / 商品名','件数','人数','人数','売上合計']])
     .setBackground('#f5f5f5').setHorizontalAlignment(C);
