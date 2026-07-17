@@ -340,6 +340,13 @@ function setTotalsFormulas(sheet) {
   sheet.getRange(1, 12).setFormula('=SUMIF(J4:J,"現金",B4:B)');
   sheet.getRange(1, 12).setNumberFormat('#,##0');
   sheet.getRange(1, 11, 1, 2).setFontWeight('bold').setHorizontalAlignment('center');
+
+  // ポイント利用: 商品名"ポイント利用"の小計（G列・マイナス）を正にした合計＝後日振込分（手元に入らない）。
+  // 現金/カード/電子はポイントを引いた後の実受取額なので、この行は締めの参考表示（差額計算には使わない）。
+  sheet.getRange(1, 13).setValue('🎫ポイント利用');
+  sheet.getRange(1, 14).setFormula('=-SUMIF(C4:C,"ポイント利用",G4:G)');
+  sheet.getRange(1, 14).setNumberFormat('#,##0');
+  sheet.getRange(1, 13, 1, 2).setFontWeight('bold').setBackground('#fff8e8').setHorizontalAlignment('center');
 }
 
 // Row2: レジ現金入力行
