@@ -264,8 +264,7 @@ details.settings-section[open] > summary{margin-bottom:10px;}
           <button onclick="openCheckoutSummary()" id="checkout-btn"
             style="position:absolute;top:-2px;right:0;background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:none;">決済へ</button>
         </div>
-        <div id="point-btn-row" style="display:flex;justify-content:flex-end;gap:6px;padding:0 0 6px;">
-          <button id="nara-btn" onclick="addNaraTicket()" style="width:calc((100% - 12px)/3);box-sizing:border-box;padding:8px 4px;background:#fff;border:1px solid #2a7d2a;color:#2a7d2a;border-radius:8px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;line-height:1.25;">🎫 奈良県職員券<br>(+グッズ1)</button>
+        <div id="point-btn-row" style="display:flex;justify-content:flex-end;padding:0 0 6px;">
           <button id="point-btn" onclick="openPointModal()" style="width:calc((100% - 12px)/3);box-sizing:border-box;padding:10px 4px;background:#fff;border:1px solid #b8860b;color:#b8860b;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">🎫 ポイント決済</button>
         </div>
         <div class="pay-btns" id="pay-btns-normal">
@@ -977,8 +976,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 404;
-const APP_BUILD_DATE = '2026/07/17 20:56';
+const APP_VERSION = 405;
+const APP_BUILD_DATE = '2026/07/17 21:30';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1078,6 +1077,7 @@ const DEFAULT_ITEMS = [
   {id:'i_walk1day',name:'空中ウォーク 1DAY',       price:3000, cat:'cat_walk', stock:0, free_mura:false},
   {id:'i_passday', name:'年間パス昼',              price:15000,cat:'cat_walk', stock:0, free_mura:false},
   {id:'i_1777680532193', name:'55分延長',  price:500,  cat:'cat_walk', stock:0, free_mura:false},
+  {id:'i_nara55',  name:'奈良県職員券55分',  price:0,    cat:'cat_walk', stock:0, free_mura:false},
   {id:'i_1777557786554', name:'テスト',            price:1,    cat:'cat_walk', stock:0, free_mura:false},
   {id:'i_tree55',  name:'ツリーハウス昼 55分',     price:2000, cat:'cat_tree_day', stock:0, free_mura:false},
   {id:'i_tree115', name:'ツリーハウス昼 115分',    price:3000, cat:'cat_tree_day', stock:0, free_mura:false},
@@ -1222,6 +1222,14 @@ let items = ld(KEYS.items) || DEFAULT_ITEMS;
   var it={id:'i_p03b',name:'胡桃のタルト',price:500,cat:'cat_picnic',stock:0,free_mura:false};
   var idx=items.findIndex(function(x){return x.id==='i_p03';});
   if(idx>=0) items.splice(idx+1,0,it); else items.push(it);
+  sv(KEYS.items,items);
+})();
+// 奈良県職員券55分 追加マイグレーション（空中ウォーク内・テストの左＝直前に差し込む）
+(function(){
+  if(items.find(function(x){return x.id==='i_nara55';})) return;
+  var it={id:'i_nara55',name:'奈良県職員券55分',price:0,cat:'cat_walk',stock:0,free_mura:false};
+  var idx=items.findIndex(function(x){return x.id==='i_1777557786554';}); // テストの直前
+  if(idx>=0) items.splice(idx,0,it); else items.push(it);
   sv(KEYS.items,items);
 })();
 let sales = ld(KEYS.sales) || [];
@@ -2056,6 +2064,8 @@ function recalcCartPrices(){
 
 // ===== カート =====
 function addToCart(item,cat){
+  // 奈良県職員券55分タイル：タップで空中ウォーク55分満額＋奈良県職員券マイナス行を入れる（このタイル自体は追加しない）
+  if(item.id==='i_nara55'){ addNaraTicket(); return; }
   // 宿泊で人数別料金がある場合はポップアップ
   if(item.stay_prices && Object.keys(item.stay_prices).length > 0){
     openStayModal(item, cat);
