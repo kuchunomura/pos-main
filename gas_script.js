@@ -1323,7 +1323,10 @@ function createMonthlySummary(year, month, ssOverride) {
     row++;
   }
 
-  secHead('【カテゴリ別・商品別売上】',5);
+  // 🎫ポイント利用があった取引の商品名セット（該当商品セルに色を付ける）
+  var pointItemSet={};
+  Object.keys(pointTxSeen).forEach(function(tx){ (txItemNames[tx]||[]).forEach(function(nm){ pointItemSet[nm]=true; }); });
+  secHead('【カテゴリ別・商品別売上】'+(pointTotal>0?'　※黄色セル＝🎫ポイント利用があった商品':''),5);
   var catSectionBodyStart=row;
   out.getRange(row,2,1,5).setValues([['カテゴリ / 商品名','件数','人数','人数','売上合計']])
     .setBackground('#f5f5f5').setHorizontalAlignment(C);
@@ -1359,7 +1362,9 @@ function createMonthlySummary(year, month, ssOverride) {
         var col4Val=showPeople?iv.people:iv.qty;
         out.getRange(row,2,1,5).setValues([[indent+iv.name,'','',col4Val,iv.total]]).setHorizontalAlignment(C);
         out.getRange(row,6).setNumberFormat('#,##0');
-        if(ij%2===0)out.getRange(row,2,1,5).setBackground(BG_EVEN);row++;
+        if(ij%2===0)out.getRange(row,2,1,5).setBackground(BG_EVEN);
+        if(pointItemSet[iv.name]) out.getRange(row,2,1,5).setBackground('#fff8e8'); // 🎫ポイント利用があった取引の商品
+        row++;
       }
     }
   }
