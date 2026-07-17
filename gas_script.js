@@ -309,44 +309,52 @@ function fixAllSheets() {
   return n + '枚の日別シートを更新しました';
 }
 
-// Row1: 集計計算式
+// Row1: 集計計算式（本来の総売上＋ポイントを先頭に、続いて差引後・件数・人数・支払方法）
 function setTotalsFormulas(sheet) {
   sheet.getRange(1, 1, 1, 17).clearContent().clearFormat();
 
-  // 総件数・総売上・総人数: 背景なし
-  sheet.getRange(1, 1).setValue('総件数');
-  sheet.getRange(1, 2).setFormula('=COUNTA(B4:B)');
-  sheet.getRange(1, 3).setValue('総売上');
-  sheet.getRange(1, 4).setFormula('=SUM(B4:B)');
+  // 本来の総売上: ポイント差引前の実際の商品売上＝差引後総売上＋ポイント利用（ポイントも後日振込＝売上）
+  sheet.getRange(1, 1).setValue('本来の総売上');
+  sheet.getRange(1, 2).setFormula('=SUM(B4:B)-SUMIF(C4:C,"ポイント利用",G4:G)');
+  sheet.getRange(1, 2).setNumberFormat('#,##0');
+  sheet.getRange(1, 1, 1, 2).setFontWeight('bold').setBackground('#e8fff0').setHorizontalAlignment('center');
+
+  // 🎫ポイント: 商品名"ポイント利用"の小計（G列・マイナス）を正にした合計＝後日振込分（手元に入らない）
+  sheet.getRange(1, 3).setValue('🎫ポイント');
+  sheet.getRange(1, 4).setFormula('=-SUMIF(C4:C,"ポイント利用",G4:G)');
   sheet.getRange(1, 4).setNumberFormat('#,##0');
-  sheet.getRange(1, 5).setValue('総人数');
-  sheet.getRange(1, 6).setFormula('=SUM(H4:H)-SUMIF(C4:C,"*延長*",H4:H)'); // 55分延長など追加課金は人数に数えない
-  sheet.getRange(1, 1, 1, 6).setFontWeight('bold').setHorizontalAlignment('center');
+  sheet.getRange(1, 3, 1, 2).setFontWeight('bold').setBackground('#fff8e8').setHorizontalAlignment('center');
+
+  // 総売上(差引後): 実際に現金/カード/電子で受け取った合計＝レジ締め・ドロワー照合用
+  sheet.getRange(1, 5).setValue('総売上(差引後)');
+  sheet.getRange(1, 6).setFormula('=SUM(B4:B)');
+  sheet.getRange(1, 6).setNumberFormat('#,##0');
+  sheet.getRange(1, 5, 1, 2).setFontWeight('bold').setBackground('#f5f5f5').setHorizontalAlignment('center');
+
+  // 総件数・総人数: 背景なし
+  sheet.getRange(1, 7).setValue('総件数');
+  sheet.getRange(1, 8).setFormula('=COUNTA(B4:B)');
+  sheet.getRange(1, 9).setValue('総人数');
+  sheet.getRange(1, 10).setFormula('=SUM(H4:H)-SUMIF(C4:C,"*延長*",H4:H)'); // 55分延長など追加課金は人数に数えない
+  sheet.getRange(1, 7, 1, 4).setFontWeight('bold').setHorizontalAlignment('center');
 
   // クレジット: クレジット色
-  sheet.getRange(1, 7).setValue('クレジット');
-  sheet.getRange(1, 8).setFormula('=SUMIF(J4:J,"クレジットカード",B4:B)');
-  sheet.getRange(1, 8).setNumberFormat('#,##0');
-  sheet.getRange(1, 7, 1, 2).setFontWeight('bold').setBackground('#f0f8ff').setHorizontalAlignment('center');
+  sheet.getRange(1, 11).setValue('クレジット');
+  sheet.getRange(1, 12).setFormula('=SUMIF(J4:J,"クレジットカード",B4:B)');
+  sheet.getRange(1, 12).setNumberFormat('#,##0');
+  sheet.getRange(1, 11, 1, 2).setFontWeight('bold').setBackground('#f0f8ff').setHorizontalAlignment('center');
 
   // 電子決済: 電子決済色
-  sheet.getRange(1, 9).setValue('電子決済');
-  sheet.getRange(1, 10).setFormula('=SUMIF(J4:J,"電子決済",B4:B)');
-  sheet.getRange(1, 10).setNumberFormat('#,##0');
-  sheet.getRange(1, 9, 1, 2).setFontWeight('bold').setBackground('#fdf5ff').setHorizontalAlignment('center');
+  sheet.getRange(1, 13).setValue('電子決済');
+  sheet.getRange(1, 14).setFormula('=SUMIF(J4:J,"電子決済",B4:B)');
+  sheet.getRange(1, 14).setNumberFormat('#,##0');
+  sheet.getRange(1, 13, 1, 2).setFontWeight('bold').setBackground('#fdf5ff').setHorizontalAlignment('center');
 
   // 現金: 背景なし（白）
-  sheet.getRange(1, 11).setValue('現金');
-  sheet.getRange(1, 12).setFormula('=SUMIF(J4:J,"現金",B4:B)');
-  sheet.getRange(1, 12).setNumberFormat('#,##0');
-  sheet.getRange(1, 11, 1, 2).setFontWeight('bold').setHorizontalAlignment('center');
-
-  // ポイント利用: 商品名"ポイント利用"の小計（G列・マイナス）を正にした合計＝後日振込分（手元に入らない）。
-  // 現金/カード/電子はポイントを引いた後の実受取額なので、この行は締めの参考表示（差額計算には使わない）。
-  sheet.getRange(1, 13).setValue('🎫ポイント利用');
-  sheet.getRange(1, 14).setFormula('=-SUMIF(C4:C,"ポイント利用",G4:G)');
-  sheet.getRange(1, 14).setNumberFormat('#,##0');
-  sheet.getRange(1, 13, 1, 2).setFontWeight('bold').setBackground('#fff8e8').setHorizontalAlignment('center');
+  sheet.getRange(1, 15).setValue('現金');
+  sheet.getRange(1, 16).setFormula('=SUMIF(J4:J,"現金",B4:B)');
+  sheet.getRange(1, 16).setNumberFormat('#,##0');
+  sheet.getRange(1, 15, 1, 2).setFontWeight('bold').setHorizontalAlignment('center');
 }
 
 // Row2: レジ現金入力行
