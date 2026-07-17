@@ -976,8 +976,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 406;
-const APP_BUILD_DATE = '2026/07/17 21:42';
+const APP_VERSION = 407;
+const APP_BUILD_DATE = '2026/07/17 21:52';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1225,24 +1225,37 @@ let items = ld(KEYS.items) || DEFAULT_ITEMS;
   sv(KEYS.items,items);
 })();
 // 奈良県職員券55分 追加マイグレーション（空中ウォーク内・テストの左＝直前）
-// グリッドは itemOrder（保存された並び順）で表示するので、items だけでなく itemOrder でも
-// テストの直前に入れる。位置修正は1回だけ（以後ユーザーが自由に並べ替えできるようフラグで管理）。
+// グリッド順は itemOrder（保存された並び順）優先。itemOrderが無い端末は items配列順。
+// どちらの端末でも「テストの直前」に来るよう、items配列とitemOrderの両方を1回だけ直す（新フラグで再実行）。
 (function(){
+  var FLAG='pos_nara55_pos_fixed2';
+  function findTestId(){
+    if(items.find(function(x){return x.id==='i_1777557786554';})) return 'i_1777557786554';
+    var t=items.find(function(x){return x.cat==='cat_walk'&&x.name==='テスト';})
+        ||items.find(function(x){return x.cat==='cat_walk'&&(x.name||'').indexOf('テスト')>=0;});
+    return t?t.id:null;
+  }
+  // items配列に無ければ作る
   if(!items.find(function(x){return x.id==='i_nara55';})){
-    var it={id:'i_nara55',name:'奈良県職員券55分',price:0,cat:'cat_walk',stock:0,free_mura:false};
-    var idx=items.findIndex(function(x){return x.id==='i_1777557786554';});
-    if(idx>=0) items.splice(idx,0,it); else items.push(it);
+    items.push({id:'i_nara55',name:'奈良県職員券55分',price:0,cat:'cat_walk',stock:0,free_mura:false});
     sv(KEYS.items,items);
   }
-  var _io=ld(KEYS.itemOrder);
-  if(_io && !localStorage.getItem('pos_nara55_pos_fixed')){
-    var testItem=items.find(function(x){return x.cat==='cat_walk'&&x.name==='テスト';});
-    var testId=testItem?testItem.id:'i_1777557786554';
-    var ni=_io.indexOf('i_nara55'); if(ni>=0) _io.splice(ni,1);
-    var ti=_io.indexOf(testId);
-    if(ti>=0) _io.splice(ti,0,'i_nara55'); else _io.push('i_nara55');
-    sv(KEYS.itemOrder,_io);
-    localStorage.setItem('pos_nara55_pos_fixed','1');
+  if(!localStorage.getItem(FLAG)){
+    // items配列内の位置をテスト直前へ
+    var ci=items.findIndex(function(x){return x.id==='i_nara55';});
+    if(ci>=0){ var moved=items.splice(ci,1)[0]; var tId=findTestId();
+      var ti=tId?items.findIndex(function(x){return x.id===tId;}):-1;
+      if(ti>=0) items.splice(ti,0,moved); else items.push(moved);
+      sv(KEYS.items,items);
+    }
+    // itemOrder内の位置もテスト直前へ（あれば）
+    var _io=ld(KEYS.itemOrder);
+    if(_io){ var ni=_io.indexOf('i_nara55'); if(ni>=0) _io.splice(ni,1);
+      var tId2=findTestId(); var ti2=tId2?_io.indexOf(tId2):-1;
+      if(ti2>=0) _io.splice(ti2,0,'i_nara55'); else _io.push('i_nara55');
+      sv(KEYS.itemOrder,_io);
+    }
+    localStorage.setItem(FLAG,'1');
   }
 })();
 let sales = ld(KEYS.sales) || [];
