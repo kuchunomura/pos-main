@@ -843,6 +843,7 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <!-- 決済モーダル -->
 <div class="modal-overlay" id="payment-modal">
   <div class="modal" style="max-width:480px;">
+    <div id="pay-confirm-view">
     <h3 id="payment-modal-title">決済確認</h3>
     <div style="font-size:26px;font-weight:700;text-align:center;margin:12px 0;color:var(--accent2)" id="payment-modal-amount"></div>
     <div id="cash-change-section" style="display:none">
@@ -872,7 +873,19 @@ details.settings-section[open] > summary{margin-bottom:10px;}
     </div>
     <div class="modal-btns">
       <button onclick="closePaymentModal()">キャンセル</button>
-      <button id="payment-confirm-btn" class="confirm" onclick="confirmPayment()" style="padding:16px 28px;font-size:15px;">決済完了</button>
+      <button id="payment-confirm-btn" class="confirm" onclick="confirmPayment()" style="padding:20px 28px;font-size:19px;font-weight:800;flex:2;">決済完了</button>
+    </div>
+    </div>
+    <div id="pay-inline-done" style="display:none;text-align:center;padding:8px 0;">
+      <div style="font-size:46px;line-height:1;">✅</div>
+      <div style="font-size:21px;font-weight:800;color:var(--green);margin-top:4px;">決済完了</div>
+      <div id="inline-done-amount" style="font-size:32px;font-weight:800;color:#111;margin:6px 0;"></div>
+      <div id="inline-done-method" style="font-size:13px;color:var(--text2);margin-bottom:16px;"></div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button onclick="inlineNextCustomer()" style="padding:17px;border:none;border-radius:12px;background:var(--green);color:#fff;font-size:18px;font-weight:800;cursor:pointer;font-family:inherit;">✅ 次のお客様へ</button>
+        <button onclick="inlineFlagAndClose()" style="padding:14px;border:2px solid #e0b0b0;border-radius:12px;background:#fff;color:#c0392b;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">🔴 印をつけて閉じる</button>
+      </div>
+      <div id="inline-done-countdown" style="margin-top:12px;font-size:13px;font-weight:600;color:#888;"></div>
     </div>
   </div>
 </div>
@@ -976,8 +989,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 410;
-const APP_BUILD_DATE = '2026/07/18 21:02';
+const APP_VERSION = 411;
+const APP_BUILD_DATE = '2026/07/18 21:37';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1809,7 +1822,7 @@ const SOU_FREE_IDS = ['i_tree115','i_walk115'];
 let paidDisplaySettings = ld('pos_paid_display') || {label:'支払済', color:'#c0392b'};
 // OTA（楽天・じゃらん・SOU）：押すと日帰り＋宿泊を一律0円（支払済）にする
 const OTA_KEYS = ['rakuten','jalan','sou'];
-const OTA_FREE_CATS = ['cat_walk','cat_tree_day','cat_bbq','cat_rental'];
+const OTA_FREE_CATS = ['cat_walk','cat_tree_day','cat_bbq']; // レンタル(cat_rental)はOTAでも支払済にせず通常課金
 function isOtaActive(){ return OTA_KEYS.includes(activeDiscount); }
 function isOtaFreeCat(cat,id){
   if(id==='i_passday'||id==='i_passnight') return false; // 年間パスは常に定価
@@ -2722,11 +2735,11 @@ function renderYoyakuPicker(data){
     if(inCart){
       copyBtn='<button disabled style="flex:0 0 auto;font-size:11px;font-weight:700;border-radius:6px;padding:4px 9px;background:#e6f5ea;color:#1a7a3a;border:1px solid #9ccfab">コピー✅</button>';
     } else if(!paidDone){
-      copyBtn='<button onclick="event.stopPropagation();copyReservationToCart(\''+x.type+'\',\''+idAttr+'\')" style="flex:0 0 auto;font-size:11px;font-weight:700;border-radius:6px;padding:4px 9px;background:#fff;color:#7a1030;border:1px solid #d0a0b0;cursor:pointer">＋コピー</button>';
+      copyBtn='<button onclick="event.stopPropagation();copyReservationToCart(\''+x.type+'\',\''+idAttr+'\')" style="flex:0 0 auto;font-size:11px;font-weight:700;border-radius:6px;padding:4px 9px;background:#fff;color:#7a1030;border:1px solid #d0a0b0;cursor:pointer">カートへコピー</button>';
     } else if(_copyArmKey===_resKey){
       copyBtn='<button onclick="event.stopPropagation();copyReservationToCart(\''+x.type+'\',\''+idAttr+'\')" style="flex:0 0 auto;font-size:11px;font-weight:700;border-radius:6px;padding:4px 9px;background:#fff3e0;color:#c07000;border:1px solid #e0b070;cursor:pointer">もう1回タップで追加</button>';
     } else {
-      copyBtn='<button onclick="event.stopPropagation();armCopyReservation(\''+x.type+'\',\''+idAttr+'\')" style="flex:0 0 auto;font-size:11px;font-weight:700;border-radius:6px;padding:4px 9px;background:#fff;color:#999;border:1px solid #ddd;cursor:pointer">＋コピー（済）</button>';
+      copyBtn='<button onclick="event.stopPropagation();armCopyReservation(\''+x.type+'\',\''+idAttr+'\')" style="flex:0 0 auto;font-size:11px;font-weight:700;border-radius:6px;padding:4px 9px;background:#fff;color:#999;border:1px solid #ddd;cursor:pointer">カートへコピー（済）</button>';
     }
     // 宿泊者割引（500円引き）と紐づけ（📌）を表示
     var sgdNote=(x.type==='day'&&posStayGuestDisc(o,data.stays))?'<div style="font-size:11px;color:#1a7a3a;font-weight:700;margin-top:2px">宿泊者割引 1人-500円</div>':'';
@@ -2737,7 +2750,7 @@ function renderYoyakuPicker(data){
       markBtn='<button onclick="event.stopPropagation();unmarkReservationPaid(\''+x.type+'\',\''+idAttr+'\')" style="font-size:10px;color:#999;background:#fff;border:1px solid #ddd;border-radius:6px;padding:3px 8px;cursor:pointer">会計済みを取消</button>';
     } else if(!paidBySale){
       if(_paidArmKey===_resKey) markBtn='<button onclick="event.stopPropagation();markReservationPaid(\''+x.type+'\',\''+idAttr+'\')" style="font-size:10px;font-weight:700;color:#c07000;background:#fff3e0;border:1px solid #e0b070;border-radius:6px;padding:3px 8px;cursor:pointer">もう1回タップで会計済みに</button>';
-      else markBtn='<button onclick="event.stopPropagation();armMarkPaid(\''+x.type+'\',\''+idAttr+'\')" style="font-size:10px;color:#7a1030;background:#fff;border:1px solid #d0a0b0;border-radius:6px;padding:3px 8px;cursor:pointer">レジ未計上→会計済みに</button>';
+      else markBtn='<button onclick="event.stopPropagation();armMarkPaid(\''+x.type+'\',\''+idAttr+'\')" style="font-size:10px;color:#7a1030;background:#fff;border:1px solid #d0a0b0;border-radius:6px;padding:3px 8px;cursor:pointer">会計済みにする</button>';
     }
     var markRow=markBtn?('<div style="margin-top:6px;text-align:right">'+markBtn+'</div>'):'';
     html+='<div onclick="'+onload+'" style="border:1px solid '+(paidDone?'#9ccfab':(held?'#e0b070':'var(--border)'))+';border-radius:8px;background:'+bgTint+';margin-bottom:6px;padding:9px 11px;cursor:pointer;'+(paidDone?'opacity:0.55':'')+'">'+
@@ -2756,9 +2769,9 @@ function renderYoyakuPicker(data){
   html+='<div style="margin-top:12px;padding:9px 11px;background:#fff;border:1px solid #eee;border-radius:8px;font-size:11px;color:#666;line-height:1.8">'+
     '・カートで数量や商品を変更したら「⏸ 保留」で保存できます。<br>'+
     '・カートをクリアしても予約は消えません（この画面からいつでも読み込み直せます）。<br>'+
-    '・同じ決済者・グループなど、複数の予約をまとめて会計したい時は「＋コピー」で今のカートに追加できます。<br>'+
+    '・同じ決済者・グループなど、複数の予約をまとめて会計したい時は「カートへコピー」で今のカートに追加できます。<br>'+
     '・会計が済んだ予約は「✅ 会計済み」と薄く表示されます（二重会計の防止用）。<br>'+
-    '・レジを通さず会計してしまった時は「レジ未計上→会計済みに」を2回タップで目印だけ付けられます（売上には計上しません）。'+
+    '・レジを通さず会計してしまった時は「会計済みにする」を2回タップで目印だけ付けられます（売上には計上しません）。'+
   '</div>';
   c.innerHTML=html;
 }
@@ -2995,7 +3008,33 @@ function openPayment(method){
   cs.style.display=method==='cash'?'':'none';
   if(method==='cash'){document.getElementById('cash-received').value='';document.getElementById('change-amount').textContent='¥0';setConfirmBtnReady(false);}
   else{setConfirmBtnReady(true);}
+  resetPaymentViews(); // 完了表示を隠して確認表示に戻す
   document.getElementById('payment-modal').classList.add('open');
+}
+// 決済モーダル内の「確認表示 ↔ 完了表示」の切替と、完了表示のカウントダウン
+let inlineDoneTimer=null;
+function resetPaymentViews(){
+  clearInlineDoneTimer();
+  var cv=document.getElementById('pay-confirm-view'), dv=document.getElementById('pay-inline-done');
+  if(cv) cv.style.display=''; if(dv) dv.style.display='none';
+}
+function clearInlineDoneTimer(){ if(inlineDoneTimer){ clearTimeout(inlineDoneTimer); inlineDoneTimer=null; } }
+function startInlineDoneTimer(){
+  clearInlineDoneTimer();
+  var remaining=180;
+  var cd=document.getElementById('inline-done-countdown');
+  function tick(){
+    if(cd) cd.textContent='あと'+remaining+'秒で自動的に次のお客様へ';
+    if(remaining<=0){ inlineNextCustomer(); return; }
+    remaining--; inlineDoneTimer=setTimeout(tick,1000);
+  }
+  tick();
+}
+function inlineNextCustomer(){ clearInlineDoneTimer(); document.getElementById('payment-modal').classList.remove('open'); resetPaymentViews(); clearCart(); }
+function inlineFlagAndClose(){
+  clearInlineDoneTimer();
+  if(lastSaleId){ var r=sales.find(function(s){return s.id===lastSaleId;}); if(r){ r.flagged=true; sv(KEYS.sales,sales); renderSales(); } }
+  document.getElementById('payment-modal').classList.remove('open'); resetPaymentViews(); clearCart();
 }
 
 function setCashExact(){
@@ -3021,7 +3060,7 @@ function setConfirmBtnReady(ready){
   var btn=document.getElementById('payment-confirm-btn');
   if(!btn) return;
   if(ready){
-    btn.style.background='var(--accent)';btn.style.color='#fff';btn.style.borderColor='var(--accent)';btn.style.opacity='1';
+    btn.style.background='var(--green)';btn.style.color='#fff';btn.style.borderColor='var(--green)';btn.style.opacity='1';
   } else {
     btn.style.background='#fff';btn.style.color='#bbb';btn.style.borderColor='#ddd';btn.style.opacity='1';
   }
@@ -3094,13 +3133,14 @@ function confirmPayment(){
   // 決済完了後3分間、時間スロットハイライトを保持するためカートを保存
   lastPaidSessionItems = cart.filter(function(c){ return !c.paidLabel; });
   lastPaidTime = Date.now();
-  closePaymentModal();
   const methodLabel={cash:'現金',card:'クレジットカード',other:'電子決済'}[currentPayMethod]||currentPayMethod;
-  document.getElementById('done-amount').textContent='¥'+total.toLocaleString();
-  document.getElementById('done-method').textContent=methodLabel+(isPaid?' ／ 支払済み':'');
+  document.getElementById('inline-done-amount').textContent='¥'+total.toLocaleString();
+  document.getElementById('inline-done-method').textContent=methodLabel+(isPaid?' ／ 支払済み':'');
   removeActiveHold(); // 会計した保留をリストから除去して繰り上げ
-  document.getElementById('payment-done').classList.add('open');
-  startPaymentDoneTimer();
+  // 別ポップアップを出さず、同じ決済モーダル内で完了表示に切替
+  document.getElementById('pay-confirm-view').style.display='none';
+  document.getElementById('pay-inline-done').style.display='block';
+  startInlineDoneTimer();
 }
 
 function startPaymentDoneTimer(){
@@ -3418,6 +3458,30 @@ function renderStatsCards(filtered){
     (Object.keys(natMap2).length?card('🌏 国籍',Object.entries(natMap2).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[k,v+'件'])):'');
 }
 
+// 売上の空中ウォーク/ツリーハウス昼の商品から、決済時刻(datetime)を開始とした終了時刻を出す。
+// 55分/115分は決済時刻＋実所要時間、1DAYは施設の終了時刻(end)。混在時はコースごとに各行。
+function saleCourseEnds(r){
+  if(!r||!r.datetime||!r.items) return [];
+  var start=new Date(r.datetime); if(isNaN(start.getTime())) return [];
+  var pad=function(n){return (n<10?'0':'')+n;};
+  var startStr=pad(start.getHours())+':'+pad(start.getMinutes());
+  var addMin=function(m){var e=new Date(start.getTime()+m*60000);return pad(e.getHours())+':'+pad(e.getMinutes());};
+  var out=[],seen={};
+  r.items.forEach(function(i){
+    var nm=i.name||'';
+    var facId=/空中ウォーク/.test(nm)?'walk':/ツリーハウス昼/.test(nm)?'tree':'';
+    if(!facId) return;
+    var f=TIMER_FACS.find(function(x){return x.id===facId;}); if(!f) return;
+    var crs=/1DAY/i.test(nm)?f.courses.find(function(c){return c.min===0;})
+           :/115分/.test(nm)?f.courses.find(function(c){return c.min===115;})
+           :/55分/.test(nm)?f.courses.find(function(c){return c.min===55;}):null;
+    if(!crs) return;
+    var endStr=crs.min===0?crs.end:addMin(crs.actual);
+    var key=f.label+'|'+crs.label; if(seen[key]) return; seen[key]=true;
+    out.push(f.label+' '+crs.label+' '+startStr+'→'+endStr);
+  });
+  return out;
+}
 function renderSales(){
   const from=document.getElementById('filter-from').value;
   const to=document.getElementById('filter-to').value;
@@ -3518,6 +3582,7 @@ function renderSales(){
     tr.style.cursor='pointer';
     if(r.nextDay) tr.style.background='#fffbf0';
     const itemStr=r.items.map(i=>i.name+(i.qty>1?'×'+i.qty:'')).join('、');
+    const courseEnds=saleCourseEnds(r);
     const methodLabel={cash:'現金',card:'カード',other:'電子'}[r.method]||r.method;
     const discLabel=r.discount==='mura'?'村内半額':r.discount==='stay_guest'?'宿泊者':r.discount?r.discount:'';
     const attrParts=[];
@@ -3525,9 +3590,10 @@ function renderSales(){
     const attrStr=attrParts.join(' ');
     tr.innerHTML=
       '<td style="text-align:center;font-size:14px;cursor:pointer;" onclick="event.stopPropagation();quickToggleFlag(\''+r.id+'\',this)">'+(r.flagged?'🔴':'⚪')+'</td>'+
-      '<td style="white-space:nowrap;font-size:10px">'+(r.nextDay?'<span style="color:#7a5500;font-weight:700;">🌙</span> ':'')+dtToShort(r.datetime)+(r.device_name?'<div style="font-size:9px;color:var(--text2);margin-top:1px;">📱'+r.device_name+'</div>':'')+(r.syncStatus==='ok'?'<div style="font-size:9px;margin-top:2px;"><span style="background:#27ae60;color:#fff;padding:1px 6px;border-radius:8px;font-weight:600;">同期済</span></div>':r.syncStatus==='fail'?'<div style="font-size:9px;margin-top:2px;"><span style="background:#c0392b;color:#fff;padding:1px 6px;border-radius:8px;font-weight:600;">要再送</span><button onclick="event.stopPropagation();retrySyncSale(\''+r.id+'\')" style="font-size:9px;background:#c0392b;color:#fff;border:none;border-radius:4px;padding:1px 6px;cursor:pointer;font-family:inherit;margin-left:8px;">再送</button></div>':r.syncStatus==='pending'?'<div style="font-size:9px;color:#999;margin-top:2px;">送信中...</div>':'')+'</td>'+
+      '<td style="white-space:nowrap;font-size:10px">'+(r.nextDay?'<span style="color:#7a5500;font-weight:700;">🌙</span> ':'')+'<span style="font-size:14px;font-weight:700;color:#111;">'+dtToShort(r.datetime)+'</span>'+(r.device_name?'<div style="font-size:9px;color:var(--text2);margin-top:1px;">📱'+r.device_name+'</div>':'')+(r.syncStatus==='ok'?'<div style="font-size:9px;margin-top:2px;"><span style="background:#27ae60;color:#fff;padding:1px 6px;border-radius:8px;font-weight:600;">同期済</span></div>':r.syncStatus==='fail'?'<div style="font-size:9px;margin-top:2px;"><span style="background:#c0392b;color:#fff;padding:1px 6px;border-radius:8px;font-weight:600;">要再送</span><button onclick="event.stopPropagation();retrySyncSale(\''+r.id+'\')" style="font-size:9px;background:#c0392b;color:#fff;border:none;border-radius:4px;padding:1px 6px;cursor:pointer;font-family:inherit;margin-left:8px;">再送</button></div>':r.syncStatus==='pending'?'<div style="font-size:9px;color:#999;margin-top:2px;">送信中...</div>':'')+'</td>'+
       '<td style="font-size:10px;min-width:160px;max-width:220px;">'+
         '<div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+itemStr+'</div>'+
+        (courseEnds.length?'<div style="font-size:11px;color:#1a6fb0;font-weight:700;margin-top:1px;">⏱ '+courseEnds.join('<br>⏱ ')+'</div>':'')+
         (attrStr?'<div style="font-size:9px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+attrStr+'</div>':'')+
         ((r.memo&&r.memo.indexOf('伝票2枚だからレジ締め注意')===-1)?'<div style="font-size:9px;color:#7a5500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📝'+r.memo+'</div>':'')+
       '</td>'+
