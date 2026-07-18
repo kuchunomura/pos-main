@@ -985,8 +985,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 415;
-const APP_BUILD_DATE = '2026/07/18 22:30';
+const APP_VERSION = 416;
+const APP_BUILD_DATE = '2026/07/18 22:37';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -3474,7 +3474,7 @@ function saleCourseEnds(r){
     if(!crs) return;
     var endStr=crs.min===0?crs.end:addMin(crs.actual);
     var key=f.label+'|'+crs.label; if(seen[key]) return; seen[key]=true;
-    out.push(f.label+' '+crs.label+' '+startStr+'→'+endStr);
+    out.push(f.label+' '+crs.label+' <span style="font-size:14px">'+startStr+'→'+endStr+'</span>');
   });
   return out;
 }
@@ -3485,7 +3485,7 @@ function dtDateTimeHtml(datetime){
   var pad=function(n){return ('0'+n).slice(-2);};
   var date=pad(d.getMonth()+1)+'/'+pad(d.getDate());
   var time=pad(d.getHours())+':'+pad(d.getMinutes());
-  return '<span style="font-size:9px;color:#999;">'+date+'</span> <span style="font-size:15px;font-weight:700;color:#111;">'+time+'</span>';
+  return '<span style="font-size:9px;color:#999;">'+date+'</span> <span style="font-size:13px;font-weight:700;color:#111;">'+time+'</span>';
 }
 function renderSales(){
   const from=document.getElementById('filter-from').value;
