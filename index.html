@@ -985,8 +985,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 414;
-const APP_BUILD_DATE = '2026/07/18 22:18';
+const APP_VERSION = 415;
+const APP_BUILD_DATE = '2026/07/18 22:30';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2708,7 +2708,7 @@ function renderYoyakuPicker(data){
       bgTint='#fdf5ed'; // 宿泊は一律クリアな暖色（ピーチ・薄め）
     }
     var tag=o.source?('【'+o.source+'】'):((/年間パス/.test(o.memo||'')?'【年間パス】':'')+(o.mura?'【村内】':''));
-    var rentalLine=(o.rental&&o.rental.length)?'<div style="font-size:11px;color:#7a1030;margin-top:2px">レンタル: '+esc(o.rental.map(function(r){return r.name+'×'+(r.qty||1);}).join('、'))+'</div>':'';
+    var rentalLine=(o.rental&&o.rental.length)?'<div style="font-size:11px;color:#111;margin-top:2px">レンタル: '+esc(o.rental.map(function(r){return r.name+'×'+(r.qty||1);}).join('、'))+'</div>':'';
     var memoHtml='';
     if(o.memo){
       var full=posMemoRentalChecks(o.memo,o.rental);
@@ -2756,7 +2756,7 @@ function renderYoyakuPicker(data){
           '<div style="flex:1;font-size:14px;font-weight:700;color:#111">'+esc(o.name||'（無名）')+paidBadge+heldBadge+' <span style="font-size:11px;color:#999;font-weight:400">'+tag+'</span></div>'+
           copyBtn+
         '</div>'+
-        '<div style="font-size:12px;color:#111">'+esc(label)+'　'+esc(sub)+'</div>'+
+        '<div style="font-size:12px;color:#111;font-weight:700">'+esc(label)+'　'+esc(sub)+'</div>'+
         sgdNote+
         rentalLine+
         linkedHtml+
