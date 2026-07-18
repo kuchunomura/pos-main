@@ -841,7 +841,7 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 </div>
 
 <!-- 決済モーダル -->
-<div class="modal-overlay" id="payment-modal">
+<div class="modal-overlay" id="payment-modal" onclick="if(event.target===this &amp;&amp; document.getElementById('pay-inline-done').style.display!=='none') inlineNextCustomer();">
   <div class="modal" style="max-width:480px;">
     <div id="pay-confirm-view">
     <h3 id="payment-modal-title">決済確認</h3>
@@ -879,12 +879,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
     <div id="pay-inline-done" style="display:none;text-align:center;padding:8px 0;">
       <div style="font-size:46px;line-height:1;">✅</div>
       <div style="font-size:21px;font-weight:800;color:var(--green);margin-top:4px;">決済完了</div>
-      <div id="inline-done-amount" style="font-size:32px;font-weight:800;color:#111;margin:6px 0;"></div>
-      <div id="inline-done-method" style="font-size:13px;color:var(--text2);margin-bottom:16px;"></div>
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <button onclick="inlineNextCustomer()" style="padding:17px;border:none;border-radius:12px;background:var(--green);color:#fff;font-size:18px;font-weight:800;cursor:pointer;font-family:inherit;">✅ 次のお客様へ</button>
-        <button onclick="inlineFlagAndClose()" style="padding:14px;border:2px solid #e0b0b0;border-radius:12px;background:#fff;color:#c0392b;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">🔴 印をつけて閉じる</button>
-      </div>
+      <div id="inline-done-amount" style="font-size:32px;font-weight:800;color:#111;margin:6px 0 16px;"></div>
+      <button onclick="inlineFlagAndClose()" style="width:100%;padding:15px;border:2px solid #e0b0b0;border-radius:12px;background:#fff;color:#c0392b;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;">🔴 印をつけて閉じる</button>
       <div id="inline-done-countdown" style="margin-top:12px;font-size:13px;font-weight:600;color:#888;"></div>
     </div>
   </div>
@@ -989,8 +985,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 411;
-const APP_BUILD_DATE = '2026/07/18 21:37';
+const APP_VERSION = 412;
+const APP_BUILD_DATE = '2026/07/18 22:02';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2735,14 +2731,14 @@ function renderYoyakuPicker(data){
     if(inCart){
       copyBtn='<button disabled style="flex:0 0 auto;font-size:11px;font-weight:700;border-radius:6px;padding:4px 9px;background:#e6f5ea;color:#1a7a3a;border:1px solid #9ccfab">コピー✅</button>';
     } else if(!paidDone){
-      copyBtn='<button onclick="event.stopPropagation();copyReservationToCart(\''+x.type+'\',\''+idAttr+'\')" style="flex:0 0 auto;font-size:11px;font-weight:700;border-radius:6px;padding:4px 9px;background:#fff;color:#7a1030;border:1px solid #d0a0b0;cursor:pointer">カートへコピー</button>';
+      copyBtn='<button onclick="event.stopPropagation();copyReservationToCart(\''+x.type+'\',\''+idAttr+'\')" style="flex:0 0 auto;font-size:11px;font-weight:400;border-radius:6px;padding:4px 9px;background:#fff;color:#7a1030;border:1px solid #d0a0b0;cursor:pointer">カートへコピー</button>';
     } else if(_copyArmKey===_resKey){
       copyBtn='<button onclick="event.stopPropagation();copyReservationToCart(\''+x.type+'\',\''+idAttr+'\')" style="flex:0 0 auto;font-size:11px;font-weight:700;border-radius:6px;padding:4px 9px;background:#fff3e0;color:#c07000;border:1px solid #e0b070;cursor:pointer">もう1回タップで追加</button>';
     } else {
       copyBtn='<button onclick="event.stopPropagation();armCopyReservation(\''+x.type+'\',\''+idAttr+'\')" style="flex:0 0 auto;font-size:11px;font-weight:700;border-radius:6px;padding:4px 9px;background:#fff;color:#999;border:1px solid #ddd;cursor:pointer">カートへコピー（済）</button>';
     }
     // 宿泊者割引（500円引き）と紐づけ（📌）を表示
-    var sgdNote=(x.type==='day'&&posStayGuestDisc(o,data.stays))?'<div style="font-size:11px;color:#1a7a3a;font-weight:700;margin-top:2px">宿泊者割引 1人-500円</div>':'';
+    var sgdNote=(x.type==='day'&&posStayGuestDisc(o,data.stays))?'<div style="font-size:11px;color:#111;font-weight:700;margin-top:2px">宿泊者割引 1人-500円</div>':'';
     var linkedHtml=posLinkedHtml(x,data);
     // レジを通さず会計してしまった時用：2回タップで「会計済み」に（売上には計上しない目印だけ）
     var markBtn='';
@@ -3133,9 +3129,7 @@ function confirmPayment(){
   // 決済完了後3分間、時間スロットハイライトを保持するためカートを保存
   lastPaidSessionItems = cart.filter(function(c){ return !c.paidLabel; });
   lastPaidTime = Date.now();
-  const methodLabel={cash:'現金',card:'クレジットカード',other:'電子決済'}[currentPayMethod]||currentPayMethod;
   document.getElementById('inline-done-amount').textContent='¥'+total.toLocaleString();
-  document.getElementById('inline-done-method').textContent=methodLabel+(isPaid?' ／ 支払済み':'');
   removeActiveHold(); // 会計した保留をリストから除去して繰り上げ
   // 別ポップアップを出さず、同じ決済モーダル内で完了表示に切替
   document.getElementById('pay-confirm-view').style.display='none';
@@ -3482,6 +3476,15 @@ function saleCourseEnds(r){
   });
   return out;
 }
+// 売上履歴の日時：日付は小さく、時間は大きく表示
+function dtDateTimeHtml(datetime){
+  if(!datetime) return '';
+  var d=new Date(datetime); if(isNaN(d.getTime())) return dtToShort(datetime);
+  var pad=function(n){return ('0'+n).slice(-2);};
+  var date=pad(d.getMonth()+1)+'/'+pad(d.getDate());
+  var time=pad(d.getHours())+':'+pad(d.getMinutes());
+  return '<span style="font-size:9px;color:#999;">'+date+'</span> <span style="font-size:15px;font-weight:700;color:#111;">'+time+'</span>';
+}
 function renderSales(){
   const from=document.getElementById('filter-from').value;
   const to=document.getElementById('filter-to').value;
@@ -3590,10 +3593,10 @@ function renderSales(){
     const attrStr=attrParts.join(' ');
     tr.innerHTML=
       '<td style="text-align:center;font-size:14px;cursor:pointer;" onclick="event.stopPropagation();quickToggleFlag(\''+r.id+'\',this)">'+(r.flagged?'🔴':'⚪')+'</td>'+
-      '<td style="white-space:nowrap;font-size:10px">'+(r.nextDay?'<span style="color:#7a5500;font-weight:700;">🌙</span> ':'')+'<span style="font-size:14px;font-weight:700;color:#111;">'+dtToShort(r.datetime)+'</span>'+(r.device_name?'<div style="font-size:9px;color:var(--text2);margin-top:1px;">📱'+r.device_name+'</div>':'')+(r.syncStatus==='ok'?'<div style="font-size:9px;margin-top:2px;"><span style="background:#27ae60;color:#fff;padding:1px 6px;border-radius:8px;font-weight:600;">同期済</span></div>':r.syncStatus==='fail'?'<div style="font-size:9px;margin-top:2px;"><span style="background:#c0392b;color:#fff;padding:1px 6px;border-radius:8px;font-weight:600;">要再送</span><button onclick="event.stopPropagation();retrySyncSale(\''+r.id+'\')" style="font-size:9px;background:#c0392b;color:#fff;border:none;border-radius:4px;padding:1px 6px;cursor:pointer;font-family:inherit;margin-left:8px;">再送</button></div>':r.syncStatus==='pending'?'<div style="font-size:9px;color:#999;margin-top:2px;">送信中...</div>':'')+'</td>'+
+      '<td style="white-space:nowrap;font-size:10px">'+(r.nextDay?'<span style="color:#7a5500;font-weight:700;">🌙</span> ':'')+dtDateTimeHtml(r.datetime)+(r.device_name?'<div style="font-size:9px;color:var(--text2);margin-top:1px;">📱'+r.device_name+'</div>':'')+(r.syncStatus==='ok'?'<div style="font-size:9px;margin-top:2px;"><span style="background:#27ae60;color:#fff;padding:1px 6px;border-radius:8px;font-weight:600;">同期済</span></div>':r.syncStatus==='fail'?'<div style="font-size:9px;margin-top:2px;"><span style="background:#c0392b;color:#fff;padding:1px 6px;border-radius:8px;font-weight:600;">要再送</span><button onclick="event.stopPropagation();retrySyncSale(\''+r.id+'\')" style="font-size:9px;background:#c0392b;color:#fff;border:none;border-radius:4px;padding:1px 6px;cursor:pointer;font-family:inherit;margin-left:8px;">再送</button></div>':r.syncStatus==='pending'?'<div style="font-size:9px;color:#999;margin-top:2px;">送信中...</div>':'')+'</td>'+
       '<td style="font-size:10px;min-width:160px;max-width:220px;">'+
         '<div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+itemStr+'</div>'+
-        (courseEnds.length?'<div style="font-size:11px;color:#1a6fb0;font-weight:700;margin-top:1px;">⏱ '+courseEnds.join('<br>⏱ ')+'</div>':'')+
+        (courseEnds.length?'<div style="font-size:11px;color:#111;font-weight:700;margin-top:1px;">⏱ '+courseEnds.join('<br>⏱ ')+'</div>':'')+
         (attrStr?'<div style="font-size:9px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+attrStr+'</div>':'')+
         ((r.memo&&r.memo.indexOf('伝票2枚だからレジ締め注意')===-1)?'<div style="font-size:9px;color:#7a5500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📝'+r.memo+'</div>':'')+
       '</td>'+
