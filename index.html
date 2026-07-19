@@ -875,7 +875,7 @@ details.settings-section[open] > summary{margin-bottom:10px;}
       <button onclick="closePaymentModal()">キャンセル</button>
       <button id="payment-confirm-btn" class="confirm" onclick="confirmPayment()" style="padding:20px 28px;font-size:19px;font-weight:800;flex:2;">決済完了</button>
     </div>
-    <div style="text-align:right;margin-top:10px;font-size:15px;font-weight:400;color:#111;">押してから行け <span style="filter:grayscale(1) brightness(0);">💢</span></div>
+    <div style="text-align:right;margin-top:10px;font-size:15px;font-weight:400;color:#111;">押してから行け</div>
     </div>
     <div id="pay-inline-done" style="display:none;text-align:center;padding:8px 0;">
       <div style="font-size:46px;line-height:1;">✅</div>
@@ -986,8 +986,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 426;
-const APP_BUILD_DATE = '2026/07/19 22:50';
+const APP_VERSION = 427;
+const APP_BUILD_DATE = '2026/07/19 22:56';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2370,7 +2370,8 @@ function openCleanupGag(){
     var top=4+ (i*10)%84;              // レーン
     var dur=9;                         // 速度（そろえる）
     var delay=(i*1.5);                 // 記入順に流す（順番に登場）
-    var size=15+ (i%3)*4;              // 文字サイズ
+    var sizes=[24,18,18,18,18,14,18,18,14];  // 記入順の文字サイズ（シンク大・鹿の角/生コーン小）
+    var size=sizes[i]||18;
     var col=colors[i%colors.length];
     lanes+='<div class="nico-comment" style="top:'+top+'%;font-size:'+size+'px;color:'+col+';animation-duration:'+dur+'s;animation-delay:'+delay+'s;">'+
       esc(CLEANUP_MANNERS[i])+' <span style="font-size:0.75em;opacity:0.8;">¥0</span></div>';
