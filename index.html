@@ -986,8 +986,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 433;
-const APP_BUILD_DATE = '2026/07/19 23:23';
+const APP_VERSION = 434;
+const APP_BUILD_DATE = '2026/07/19 23:24';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2377,6 +2377,7 @@ function openCleanupGag(){
     if(mi===6) flow.push({t:'工具が増える', size:18, col:'#2980b9'});
     if(mi===8) flow.push({t:'片づけたのにまた出とる', size:18, col:'#d35400'});
     if(mi===7) flow.push({t:'ごみの村やないか', size:19, col:'#c0392b'});
+    if(mi===2) flow.push({t:'ハサミはどこいった', size:18, col:'#2c3e50'});
     if(mi===2||mi===5||mi===7) flow.push({t:'草', size:16, col:'#2e7d32'});
   }
   var burstSizes=[14,18,15,20,16,22,17,24];      // 最後の草連発
