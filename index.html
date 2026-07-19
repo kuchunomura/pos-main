@@ -986,8 +986,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 427;
-const APP_BUILD_DATE = '2026/07/19 22:56';
+const APP_VERSION = 428;
+const APP_BUILD_DATE = '2026/07/19 22:59';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2364,17 +2364,26 @@ function openCleanupGag(){
   // 背景は今のまま（カート面と同じ）・カートパネル内だけを覆う
   overlay.style.cssText='position:absolute;inset:0;z-index:50;background:var(--surface);display:flex;flex-direction:column;';
   // ニコ生流し場（明るい背景なので濃色文字）
-  var lanes='';
+  var mannerSizes=[24,18,18,18,18,14,18,18,14];  // 記入順の文字サイズ（シンク大・鹿の角/生コーン小）
   var colors=['#1a4a30','#2471a3','#b8860b','#c0392b','#6c5ce7','#0b6b5b'];
-  for(var i=0;i<CLEANUP_MANNERS.length;i++){
+  // 流す順番を組み立て（途中に草を3回、最後に草を連続で）
+  var flow=[];
+  for(var mi=0;mi<CLEANUP_MANNERS.length;mi++){
+    flow.push({t:CLEANUP_MANNERS[mi], yen:true, size:mannerSizes[mi]||18, col:colors[mi%colors.length]});
+    if(mi===2||mi===5||mi===7) flow.push({t:'草', size:16, col:'#2e7d32'});
+  }
+  var burstSizes=[14,18,15,20,16,22,17,24];      // 最後の草連発
+  for(var bk=0;bk<burstSizes.length;bk++){
+    flow.push({t:'草', burst:true, size:burstSizes[bk], col:'#2e7d32'});
+  }
+  var lanes='', tt=0;
+  for(var i=0;i<flow.length;i++){
+    var c=flow[i];
     var top=4+ (i*10)%84;              // レーン
-    var dur=9;                         // 速度（そろえる）
-    var delay=(i*1.5);                 // 記入順に流す（順番に登場）
-    var sizes=[24,18,18,18,18,14,18,18,14];  // 記入順の文字サイズ（シンク大・鹿の角/生コーン小）
-    var size=sizes[i]||18;
-    var col=colors[i%colors.length];
-    lanes+='<div class="nico-comment" style="top:'+top+'%;font-size:'+size+'px;color:'+col+';animation-duration:'+dur+'s;animation-delay:'+delay+'s;">'+
-      esc(CLEANUP_MANNERS[i])+' <span style="font-size:0.75em;opacity:0.8;">¥0</span></div>';
+    c.delay=tt;
+    tt+= c.burst?0.35:1.5;             // 通常は1.5s間隔・草連発は0.35s間隔
+    var inner=esc(c.t)+(c.yen?' <span style="font-size:0.75em;opacity:0.8;">¥0</span>':'');
+    lanes+='<div class="nico-comment" style="top:'+top+'%;font-size:'+c.size+'px;color:'+c.col+';animation-duration:9s;animation-delay:'+c.delay+'s;">'+inner+'</div>';
   }
   overlay.innerHTML=
     '<div style="flex:0 0 auto;padding:16px 14px 8px;text-align:center;">'+
