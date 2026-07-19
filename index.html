@@ -986,8 +986,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 423;
-const APP_BUILD_DATE = '2026/07/19 22:21';
+const APP_VERSION = 424;
+const APP_BUILD_DATE = '2026/07/19 22:28';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1654,7 +1654,7 @@ function renderPOS(){
       header.className='cat-header';
       const catTimeInfo=getCatTimeInfo(cat.id);
       const catTimeSlots=getCatTimeSlots(cat.id);
-      header.innerHTML=cleanupBtnHtml(cat)+'<span class="cat-drag-handle">⠿⠿</span><span class="cat-header-title" style="color:'+cat.text+'">'+cat.name+'</span>'+
+      header.innerHTML='<span class="cat-drag-handle">⠿⠿</span><span class="cat-header-title" style="color:'+cat.text+'">'+cat.name+'</span>'+
         (catTimeInfo?'<span style="font-size:13px;color:#555;margin-left:3em;font-weight:500;">'+catTimeInfo+'</span>':'')+
         catTimeSlots;
       header.style.borderBottomColor=cat.border;
@@ -1662,6 +1662,7 @@ function renderPOS(){
       catItems.forEach(item=>{
         grid.appendChild(makeItemBtn(item, cat, grid));
       });
+      appendCleanupTile(grid, cat);
       if(editMode){
         const addBtn=document.createElement('button');addBtn.className='add-item-btn';
         addBtn.innerHTML='<span style="font-size:18px">＋</span><span>追加</span>';
@@ -1712,10 +1713,11 @@ function renderPOS(){
       header.className='cat-header';
       const cti=getCatTimeInfo(cat.id);
       const cts=getCatTimeSlots(cat.id);
-      header.innerHTML=cleanupBtnHtml(cat)+'<span class="cat-header-title" style="color:'+cat.text+'">'+cat.name+'</span>'+(cti?'<span style="font-size:11px;color:#555;margin-left:3em;font-weight:500;">'+cti+'</span>':'')+cts;
+      header.innerHTML='<span class="cat-header-title" style="color:'+cat.text+'">'+cat.name+'</span>'+(cti?'<span style="font-size:11px;color:#555;margin-left:3em;font-weight:500;">'+cti+'</span>':'')+cts;
       header.style.borderBottomColor=cat.border;
       const grid=document.createElement('div');grid.className='cat-items';
       catItems.forEach(item=>{ grid.appendChild(makeItemBtn(item,cat,grid)); });
+      appendCleanupTile(grid, cat);
       section.appendChild(header);section.appendChild(grid);
       if(isGroupLeader(cat.id)){
         const grp=getCatGroup(cat.id);
@@ -2332,9 +2334,15 @@ function closeCheckoutSummary(){
 }
 
 /* ===== お片付け会計（ニコ生風の遊びボタン） ===== */
-function cleanupBtnHtml(cat){
-  if(editMode || !cat || cat.id!=='cat_tree_day') return '';
-  return '<button onclick="event.stopPropagation();openCleanupGag()" style="margin-right:8px;padding:2px 8px;border:1px solid #d8e8dd;border-radius:8px;background:#fafffb;color:#9db8a6;font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;opacity:0.55;vertical-align:middle;">使ったものは全て片付ける</button>';
+// ツリーハウス昼「1DAY」タイルの右隣に、背景そのまま（透明）で馴染ませて置く
+function appendCleanupTile(grid, cat){
+  if(editMode || !cat || cat.id!=='cat_tree_day' || !grid) return;
+  var b=document.createElement('button');
+  b.type='button';
+  b.textContent='使ったものは全て片付ける';
+  b.style.cssText='border:1px dashed #cfe0d5;border-radius:10px;background:transparent;color:#a8bdb0;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;padding:8px 6px;opacity:0.6;line-height:1.3;';
+  b.onclick=function(){openCleanupGag();};
+  grid.appendChild(b);
 }
 var CLEANUP_MANNERS=[
   'シンクに物置かない','その後ろもや','休憩室の机もや','大きいPCの左もや',
