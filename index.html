@@ -875,7 +875,7 @@ details.settings-section[open] > summary{margin-bottom:10px;}
       <button onclick="closePaymentModal()">キャンセル</button>
       <button id="payment-confirm-btn" class="confirm" onclick="confirmPayment()" style="padding:20px 28px;font-size:19px;font-weight:800;flex:2;">決済完了</button>
     </div>
-    <div style="text-align:center;margin-top:10px;font-size:15px;font-weight:800;color:#111;">押してから行け <span style="filter:grayscale(1) brightness(0);">💢</span></div>
+    <div style="text-align:right;margin-top:10px;font-size:15px;font-weight:400;color:#111;">押してから行け <span style="filter:grayscale(1) brightness(0);">💢</span></div>
     </div>
     <div id="pay-inline-done" style="display:none;text-align:center;padding:8px 0;">
       <div style="font-size:46px;line-height:1;">✅</div>
@@ -986,8 +986,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 421;
-const APP_BUILD_DATE = '2026/07/19 15:30';
+const APP_VERSION = 422;
+const APP_BUILD_DATE = '2026/07/19 22:16';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1654,7 +1654,7 @@ function renderPOS(){
       header.className='cat-header';
       const catTimeInfo=getCatTimeInfo(cat.id);
       const catTimeSlots=getCatTimeSlots(cat.id);
-      header.innerHTML='<span class="cat-drag-handle">⠿⠿</span><span class="cat-header-title" style="color:'+cat.text+'">'+cat.name+'</span>'+
+      header.innerHTML=cleanupBtnHtml(cat)+'<span class="cat-drag-handle">⠿⠿</span><span class="cat-header-title" style="color:'+cat.text+'">'+cat.name+'</span>'+
         (catTimeInfo?'<span style="font-size:13px;color:#555;margin-left:3em;font-weight:500;">'+catTimeInfo+'</span>':'')+
         catTimeSlots;
       header.style.borderBottomColor=cat.border;
@@ -1712,7 +1712,7 @@ function renderPOS(){
       header.className='cat-header';
       const cti=getCatTimeInfo(cat.id);
       const cts=getCatTimeSlots(cat.id);
-      header.innerHTML='<span class="cat-header-title" style="color:'+cat.text+'">'+cat.name+'</span>'+(cti?'<span style="font-size:11px;color:#555;margin-left:3em;font-weight:500;">'+cti+'</span>':'')+cts;
+      header.innerHTML=cleanupBtnHtml(cat)+'<span class="cat-header-title" style="color:'+cat.text+'">'+cat.name+'</span>'+(cti?'<span style="font-size:11px;color:#555;margin-left:3em;font-weight:500;">'+cti+'</span>':'')+cts;
       header.style.borderBottomColor=cat.border;
       const grid=document.createElement('div');grid.className='cat-items';
       catItems.forEach(item=>{ grid.appendChild(makeItemBtn(item,cat,grid)); });
@@ -2317,18 +2317,87 @@ function openCheckoutSummary(){
     '<div style="font-size:13px;color:var(--text2);margin-bottom:4px;">合計</div>'+
     '<div style="font-size:36px;font-weight:700;color:var(--accent2);">¥'+total.toLocaleString()+'</div>'+
     '</div>'+
+    '<div style="font-size:11px;color:#111;text-align:center;margin-bottom:10px;line-height:1.5;">※クレジットは物理カードのみ（タッチ不可）　※PayPay不可<br><span style="font-size:11px;color:#333;">*Credit card: physical card only (contactless/tap not accepted).</span></div>'+
     '<div style="display:flex;gap:8px;">'+
     '<button onclick="closeCheckoutSummary();openPayment(\'cash\')" style="flex:1;padding:11px 4px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">💴 現金</button>'+
     '<button onclick="closeCheckoutSummary();openPayment(\'card\')" style="flex:1;padding:11px 4px;background:#2471a3;color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">💳 カード</button>'+
     '<button onclick="closeCheckoutSummary();openPayment(\'other\')" style="flex:1;padding:11px 2px;background:#6c5ce7;color:#fff;border:none;border-radius:10px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;">📱 iD/QP/交通系</button>'+
     '</div>'+
-    '<div style="font-size:11px;color:#111;text-align:center;margin-top:10px;line-height:1.5;">※クレジットは物理カードのみ（タッチ不可）　※PayPay不可<br><span style="font-size:10px;color:#333;">*Credit card: physical card only (contactless/tap not accepted).</span></div>'+
     '</div>';
   document.body.appendChild(overlay);
 }
 function closeCheckoutSummary(){
   var el=document.getElementById('checkout-summary-overlay');
   if(el) el.remove();
+}
+
+/* ===== お片付け会計（ニコ生風の遊びボタン） ===== */
+function cleanupBtnHtml(cat){
+  if(editMode || !cat || cat.id!=='cat_tree_day') return '';
+  return '<button onclick="event.stopPropagation();openCleanupGag()" style="margin-right:8px;padding:2px 8px;border:1px solid #d8e8dd;border-radius:8px;background:#fafffb;color:#9db8a6;font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;opacity:0.55;vertical-align:middle;">使ったものは全て片付ける</button>';
+}
+var CLEANUP_MANNERS=[
+  'シンクに物置かない','その後ろもや','休憩室の机もや','大きいPCの左もや',
+  '虫を置かない','鹿の角も置かない','変なもの置かない','生のコーンは食べない'
+];
+function openCleanupGag(){
+  closeCleanupGag();
+  if(!document.getElementById('cleanup-gag-style')){
+    var st=document.createElement('style');st.id='cleanup-gag-style';
+    st.textContent='@keyframes nicoFlow{from{transform:translateX(100vw);}to{transform:translateX(-120%);}}'+
+      '.nico-comment{position:absolute;white-space:nowrap;font-weight:800;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.6);animation:nicoFlow linear infinite;will-change:transform;}';
+    document.head.appendChild(st);
+  }
+  var overlay=document.createElement('div');
+  overlay.id='cleanup-gag-overlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9995;background:#0b1a12;display:flex;flex-direction:column;';
+  overlay.onclick=function(e){if(e.target===overlay)closeCleanupGag();};
+  // ニコ生流し場
+  var lanes='';
+  var colors=['#fff','#ffe680','#a0e8ff','#ffd0e8','#c8ffb0','#fff'];
+  for(var i=0;i<CLEANUP_MANNERS.length;i++){
+    var top=6+ (i*11)%80;              // レーン
+    var dur=8+ (i%5)*2;                // 速度
+    var delay=(i*1.6);                 // 開始ずらし
+    var size=20+ (i%3)*6;              // 文字サイズ
+    var col=colors[i%colors.length];
+    lanes+='<div class="nico-comment" style="top:'+top+'%;font-size:'+size+'px;color:'+col+';animation-duration:'+dur+'s;animation-delay:-'+delay+'s;">'+
+      esc(CLEANUP_MANNERS[i])+' <span style="font-size:0.75em;opacity:0.85;">¥0</span></div>';
+  }
+  overlay.innerHTML=
+    '<div style="flex:0 0 auto;padding:16px 18px 8px;color:#eafff0;">'+
+      '<div style="font-size:16px;font-weight:800;">🧹 お片付け会計</div>'+
+      '<div style="font-size:12px;color:#9db8a6;margin-top:2px;">使ったものは全て片付ける</div>'+
+    '</div>'+
+    '<div style="position:relative;flex:1 1 auto;overflow:hidden;">'+lanes+'</div>'+
+    '<div style="flex:0 0 auto;padding:14px 18px 22px;background:rgba(0,0,0,0.35);">'+
+      '<div style="text-align:center;color:#eafff0;margin-bottom:12px;">'+
+        '<div style="font-size:13px;color:#9db8a6;">合計</div>'+
+        '<div style="font-size:30px;font-weight:800;">¥他者への気遣い</div>'+
+      '</div>'+
+      '<button onclick="cleanupPriceless()" style="width:100%;padding:16px;background:#2471a3;color:#fff;border:none;border-radius:12px;font-size:18px;font-weight:800;cursor:pointer;font-family:inherit;">💳 カード</button>'+
+      '<div style="text-align:center;margin-top:10px;"><button onclick="closeCleanupGag()" style="background:none;border:none;color:#9db8a6;font-size:13px;cursor:pointer;font-family:inherit;text-decoration:underline;">閉じる</button></div>'+
+    '</div>';
+  document.body.appendChild(overlay);
+}
+function closeCleanupGag(){
+  var el=document.getElementById('cleanup-gag-overlay'); if(el) el.remove();
+  var pl=document.getElementById('cleanup-priceless'); if(pl) pl.remove();
+}
+function cleanupPriceless(){
+  var pl=document.getElementById('cleanup-priceless');
+  if(pl) pl.remove();
+  pl=document.createElement('div');
+  pl.id='cleanup-priceless';
+  pl.style.cssText='position:fixed;inset:0;z-index:9997;background:rgba(0,0,0,0.82);display:flex;align-items:center;justify-content:center;padding:24px;';
+  pl.onclick=function(){closeCleanupGag();};
+  pl.innerHTML='<div style="text-align:center;color:#fff;">'+
+    '<div style="font-size:15px;letter-spacing:0.15em;color:#cfe;margin-bottom:14px;">きれいに片付いた景色</div>'+
+    '<div style="font-size:44px;font-weight:900;letter-spacing:0.05em;">プライスレス</div>'+
+    '<div style="font-size:13px;color:#9db8a6;margin-top:6px;">Priceless</div>'+
+    '<div style="font-size:12px;color:#7f9c88;margin-top:28px;">タップで閉じる</div>'+
+    '</div>';
+  document.body.appendChild(pl);
 }
 
 function chgQty(idx,d){cart[idx].qty=Math.max(1,cart[idx].qty+d);renderCart();}
