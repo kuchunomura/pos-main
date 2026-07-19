@@ -261,12 +261,12 @@ details.settings-section[open] > summary{margin-bottom:10px;}
         <div class="total-row" style="position:relative;">
           <span class="total-label">合計</span>
           <span class="total-amount" id="total-amount">¥0</span>
-          <button onclick="openCheckoutSummary()" id="checkout-btn"
-            style="position:absolute;top:-2px;right:0;background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:none;">決済へ</button>
         </div>
         <div id="point-btn-row" style="display:flex;justify-content:flex-end;padding:0 0 6px;">
           <button id="point-btn" onclick="openPointModal()" style="width:calc((100% - 12px)/3);box-sizing:border-box;padding:10px 4px;background:#fff;border:1px solid #b8860b;color:#b8860b;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">🎫 ポイント決済</button>
         </div>
+        <button onclick="openCheckoutSummary()" id="checkout-btn"
+          style="display:none;width:100%;box-sizing:border-box;margin:0 0 8px;padding:14px;background:#fff;border:2px solid var(--accent2);color:var(--accent2);border-radius:10px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;">決済へ</button>
         <div class="pay-btns" id="pay-btns-normal">
           <button class="pay-cash-btn" onclick="openPayment('cash')">💴 現金</button>
           <button class="pay-card-btn" style="flex:1;padding:16px 6px;" onclick="openPayment('card')">💳 カード</button>
@@ -875,6 +875,7 @@ details.settings-section[open] > summary{margin-bottom:10px;}
       <button onclick="closePaymentModal()">キャンセル</button>
       <button id="payment-confirm-btn" class="confirm" onclick="confirmPayment()" style="padding:20px 28px;font-size:19px;font-weight:800;flex:2;">決済完了</button>
     </div>
+    <div style="text-align:center;margin-top:10px;font-size:15px;font-weight:800;color:#111;">💢 押してから行け 💢</div>
     </div>
     <div id="pay-inline-done" style="display:none;text-align:center;padding:8px 0;">
       <div style="font-size:46px;line-height:1;">✅</div>
@@ -985,8 +986,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 419;
-const APP_BUILD_DATE = '2026/07/19 14:55';
+const APP_VERSION = 420;
+const APP_BUILD_DATE = '2026/07/19 15:20';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2321,7 +2322,7 @@ function openCheckoutSummary(){
     '<button onclick="closeCheckoutSummary();openPayment(\'card\')" style="flex:1;padding:11px 4px;background:#2471a3;color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">💳 カード</button>'+
     '<button onclick="closeCheckoutSummary();openPayment(\'other\')" style="flex:1;padding:11px 2px;background:#6c5ce7;color:#fff;border:none;border-radius:10px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;">📱 iD/QP/交通系</button>'+
     '</div>'+
-    '<div style="font-size:10px;color:#999;text-align:center;margin-top:10px;">※クレジットは物理カードのみ（タッチ不可）　※PayPay不可</div>'+
+    '<div style="font-size:11px;color:#111;text-align:center;margin-top:10px;line-height:1.5;">※クレジットは物理カードのみ（タッチ不可）　※PayPay不可<br><span style="font-size:10px;color:#333;">*Credit card: physical card only (contactless/tap not accepted). *PayPay not available.</span></div>'+
     '</div>';
   document.body.appendChild(overlay);
 }
