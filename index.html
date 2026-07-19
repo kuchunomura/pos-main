@@ -985,8 +985,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 418;
-const APP_BUILD_DATE = '2026/07/19 14:47';
+const APP_VERSION = 419;
+const APP_BUILD_DATE = '2026/07/19 14:55';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1151,7 +1151,6 @@ const DEFAULT_ITEMS = [
   {id:'i_1777769842699', name:'まな板',     price:1500, cat:'cat_goods',    stock:0, free_mura:false},
   {id:'i_hinoki_mimi', name:'ひのき耳つき板', price:3000, cat:'cat_goods', stock:0, free_mura:false, variants:[{label:'大',price:3000},{label:'中',price:2000},{label:'小',price:1000}]},
   {id:'i_azuma_ita_s', name:'東さんまな板（小）', price:1000, cat:'cat_goods', stock:0, free_mura:false},
-  {id:'i_chakka_g', name:'着火セット',       price:300,  cat:'cat_goods',    stock:0, free_mura:false},
   {id:'i_u01', name:'コーヒー',             price:100,  cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_u02', name:'ひのき着火剤',         price:100,  cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_u03', name:'水 2L',                price:200,  cat:'cat_unmanned', stock:0, free_mura:false},
@@ -1164,7 +1163,6 @@ const DEFAULT_ITEMS = [
   {id:'i_u10', name:'スウェーデントーチ',   price:1000, cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_u11', name:'着火剤セット',         price:300,  cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_u12', name:'ドリンク2杯目',        price:200,  cat:'cat_unmanned', stock:0, free_mura:false},
-  {id:'i_chakka_u', name:'着火セット',       price:300,  cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_kinbako', name:'料金箱回収',          price:0,    cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_s01', name:'マッチ',               price:100,  cat:'cat_shoumouhin',stock:0, free_mura:false},
   {id:'i_s02', name:'歯ブラシ',             price:200,  cat:'cat_shoumouhin',stock:0, free_mura:false},
@@ -1269,18 +1267,16 @@ let items = ld(KEYS.items) || DEFAULT_ITEMS;
     localStorage.setItem(FLAG,'1');
   }
 })();
-// 商品追加/削除マイグレーション（2026/07/19）：グッズに「東さんまな板（小）1000円」「着火セット300円」、無人販売に「着火セット300円」を追加。玩具使い放題を削除。
+// 商品追加/削除マイグレーション（2026/07/19b）：グッズに「東さんまな板（小）1000円」を追加。玩具使い放題・着火セット（前回追加分）を削除。
 (function(){
-  var FLAG='pos_items_20260719';
+  var FLAG='pos_items_20260719b';
   if(localStorage.getItem(FLAG)) return;
-  [{id:'i_azuma_ita_s',name:'東さんまな板（小）',price:1000,cat:'cat_goods',stock:0,free_mura:false},
-   {id:'i_chakka_g',name:'着火セット',price:300,cat:'cat_goods',stock:0,free_mura:false},
-   {id:'i_chakka_u',name:'着火セット',price:300,cat:'cat_unmanned',stock:0,free_mura:false}
-  ].forEach(function(it){ if(!items.find(function(x){return x.id===it.id;})) items.push(it); });
-  items=items.filter(function(x){return x.id!=='i_b_toy';}); // 玩具使い放題を削除
+  if(!items.find(function(x){return x.id==='i_azuma_ita_s';})) items.push({id:'i_azuma_ita_s',name:'東さんまな板（小）',price:1000,cat:'cat_goods',stock:0,free_mura:false});
+  var del={i_b_toy:1,i_chakka_g:1,i_chakka_u:1}; // 玩具使い放題・着火セット(グッズ/無人販売)を削除
+  items=items.filter(function(x){return !del[x.id];});
   sv(KEYS.items,items);
   var _io=ld(KEYS.itemOrder);
-  if(_io){ var ti=_io.indexOf('i_b_toy'); if(ti>=0){ _io.splice(ti,1); sv(KEYS.itemOrder,_io); } }
+  if(_io){ var _io2=_io.filter(function(id){return !del[id];}); if(_io2.length!==_io.length) sv(KEYS.itemOrder,_io2); }
   localStorage.setItem(FLAG,'1');
 })();
 let sales = ld(KEYS.sales) || [];
