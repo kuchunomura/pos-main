@@ -986,8 +986,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 446;
-const APP_BUILD_DATE = '2026/07/20 07:56';
+const APP_VERSION = 447;
+const APP_BUILD_DATE = '2026/07/20 08:03';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2336,7 +2336,6 @@ function closeCheckoutSummary(){
 /* ===== お片付け会計（ニコ生風の遊びボタン） ===== */
 // ツリーハウス昼「1DAY」タイルの右隣に、背景そのまま（透明）で馴染ませて置く
 function appendCleanupTile(grid, cat){
-  return; // mainでは一旦ボタン非表示（testのみ有効）
   if(editMode || !cat || cat.id!=='cat_tree_day' || !grid) return;
   var b=document.createElement('button');
   b.type='button';
