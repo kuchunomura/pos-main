@@ -986,8 +986,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 438;
-const APP_BUILD_DATE = '2026/07/19 23:52';
+const APP_VERSION = 439;
+const APP_BUILD_DATE = '2026/07/20 00:03';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2346,7 +2346,7 @@ function appendCleanupTile(grid, cat){
 }
 var CLEANUP_MANNERS=[
   'シンクに物置かない','その後ろもや','休憩室の机もや','大きいPCの左もや',
-  '虫を置かない','鹿の角も置かない','変なもの置かない','カミキリムシを置かない','生のコーンはかたい'
+  '虫を置かない','鹿の角も置かない','変なもの置かない','カミキリムシを置かない'
 ];
 function openCleanupGag(){
   closeCleanupGag();
@@ -2375,7 +2375,7 @@ function openCleanupGag(){
     if(mi===0) flow.push({t:'なんも洗えへん', size:18, col:'#e67e22'});
     if(mi===4) flow.push({t:'何の部品や', size:18, col:'#16a085'});
     if(mi===6) flow.push({t:'工具が増える', size:18, col:'#2980b9'});
-    if(mi===8) flow.push({t:'片づけたのにまた出とる', size:18, col:'#d35400'});
+    if(mi===7) flow.push({t:'片づけたのにまた出とる', size:18, col:'#d35400'});
     if(mi===7) flow.push({t:'ごみの村やないか', size:19, col:'#c0392b'});
     if(mi===2) flow.push({t:'ハサミはどこいった', size:18, col:'#2c3e50'});
     if(mi===2||mi===5||mi===7) flow.push({t:'草', size:16, col:'#2e7d32'});
@@ -2385,12 +2385,16 @@ function openCleanupGag(){
     flow.push({t:'草', burst:true, size:burstSizes[bk], col:'#2e7d32'});
     // 草連発の中盤で：草生える×2 → いや苔や → 苔生えとる
     if(bk===3){
+      flow.push({t:'草', burst:true, size:16, col:'#2e7d32'});
+      flow.push({t:'草', burst:true, size:20, col:'#2e7d32'});
+      flow.push({t:'草', burst:true, size:14, col:'#2e7d32'});
       flow.push({t:'草生える', burst:true, size:18, col:'#2e7d32'});
       flow.push({t:'草生える', burst:true, size:18, col:'#2e7d32'});
       flow.push({t:'いや苔や', burst:true, size:18, col:'#16a085'});
       flow.push({t:'苔生えとる', burst:true, size:18, col:'#16a085'});
     }
   }
+  flow.push({t:'徹夜で作ってて草', size:22, col:'#2e7d32'});   // 最後に
   var lanes='', tt=0;
   for(var i=0;i<flow.length;i++){
     var c=flow[i];
