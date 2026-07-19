@@ -986,8 +986,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 444;
-const APP_BUILD_DATE = '2026/07/20 00:42';
+const APP_VERSION = 445;
+const APP_BUILD_DATE = '2026/07/20 07:53';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2400,16 +2400,19 @@ function cleanupSpawnBatch(area){
     if(mi===3) readable.push({t:'手袋だらけや', size:18, col:'#8e44ad'});
     if(mi===0) readable.push({t:'なんも洗えへん', size:18, col:'#e67e22'});
     if(mi===6) readable.push({t:'何の部品や', size:18, col:'#16a085'});
-    if(mi===6) readable.push({t:'工具が増える', size:18, col:'#2980b9'});
+    if(mi===6) readable.push({t:'工具が増えていく', size:18, col:'#2980b9'});
+    if(mi===6) readable.push({t:'また増えた', size:18, col:'#2980b9'});
     if(mi===7) readable.push({t:'片づけたのにまた出とる', size:18, col:'#d35400'});
     if(mi===7) readable.push({t:'ごみの村やないか', size:19, col:'#c0392b'});
+    if(mi===7) readable.push({t:'空中のごみ屋敷', size:19, col:'#c0392b'});
     if(mi===2) readable.push({t:'ハサミはどこいった', size:18, col:'#2c3e50'});
+    if(mi===4) readable.push({t:'電卓どこいった', yen:true, size:18, col:'#2c3e50'});
   }
-  // 落ち：草の洪水の“上”に出る
+  // 落ち：草の洪水の“上”に出る（いや苔や=真ん中・苔生えとる=そのちょい下）
   readable.push({t:'草生える', size:20, col:'#2e7d32'});
-  readable.push({t:'草生える', size:22, col:'#2e7d32'});
-  readable.push({t:'いや苔や', size:18, col:'#16a085'});
-  readable.push({t:'苔生えとる', size:20, col:'#16a085'});
+  readable.push({t:'草生えとる', size:20, col:'#2e7d32'});
+  readable.push({t:'いや苔や', size:20, col:'#16a085', top:46});
+  readable.push({t:'苔生えとる', size:20, col:'#16a085', top:56});
   readable.push({t:'徹夜で作ってて草', size:22, col:'#2e7d32', top:93});
   var LANES=[7,20,33,46,59,72,85];
   var tt=0, li=0, maxD=0;
@@ -2427,14 +2430,14 @@ function cleanupSpawnBatch(area){
   }
   // 読み物は後にappend＝常に草の上（＋強い白フチ）で読める
   for(var r2=0;r2<readable.length;r2++){ cleanupMakeNode(area, readable[r2]); }
-  return Math.ceil((maxD+9+1)*1000);
+  return Math.ceil((readEnd+2)*1000);   // 前の巡が流れ切る前に再投入＝途切れない
 }
 function cleanupMakeNode(area, c){
   var el=document.createElement('div');
   el.className='nico-comment';
   var css='top:'+c.top+'%;font-size:'+c.size+'px;animation-duration:'+(c.dur||9)+'s;animation-delay:'+c.delay.toFixed(2)+'s;';
   if(c.chaos){ css+='color:#2e7d32;opacity:'+c.op.toFixed(2)+';z-index:1;'; el.textContent='草'; }
-  else { css+='color:'+c.col+';z-index:3;'; el.innerHTML=esc(c.t)+(c.yen?' <span style="font-size:0.75em;opacity:0.8;">¥0</span>':''); }
+  else { css+='color:'+c.col+';z-index:3;'; el.textContent=c.t+(c.yen?'。。':''); }
   el.style.cssText=css;
   el.addEventListener('animationend', function(){ if(el.parentNode) el.parentNode.removeChild(el); });
   area.appendChild(el);
