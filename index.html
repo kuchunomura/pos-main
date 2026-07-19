@@ -986,8 +986,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 424;
-const APP_BUILD_DATE = '2026/07/19 22:28';
+const APP_VERSION = 425;
+const APP_BUILD_DATE = '2026/07/19 22:41';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2340,7 +2340,7 @@ function appendCleanupTile(grid, cat){
   var b=document.createElement('button');
   b.type='button';
   b.textContent='使ったものは全て片付ける';
-  b.style.cssText='border:1px dashed #cfe0d5;border-radius:10px;background:transparent;color:#a8bdb0;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;padding:8px 6px;opacity:0.6;line-height:1.3;';
+  b.style.cssText='border:1px dashed #8fae9c;border-radius:10px;background:transparent;color:#5f7d6c;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;padding:8px 6px;line-height:1.3;';
   b.onclick=function(){openCleanupGag();};
   grid.appendChild(b);
 }
@@ -2350,62 +2350,68 @@ var CLEANUP_MANNERS=[
 ];
 function openCleanupGag(){
   closeCleanupGag();
+  var host=document.querySelector('.pos-right');
+  if(!host) return;
+  host.style.position='relative';
   if(!document.getElementById('cleanup-gag-style')){
     var st=document.createElement('style');st.id='cleanup-gag-style';
-    st.textContent='@keyframes nicoFlow{from{transform:translateX(100vw);}to{transform:translateX(-120%);}}'+
-      '.nico-comment{position:absolute;white-space:nowrap;font-weight:800;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.6);animation:nicoFlow linear infinite;will-change:transform;}';
+    st.textContent='@keyframes nicoFlow{from{transform:translateX(0);}to{transform:translateX(-100vw);}}'+
+      '.nico-comment{position:absolute;left:100%;white-space:nowrap;font-weight:800;text-shadow:0 1px 2px rgba(255,255,255,0.7);animation:nicoFlow linear infinite;will-change:transform;}';
     document.head.appendChild(st);
   }
   var overlay=document.createElement('div');
   overlay.id='cleanup-gag-overlay';
-  overlay.style.cssText='position:fixed;inset:0;z-index:9995;background:#0b1a12;display:flex;flex-direction:column;';
-  overlay.onclick=function(e){if(e.target===overlay)closeCleanupGag();};
-  // ニコ生流し場
+  // 背景は今のまま（カート面と同じ）・カートパネル内だけを覆う
+  overlay.style.cssText='position:absolute;inset:0;z-index:50;background:var(--surface);display:flex;flex-direction:column;';
+  // ニコ生流し場（明るい背景なので濃色文字）
   var lanes='';
-  var colors=['#fff','#ffe680','#a0e8ff','#ffd0e8','#c8ffb0','#fff'];
+  var colors=['#1a4a30','#2471a3','#b8860b','#c0392b','#6c5ce7','#0b6b5b'];
   for(var i=0;i<CLEANUP_MANNERS.length;i++){
-    var top=6+ (i*11)%80;              // レーン
-    var dur=8+ (i%5)*2;                // 速度
-    var delay=(i*1.6);                 // 開始ずらし
-    var size=20+ (i%3)*6;              // 文字サイズ
+    var top=4+ (i*10)%84;              // レーン
+    var dur=7+ (i%5)*2;                // 速度
+    var delay=(i*1.3);                 // 開始ずらし
+    var size=15+ (i%3)*4;              // 文字サイズ
     var col=colors[i%colors.length];
     lanes+='<div class="nico-comment" style="top:'+top+'%;font-size:'+size+'px;color:'+col+';animation-duration:'+dur+'s;animation-delay:-'+delay+'s;">'+
-      esc(CLEANUP_MANNERS[i])+' <span style="font-size:0.75em;opacity:0.85;">¥0</span></div>';
+      esc(CLEANUP_MANNERS[i])+' <span style="font-size:0.75em;opacity:0.8;">¥0</span></div>';
   }
   overlay.innerHTML=
-    '<div style="flex:0 0 auto;padding:16px 18px 8px;color:#eafff0;">'+
-      '<div style="font-size:16px;font-weight:800;">🧹 お片付け会計</div>'+
-      '<div style="font-size:12px;color:#9db8a6;margin-top:2px;">使ったものは全て片付ける</div>'+
+    '<div style="flex:0 0 auto;padding:12px 14px 6px;">'+
+      '<div style="font-size:15px;font-weight:800;color:var(--accent);">🧹 お片付け会計</div>'+
+      '<div style="font-size:11px;color:var(--text2);margin-top:2px;">使ったものは全て片付ける</div>'+
     '</div>'+
     '<div style="position:relative;flex:1 1 auto;overflow:hidden;">'+lanes+'</div>'+
-    '<div style="flex:0 0 auto;padding:14px 18px 22px;background:rgba(0,0,0,0.35);">'+
-      '<div style="text-align:center;color:#eafff0;margin-bottom:12px;">'+
-        '<div style="font-size:13px;color:#9db8a6;">合計</div>'+
-        '<div style="font-size:30px;font-weight:800;">¥他者への気遣い</div>'+
+    '<div style="flex:0 0 auto;padding:12px 14px 16px;border-top:1px solid var(--border);">'+
+      '<div style="text-align:center;margin-bottom:10px;">'+
+        '<div style="font-size:12px;color:var(--text2);">合計</div>'+
+        '<div style="font-size:24px;font-weight:800;color:var(--accent2);">¥他者への気遣い</div>'+
       '</div>'+
-      '<button onclick="cleanupPriceless()" style="width:100%;padding:16px;background:#2471a3;color:#fff;border:none;border-radius:12px;font-size:18px;font-weight:800;cursor:pointer;font-family:inherit;">💳 カード</button>'+
-      '<div style="text-align:center;margin-top:10px;"><button onclick="closeCleanupGag()" style="background:none;border:none;color:#9db8a6;font-size:13px;cursor:pointer;font-family:inherit;text-decoration:underline;">閉じる</button></div>'+
+      '<button onclick="cleanupPriceless()" style="width:100%;padding:14px;background:#2471a3;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;">💳 カード</button>'+
+      '<div style="text-align:center;margin-top:8px;"><button onclick="closeCleanupGag()" style="background:none;border:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline;">閉じる</button></div>'+
     '</div>';
-  document.body.appendChild(overlay);
+  host.appendChild(overlay);
 }
 function closeCleanupGag(){
   var el=document.getElementById('cleanup-gag-overlay'); if(el) el.remove();
   var pl=document.getElementById('cleanup-priceless'); if(pl) pl.remove();
 }
 function cleanupPriceless(){
+  var host=document.querySelector('.pos-right')||document.body;
+  host.style.position='relative';
   var pl=document.getElementById('cleanup-priceless');
   if(pl) pl.remove();
   pl=document.createElement('div');
   pl.id='cleanup-priceless';
-  pl.style.cssText='position:fixed;inset:0;z-index:9997;background:rgba(0,0,0,0.82);display:flex;align-items:center;justify-content:center;padding:24px;';
+  // カートパネル内だけ・背景は今のまま
+  pl.style.cssText='position:absolute;inset:0;z-index:60;background:var(--surface);display:flex;align-items:center;justify-content:center;padding:20px;';
   pl.onclick=function(){closeCleanupGag();};
-  pl.innerHTML='<div style="text-align:center;color:#fff;">'+
-    '<div style="font-size:15px;letter-spacing:0.15em;color:#cfe;margin-bottom:14px;">きれいに片付いた景色</div>'+
-    '<div style="font-size:44px;font-weight:900;letter-spacing:0.05em;">プライスレス</div>'+
-    '<div style="font-size:13px;color:#9db8a6;margin-top:6px;">Priceless</div>'+
-    '<div style="font-size:12px;color:#7f9c88;margin-top:28px;">タップで閉じる</div>'+
+  pl.innerHTML='<div style="text-align:center;color:#333;">'+
+    '<div style="font-size:16px;font-weight:700;letter-spacing:0.1em;color:var(--accent);margin-bottom:12px;">みんなの職場</div>'+
+    '<div style="font-size:34px;font-weight:900;letter-spacing:0.04em;color:var(--accent2);">プライスレス</div>'+
+    '<div style="font-size:12px;color:var(--text2);margin-top:6px;">Priceless</div>'+
+    '<div style="font-size:11px;color:var(--text2);margin-top:22px;">タップで閉じる</div>'+
     '</div>';
-  document.body.appendChild(pl);
+  host.appendChild(pl);
 }
 
 function chgQty(idx,d){cart[idx].qty=Math.max(1,cart[idx].qty+d);renderCart();}
