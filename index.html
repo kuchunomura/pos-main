@@ -986,8 +986,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 439;
-const APP_BUILD_DATE = '2026/07/20 00:03';
+const APP_VERSION = 440;
+const APP_BUILD_DATE = '2026/07/20 00:07';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2373,7 +2373,7 @@ function openCleanupGag(){
     if(mi===1||mi===4||mi===6) flow.push({t:'せや。', size:17, col:'#c0392b'});
     if(mi===3) flow.push({t:'手袋だらけや', size:18, col:'#8e44ad'});
     if(mi===0) flow.push({t:'なんも洗えへん', size:18, col:'#e67e22'});
-    if(mi===4) flow.push({t:'何の部品や', size:18, col:'#16a085'});
+    if(mi===6) flow.push({t:'何の部品や', size:18, col:'#16a085'});
     if(mi===6) flow.push({t:'工具が増える', size:18, col:'#2980b9'});
     if(mi===7) flow.push({t:'片づけたのにまた出とる', size:18, col:'#d35400'});
     if(mi===7) flow.push({t:'ごみの村やないか', size:19, col:'#c0392b'});
@@ -2388,6 +2388,8 @@ function openCleanupGag(){
       flow.push({t:'草', burst:true, size:16, col:'#2e7d32'});
       flow.push({t:'草', burst:true, size:20, col:'#2e7d32'});
       flow.push({t:'草', burst:true, size:14, col:'#2e7d32'});
+      flow.push({t:'草', burst:true, size:17, col:'#2e7d32'});
+      flow.push({t:'草', burst:true, size:15, col:'#2e7d32'});
       flow.push({t:'草生える', burst:true, size:18, col:'#2e7d32'});
       flow.push({t:'草生える', burst:true, size:18, col:'#2e7d32'});
       flow.push({t:'いや苔や', burst:true, size:18, col:'#16a085'});
@@ -2400,7 +2402,7 @@ function openCleanupGag(){
     var c=flow[i];
     var top=4+ (i*10)%84;              // レーン
     c.delay=tt;
-    tt+= c.burst?0.35:1.5;             // 通常は1.5s間隔・草連発は0.35s間隔
+    tt+= c.burst?0.35:0.9;             // 通常は0.9s間隔・草連発は0.35s間隔（出だしを詰めてピークを早める）
     var inner=esc(c.t)+(c.yen?' <span style="font-size:0.75em;opacity:0.8;">¥0</span>':'');
     lanes+='<div class="nico-comment" style="top:'+top+'%;font-size:'+c.size+'px;color:'+c.col+';animation-duration:9s;animation-delay:'+c.delay+'s;">'+inner+'</div>';
   }
