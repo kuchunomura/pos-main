@@ -986,8 +986,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 441;
-const APP_BUILD_DATE = '2026/07/20 00:14';
+const APP_VERSION = 442;
+const APP_BUILD_DATE = '2026/07/20 00:24';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2356,7 +2356,7 @@ function openCleanupGag(){
   if(!document.getElementById('cleanup-gag-style')){
     var st=document.createElement('style');st.id='cleanup-gag-style';
     st.textContent='@keyframes nicoFlow{from{transform:translateX(0);}to{transform:translateX(-100vw);}}'+
-      '.nico-comment{position:absolute;left:100%;white-space:nowrap;font-weight:800;text-shadow:0 1px 2px rgba(255,255,255,0.7);animation:nicoFlow linear infinite;will-change:transform;}';
+      '.nico-comment{position:absolute;left:100%;white-space:nowrap;font-weight:800;text-shadow:0 1px 2px rgba(255,255,255,0.7);animation-name:nicoFlow;animation-timing-function:linear;animation-iteration-count:1;animation-fill-mode:forwards;will-change:transform;}';
     document.head.appendChild(st);
   }
   var overlay=document.createElement('div');
@@ -2385,25 +2385,27 @@ function openCleanupGag(){
     flow.push({t:'草', burst:true, size:burstSizes[bk], col:'#2e7d32'});
     // 草連発の中盤で：草生える×2 → いや苔や → 苔生えとる
     if(bk===3){
-      flow.push({t:'草', burst:true, size:16, col:'#2e7d32', top:40});
-      flow.push({t:'草', burst:true, size:20, col:'#2e7d32', top:60});
-      flow.push({t:'草', burst:true, size:14, col:'#2e7d32', top:44});
-      flow.push({t:'草', burst:true, size:17, col:'#2e7d32', top:56});
-      flow.push({t:'草', burst:true, size:15, col:'#2e7d32', top:48});
-      flow.push({t:'草生える', burst:true, size:18, col:'#2e7d32', top:46});
-      flow.push({t:'草生える', burst:true, size:18, col:'#2e7d32', top:52});
-      flow.push({t:'いや苔や', burst:true, size:18, col:'#16a085', top:50});
-      flow.push({t:'苔生えとる', burst:true, size:18, col:'#16a085', top:54});
+      flow.push({t:'草', burst:true, size:16, col:'#2e7d32'});
+      flow.push({t:'草', burst:true, size:20, col:'#2e7d32'});
+      flow.push({t:'草', burst:true, size:14, col:'#2e7d32'});
+      flow.push({t:'草', burst:true, size:17, col:'#2e7d32'});
+      flow.push({t:'草', burst:true, size:15, col:'#2e7d32'});
+      flow.push({t:'草生える', burst:true, size:18, col:'#2e7d32'});
+      flow.push({t:'草生える', burst:true, size:18, col:'#2e7d32'});
+      flow.push({t:'いや苔や', burst:true, size:18, col:'#16a085'});
+      flow.push({t:'苔生えとる', burst:true, size:18, col:'#16a085'});
     }
   }
-  flow.push({t:'徹夜で作ってて草', size:22, col:'#2e7d32', top:88});   // 最後に・下部
-  var lanes='', tt=0;
+  flow.push({t:'徹夜で作ってて草', size:22, col:'#2e7d32', top:93});   // 最後に・下部
+  // レーンを順番に回して同一レーンの間隔を確保。無限ループはやめ一巡のみ（delay折返しの重なりを防ぐ）
+  var LANES=[7,20,33,46,59,72,85];
+  var lanes='', tt=0, li=0;
   for(var i=0;i<flow.length;i++){
     var c=flow[i];
-    var avail=[6,12,18,24,30,36,66,72,78,84];   // 中央帯(40-60%)は苔用に空ける
-    var top=(c.top!=null)?c.top:avail[i%avail.length];   // レーン
+    var top=(c.top!=null)?c.top:LANES[li%LANES.length];
+    if(c.top==null) li++;
     c.delay=tt;
-    tt+= c.burst?0.35:0.9;             // 通常は0.9s間隔・草連発は0.35s間隔（出だしを詰めてピークを早める）
+    tt+= c.burst?0.4:0.9;              // 通常0.9s・草連発0.4s間隔
     var inner=esc(c.t)+(c.yen?' <span style="font-size:0.75em;opacity:0.8;">¥0</span>':'');
     lanes+='<div class="nico-comment" style="top:'+top+'%;font-size:'+c.size+'px;color:'+c.col+';animation-duration:9s;animation-delay:'+c.delay+'s;">'+inner+'</div>';
   }
