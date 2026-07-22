@@ -986,8 +986,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 448;
-const APP_BUILD_DATE = '2026/07/20 09:36';
+const APP_VERSION = 449;
+const APP_BUILD_DATE = '2026/07/22 10:22';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -4114,6 +4114,8 @@ async function syncSalesData(data, label){
   var syncBtn=document.getElementById('sync-btn');
   if(syncBtn){syncBtn.textContent='⏳ 同期中...';syncBtn.disabled=true;}
   try{
+    // Step0: 消し残しの削除を先に確定（この後のpullで消したはずの売上が復活するのを防ぐ）
+    await flushPendingDeletes();
     // Step1: push（全モード共通・日付別bulk_mergeで重複排除）
     var grouped={},groupOrder=[];
     data.forEach(function(s){
@@ -4282,13 +4284,32 @@ async function autoSyncUpdatedSale(sale){
   }
 }
 
+// 消し残し（削除がシートに届かなかった売上ID）を記録するキュー。同期のたびに必ず再削除する。
+function _pendingDeletes(){ try{ return JSON.parse(localStorage.getItem('pos_pending_deletes')||'[]'); }catch(e){ return []; } }
+function queuePendingDelete(id){ var a=_pendingDeletes(); if(a.indexOf(id)<0){ a.push(id); localStorage.setItem('pos_pending_deletes', JSON.stringify(a)); } }
+function removePendingDelete(id){ localStorage.setItem('pos_pending_deletes', JSON.stringify(_pendingDeletes().filter(function(x){return x!==id;}))); }
+async function _gasDeleteOnce(url, saleId){
+  var qs='?d='+encodeURIComponent(JSON.stringify({type:'delete_rows',sale_id:saleId}));
+  var res=await fetch(url+qs,{method:'GET',redirect:'follow'});
+  var txt=await res.text(); var json=null; try{ json=JSON.parse(txt); }catch(e){}
+  return !!(json && json.status==='ok');
+}
+// 決済削除のシート反映。3回まで再試行し、それでも失敗したらキューに記録（＝取りこぼしゼロ）。
 async function autoDeleteSale(saleId){
   const url=ld(KEYS.gas)||DEFAULT_GAS_URL;
-  if(!url) return;
-  try{
-    var qs='?d='+encodeURIComponent(JSON.stringify({type:'delete_rows',sale_id:saleId}));
-    await fetch(url+qs,{method:'GET',redirect:'follow'});
-  }catch(e){}
+  if(!url){ return false; }
+  for(var attempt=0; attempt<3; attempt++){
+    try{ if(await _gasDeleteOnce(url, saleId)){ removePendingDelete(saleId); return true; } }catch(e){}
+    await new Promise(function(r){ setTimeout(r, 600*(attempt+1)); });
+  }
+  queuePendingDelete(saleId); // 後で必ず消す
+  return false;
+}
+// 溜まった消し残しをまとめて再削除（同期時・起動時・定期に呼ぶ）
+async function flushPendingDeletes(){
+  var a=_pendingDeletes(); if(!a.length) return;
+  const url=ld(KEYS.gas)||DEFAULT_GAS_URL; if(!url) return;
+  for(var i=0;i<a.length;i++){ try{ if(await _gasDeleteOnce(url, a[i])) removePendingDelete(a[i]); }catch(e){} }
 }
 
 async function retrySyncSale(id){
@@ -4648,6 +4669,9 @@ async function checkAppVersion(isPeriodicCheck){
   }catch(e){}
 }
 setInterval(function(){ checkAppVersion(true); }, 5*60*1000);
+// 消し残しの削除を起動時＋5分ごとに自動で片付ける（削除がシートに届かなかった分の自己修復）
+setTimeout(function(){ flushPendingDeletes(); }, 4000);
+setInterval(function(){ flushPendingDeletes(); }, 5*60*1000);
 
 function initVersionInfo(){
   var b=document.getElementById('pos-version-info');
