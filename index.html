@@ -986,8 +986,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 449;
-const APP_BUILD_DATE = '2026/07/22 10:22';
+const APP_VERSION = 450;
+const APP_BUILD_DATE = '2026/07/22 10:35';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2871,7 +2871,9 @@ function renderYoyakuPicker(data){
     var _resKey=x.type+':'+x.id;
     var _rmd2=x.date?((+x.date.slice(5,7))+'/'+(+x.date.slice(8,10))):'';
     var expectTag='予約: '+(o.name||'（無名）')+(_rmd2?'（'+_rmd2+'）':'');
-    var paidBySale=sales.some(function(s){return s && ((s.resIds&&s.resIds.indexOf(_resKey)>=0) || s.resId===_resKey || (s.memo && s.memo.indexOf(expectTag)>=0));});
+    // メモ文字列一致は「構造化ID(resIds/resId)を持たない古い/編集済み売上」だけに限定する。
+    // 限定しないと、同名・同日付の別予約まで巻き込んで✅会計済みになる（誤判定バグ）。
+    var paidBySale=sales.some(function(s){return s && ((s.resIds&&s.resIds.indexOf(_resKey)>=0) || s.resId===_resKey || (!s.resIds && !s.resId && s.memo && expectTag && s.memo.indexOf(expectTag)>=0));});
     var manualPaid=!!manualPaidRes[_resKey];
     var paidDone=paidBySale||manualPaid;
     var paidBadge=paidDone?(' <span style="font-size:10px;font-weight:700;color:#1a7a3a;background:#e6f5ea;border:1px solid #9ccfab;border-radius:8px;padding:0 6px">✅ 会計済み'+((manualPaid&&!paidBySale)?'（レジ未計上）':'')+'</span>'):'';
