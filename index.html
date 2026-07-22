@@ -986,8 +986,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 450;
-const APP_BUILD_DATE = '2026/07/22 10:35';
+const APP_VERSION = 451;
+const APP_BUILD_DATE = '2026/07/22 11:35';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2984,6 +2984,9 @@ function loadReservationToCart(type,id){
     var rcat=cats.find(function(c){return c.id===rit.cat;});
     addToCart(rit,rcat); var rl=cart[cart.length-1]; if(rl) rl.qty=Math.max(1,parseInt(rn.qty)||1);
   });
+  // 読み込んだ明細にも予約タグを付与。別予約を「カートへコピー」してまとめ会計する時、
+  // 本予約分のIDが _reservationResId の上書きで失われ、会計済み判定から漏れるのを防ぐ。
+  cart.forEach(function(c){ c._resId=resId; c._resTag=_reservationSaleTag; });
   recalcCartPrices();
   // 予約者名つきの保留として末尾に追加（タブに名前表示＋重複防止のresId付与）
   if(holds.length<MAX_HOLDS){
