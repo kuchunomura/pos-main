@@ -875,10 +875,16 @@ details.settings-section[open] > summary{margin-bottom:10px;}
       <button onclick="closePaymentModal()">キャンセル</button>
       <button id="payment-confirm-btn" class="confirm" onclick="confirmPayment()" style="padding:20px 28px;font-size:19px;font-weight:800;flex:2;">決済完了</button>
     </div>
-    <div style="text-align:right;margin-top:10px;font-size:15px;font-weight:400;color:#111;">ボタン押してから案内</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+      <div id="pay-merchant-note" style="display:none;font-size:15px;font-weight:700;color:#c00;">加盟店控えはレジへ！</div>
+      <div style="margin-left:auto;font-size:15px;font-weight:400;color:#111;">ボタン押してから案内</div>
+    </div>
     </div>
     <div id="pay-inline-done" style="display:none;text-align:center;padding:8px 0;">
-      <div style="font-size:46px;line-height:1;">✅</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:10px;">
+        <div style="font-size:46px;line-height:1;">✅</div>
+        <div id="done-merchant-note" style="display:none;font-size:15px;font-weight:700;color:#c00;">加盟店控えはレジへ！</div>
+      </div>
       <div style="font-size:21px;font-weight:800;color:var(--green);margin-top:4px;">決済完了</div>
       <div id="inline-done-amount" style="font-size:32px;font-weight:800;color:#111;margin:6px 0 16px;"></div>
       <button onclick="inlineNextCustomer()" style="width:100%;padding:15px;border:1px solid #ccc;border-radius:12px;background:#fff;color:#333;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;">閉じる</button>
@@ -986,8 +992,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 452;
-const APP_BUILD_DATE = '2026/07/22 12:00';
+const APP_VERSION = 453;
+const APP_BUILD_DATE = '2026/07/22 12:58';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -3159,6 +3165,10 @@ function openPayment(method){
   cs.style.display=method==='cash'?'':'none';
   if(method==='cash'){document.getElementById('cash-received').value='';document.getElementById('change-amount').textContent='¥0';setConfirmBtnReady(false);}
   else{setConfirmBtnReady(true);}
+  // 「加盟店控えはレジへ！」は電子決済(other)のときだけ表示（確認画面・完了画面の両方）
+  var _isE=method==='other';
+  var _mn=document.getElementById('pay-merchant-note'); if(_mn) _mn.style.display=_isE?'':'none';
+  var _dn=document.getElementById('done-merchant-note'); if(_dn) _dn.style.display=_isE?'':'none';
   resetPaymentViews(); // 完了表示を隠して確認表示に戻す
   document.getElementById('payment-modal').classList.add('open');
 }
