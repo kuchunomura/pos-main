@@ -992,8 +992,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 453;
-const APP_BUILD_DATE = '2026/07/22 12:58';
+const APP_VERSION = 454;
+const APP_BUILD_DATE = '2026/07/23 14:52';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1838,7 +1838,8 @@ const SOU_FREE_IDS = ['i_tree115','i_walk115'];
 // 楽天・じゃらん・SOU：支払済み表示設定（設定で変更可能）
 let paidDisplaySettings = ld('pos_paid_display') || {label:'支払済', color:'#c0392b'};
 // OTA（楽天・じゃらん・SOU）：押すと日帰り＋宿泊を一律0円（支払済）にする
-const OTA_KEYS = ['rakuten','jalan','sou'];
+const OTA_KEYS = ['rakuten','jalan','sou','other1','other2','other3']; // 外部サイト①=楽天体験/②=アソビュー/③(予備)も前払い＝0円扱い
+const SRC_LABELS = {rakuten:'楽天トラベル',jalan:'じゃらん',sou:'SOUエクスペリエンス',other1:'楽天体験',other2:'アソビュー',other3:'外部サイト③',pass_day:'年間パス（昼）',pass_night:'年間パス（夜）'};
 const OTA_FREE_CATS = ['cat_walk','cat_tree_day','cat_bbq']; // レンタル(cat_rental)はOTAでも支払済にせず通常課金
 function isOtaActive(){ return OTA_KEYS.includes(activeDiscount); }
 function isOtaFreeCat(cat,id){
@@ -2861,7 +2862,7 @@ function renderYoyakuPicker(data){
       label='宿泊 '+facName; sub=(o.nights||1)+'泊 '+(o.ninzu||'')+'名'+((o.petCount||0)>0?'　ペット'+o.petCount:'');
       bgTint='#fdf5ed'; // 宿泊は一律クリアな暖色（ピーチ・薄め）
     }
-    var tag=o.source?('【'+o.source+'】'):((/年間パス/.test(o.memo||'')?'【年間パス】':'')+(o.mura?'【村内】':''));
+    var tag=o.source?('【'+(SRC_LABELS[o.source]||o.source)+'】'):((/年間パス/.test(o.memo||'')?'【年間パス】':'')+(o.mura?'【村内】':''));
     var rentalLine=(o.rental&&o.rental.length)?'<div style="font-size:11px;color:#111;margin-top:2px">レンタル: '+esc(o.rental.map(function(r){return r.name+'×'+(r.qty||1);}).join('、'))+'</div>':'';
     var memoHtml='';
     if(o.memo){
