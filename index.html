@@ -992,8 +992,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 454;
-const APP_BUILD_DATE = '2026/07/23 14:52';
+const APP_VERSION = 455;
+const APP_BUILD_DATE = '2026/07/23 15:40';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -4407,7 +4407,7 @@ async function submitInvoiceFromCart(){
     ss_id_override: SS_ID_MAIN
   };
   try{
-    var url = GAS_URL_TEST;
+    var url = ld(KEYS.gas)||DEFAULT_GAS_URL; // 請求書は設定中の生きたGAS（MAIN）で作成。SSはss_id_overrideで指定。旧GAS_URL_TESTは7/16削除で死んでいた
     var qs='?d='+encodeURIComponent(JSON.stringify(payload));
     var resp = await fetch(url+qs,{method:'GET',redirect:'follow'});
     var json = await resp.json();
@@ -4482,7 +4482,7 @@ async function submitInvoice(){
     ss_id_override: SS_ID_MAIN
   };
   try{
-    var url = GAS_URL_TEST;
+    var url = ld(KEYS.gas)||DEFAULT_GAS_URL; // 請求書は設定中の生きたGAS（MAIN）で作成。SSはss_id_overrideで指定。旧GAS_URL_TESTは7/16削除で死んでいた
     var qs='?d='+encodeURIComponent(JSON.stringify(payload));
     var resp = await fetch(url+qs,{method:'GET',redirect:'follow'});
     var json = await resp.json();
