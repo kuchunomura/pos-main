@@ -768,6 +768,26 @@ function switchSpreadsheetFromDialog(newSsId) {
   PropertiesService.getScriptProperties().setProperty('CURRENT_SS_ID', newSsId);
 }
 
+// 【月初準備】来月分の空スプレッドシートを作成して URL/ID を実行ログに出す（GASエディタで手動実行）。
+// 作るだけで同期先は切り替えない（今月のSSのまま）。月初になったら アプリの「📂 月初シート切替」で
+// この URL を貼れば同期先が来月SSに切り替わる（CURRENT_SS_ID が設定される）。
+// 日別シートは最初の売上が入った時に自動作成される（事前の準備は不要）。
+function createNextMonthSS() {
+  var now = new Date();
+  var y = now.getFullYear(), m = now.getMonth() + 2; // 来月
+  if (m > 12) { m -= 12; y += 1; }
+  return createMonthSS_(y, m);
+}
+// 指定年月の空SSを作成（createNextMonthSS から呼ぶ。末尾_で実行メニューには出さない）
+function createMonthSS_(year, month) {
+  var name = 'POS売上 ' + year + '年' + month + '月';
+  var ss = SpreadsheetApp.create(name);
+  var info = '✅ 作成しました\n名前: ' + name + '\nURL: ' + ss.getUrl() + '\nID: ' + ss.getId()
+    + '\n\n※このURLを、月初に アプリの「📂 月初シート切替」で貼れば同期先が切り替わります。';
+  Logger.log(info);
+  return info;
+}
+
 // メニューから呼ぶ用。CURRENT_SS_IDを見ずに「今開いているSS」を集計対象にする。
 // （月次でSSをコピーするとこのスクリプトも複製され、複製側はプロパティが空で
 //   CURRENT_SS_IDが無いため元祖SSにフォールバックしてしまう。それを防ぐ）
