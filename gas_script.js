@@ -191,8 +191,7 @@ function addRowsWithCheck(rows) {
   var saleId = String(rows[0][14] || '');
   if (!saleId || saleId === 'undefined') { addRows(rows); return; }
   var ss = getTargetSS();
-  var sheetName = sheetNameFromRows(rows);
-  var sheet = ss.getSheetByName(sheetName);
+  var sheet = findDailySheet(ss, mmddFromRows(rows));
   if (sheet) {
     var lastRow = sheet.getLastRow();
     if (lastRow >= 4) {
@@ -261,15 +260,35 @@ function sortSheetsByDate(ss) {
 
 // ==================== シート名 ====================
 
-function sheetNameFromRows(rows) {
+// 売上行の先頭セル "M/D HH:MM" から "M/D" を取り出す
+function mmddFromRows(rows) {
   var dtStr = String(rows[0][0] || '');
   var slash = dtStr.indexOf('/');
   var space = dtStr.indexOf(' ');
-  if (slash > 0 && space > slash) {
-    return dtStr.substring(0, space) + '売上';
-  }
+  if (slash > 0 && space > slash) return dtStr.substring(0, space); // "7/25"
   var now = new Date();
-  return (now.getMonth()+1) + '/' + now.getDate() + '売上';
+  return (now.getMonth()+1) + '/' + now.getDate();
+}
+// 日別シート名（曜日・祝つき）例: 7/25(金)売上 / 7/27(日)祝売上
+function dailySheetName(mmdd) {
+  var p = String(mmdd).split('/'), mo = parseInt(p[0],10), da = parseInt(p[1],10);
+  var yr = new Date().getFullYear();
+  return mmdd + '(' + getDow(yr, mo, da) + ')' + (isHoliday(yr, mo, da) ? '祝' : '') + '売上';
+}
+function sheetNameFromRows(rows) {
+  return dailySheetName(mmddFromRows(rows));
+}
+// M/D前方一致で既存の日別シートを探す（曜日の有無どちらでも見つける＝重複作成を防ぐ）
+function findDailySheet(ss, mmdd) {
+  var p = String(mmdd).split('/'), mo = parseInt(p[0],10), da = parseInt(p[1],10);
+  var sheets = ss.getSheets();
+  for (var i = 0; i < sheets.length; i++) {
+    var nm = sheets[i].getName();
+    if (nm.indexOf('月別集計') !== -1) continue;
+    var m = nm.match(/^(\d+)\/(\d+)/);
+    if (m && parseInt(m[1],10) === mo && parseInt(m[2],10) === da && nm.indexOf('売上') !== -1) return sheets[i];
+  }
+  return null;
 }
 
 // ==================== ヘッダー設定 ====================
@@ -300,6 +319,9 @@ function fixAllSheets() {
   for (var i = 0; i < sheets.length; i++) {
     var name = sheets[i].getName();
     if (!/^\d+\/\d+/.test(name)) continue; // 「M/D売上」形式の日別シートのみ
+    // 曜日なしの既存タブを曜日付きにリネーム（例: 7/25売上 → 7/25(金)売上）
+    var mm = name.match(/^(\d+)\/(\d+)/);
+    if (mm) { var _want = dailySheetName(parseInt(mm[1],10)+'/'+parseInt(mm[2],10)); if (name !== _want && !ss.getSheetByName(_want)) { try { sheets[i].setName(_want); } catch(e) {} } }
     setTotalsFormulas(sheets[i]);
     setupCashInputRow(sheets[i]);
     setDataColumnWidths(sheets[i]);
@@ -385,8 +407,11 @@ function setupCashInputRow(sheet) {
 function addRows(rows) {
   if (!rows || !rows.length) return;
   var ss = getTargetSS();
-  var sheetName = sheetNameFromRows(rows);
-  var sheet = getOrCreateSheet(ss, sheetName);
+  var mmdd = mmddFromRows(rows);
+  var want = dailySheetName(mmdd);
+  var sheet = findDailySheet(ss, mmdd);
+  if (sheet) { if (sheet.getName() !== want && !ss.getSheetByName(want)) { try { sheet.setName(want); } catch(e) {} } } // 既存の曜日なしタブに曜日を付与
+  else { sheet = ss.insertSheet(want); }
   ensureHeaders(sheet);
 
   var lastRow = sheet.getLastRow();
@@ -414,8 +439,7 @@ function replaceRows(saleId, rows) {
   try {
     var ss = getTargetSS();
     if (rows && rows.length) {
-      var sheetName = sheetNameFromRows(rows);
-      var sheet = ss.getSheetByName(sheetName);
+      var sheet = findDailySheet(ss, mmddFromRows(rows));
       if (sheet) deleteRowsFromSheet(sheet, saleId);
     } else {
       var sheets = ss.getSheets();
