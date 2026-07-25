@@ -841,6 +841,13 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 </div>
 
 <!-- 決済モーダル -->
+<style>
+/* 決済確認ボタンを指でトントン押すアニメ（押してから案内、の合図） */
+@keyframes payTapBob{0%,100%{transform:translateY(3px) rotate(-8deg)}45%{transform:translateY(-8px) rotate(-8deg)}55%{transform:translateY(-8px) rotate(-8deg)}}
+@keyframes payBtnGlow{0%,100%{box-shadow:0 0 0 0 rgba(45,80,22,0)}50%{box-shadow:0 0 0 7px rgba(45,80,22,.18)}}
+#payment-confirm-btn{animation:payBtnGlow 1.2s ease-in-out infinite;}
+.pay-tap-finger{position:absolute;right:20px;bottom:-16px;font-size:30px;pointer-events:none;animation:payTapBob 1.05s ease-in-out infinite;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35));z-index:5;}
+</style>
 <div class="modal-overlay" id="payment-modal" onclick="if(event.target===this &amp;&amp; document.getElementById('pay-inline-done').style.display!=='none') inlineNextCustomer();">
   <div class="modal" style="max-width:480px;">
     <div id="pay-confirm-view">
@@ -871,9 +878,10 @@ details.settings-section[open] > summary{margin-bottom:10px;}
         <div style="font-size:26px;font-weight:700;color:var(--green)" id="change-amount">¥0</div>
       </div>
     </div>
-    <div class="modal-btns">
+    <div class="modal-btns" style="position:relative;">
       <button onclick="closePaymentModal()">キャンセル</button>
       <button id="payment-confirm-btn" class="confirm" onclick="confirmPayment()" style="padding:20px 28px;font-size:19px;font-weight:800;flex:2;">決済完了</button>
+      <span class="pay-tap-finger" aria-hidden="true">👆</span>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
       <div id="pay-merchant-note" style="display:none;font-size:15px;font-weight:700;color:#c00;">加盟店控えはレジへ！</div>
@@ -992,8 +1000,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 456;
-const APP_BUILD_DATE = '2026/07/25 13:45';
+const APP_VERSION = 457;
+const APP_BUILD_DATE = '2026/07/25 14:26';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
