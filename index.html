@@ -1001,8 +1001,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 459;
-const APP_BUILD_DATE = '2026/07/25 15:14';
+const APP_VERSION = 460;
+const APP_BUILD_DATE = '2026/07/25 18:06';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1597,13 +1597,13 @@ function renderCatFilterTabs(){
     b.onclick=()=>{filterCatId=cat.id;renderCatFilterTabs();renderPOS();};
     c.appendChild(b);
   };
-  // ① 既定で前に出す6カテゴリ
-  CAT_FRONT.forEach(id=>addCatBtn(byId(id)));
-  // ②「すべて」（右にスクロールで出る位置へ）
+  // ①「すべて」を一番左に
   const allBtn=document.createElement('button');
   allBtn.className='cat-ftab'+(filterCatId==='all'?' active':'');
   allBtn.textContent='すべて';allBtn.onclick=()=>{filterCatId='all';renderCatFilterTabs();renderPOS();};
   c.appendChild(allBtn);
+  // ② 既定で前に出す6カテゴリ
+  CAT_FRONT.forEach(id=>addCatBtn(byId(id)));
   // ③ 残りのカテゴリ（ペット等。front/facility以外）
   _oc.forEach(cat=>{ if(CAT_FRONT.indexOf(cat.id)<0 && CAT_LAST.indexOf(cat.id)<0) addCatBtn(cat); });
   // ④ 施設・宿泊カテゴリを末尾
@@ -2522,6 +2522,8 @@ function clearCart(){
   if(ab) ab.textContent='▲';
   renderCart();renderAttrs();renderDiscountBar();renderPOS();renderHoldTabs();
 }
+// 決済完了で次のお客様へ移る時、カテゴリ絞込を「すべて」に戻す（カテゴリを開いて決済→次はすべて表示）
+function resetCatFilterToAll(){ if(filterCatId!=='all'){ filterCatId='all'; renderCatFilterTabs(); renderPOS(); } }
 
 // ===== 保留（コンパクトなリスト・入れた順に1..N・最大30・空欄なし・繰り上げ）=====
 let _holdsExpanded=false;
@@ -3211,11 +3213,11 @@ function startInlineDoneTimer(){
   }
   tick();
 }
-function inlineNextCustomer(){ clearInlineDoneTimer(); document.getElementById('payment-modal').classList.remove('open'); resetPaymentViews(); clearCart(); }
+function inlineNextCustomer(){ clearInlineDoneTimer(); document.getElementById('payment-modal').classList.remove('open'); resetPaymentViews(); clearCart(); resetCatFilterToAll(); }
 function inlineFlagAndClose(){
   clearInlineDoneTimer();
   if(lastSaleId){ var r=sales.find(function(s){return s.id===lastSaleId;}); if(r){ r.flagged=true; sv(KEYS.sales,sales); renderSales(); } }
-  document.getElementById('payment-modal').classList.remove('open'); resetPaymentViews(); clearCart();
+  document.getElementById('payment-modal').classList.remove('open'); resetPaymentViews(); clearCart(); resetCatFilterToAll();
 }
 
 function setCashExact(){
@@ -3341,13 +3343,14 @@ function clearPaymentDoneTimer(){
   if(cd) cd.textContent='';
 }
 
-function nextCustomer(){clearPaymentDoneTimer();document.getElementById('payment-done').classList.remove('open');clearCart();}
+function nextCustomer(){clearPaymentDoneTimer();document.getElementById('payment-done').classList.remove('open');clearCart();resetCatFilterToAll();}
 function closeDone(){clearPaymentDoneTimer();document.getElementById('payment-done').classList.remove('open');}
 function flagAndClose(){
   clearPaymentDoneTimer();
   if(lastSaleId){const r=sales.find(s=>s.id===lastSaleId);if(r){r.flagged=true;sv(KEYS.sales,sales);}}
   document.getElementById('payment-done').classList.remove('open');
   clearCart();
+  resetCatFilterToAll();
 }
 
 function editLastSale(){
