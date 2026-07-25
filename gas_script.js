@@ -780,7 +780,7 @@ function createNextMonthSS() {
 }
 // 指定年月の空SSを作成（createNextMonthSS から呼ぶ。末尾_で実行メニューには出さない）
 function createMonthSS_(year, month) {
-  var name = 'POS売上 ' + year + '年' + month + '月';
+  var name = month + '月POS main'; // 既存の「7月POS main」と同じ形式
   var ss = SpreadsheetApp.create(name);
   var info = '✅ 作成しました\n名前: ' + name + '\nURL: ' + ss.getUrl() + '\nID: ' + ss.getId()
     + '\n\n※このURLを、月初に アプリの「📂 月初シート切替」で貼れば同期先が切り替わります。';
