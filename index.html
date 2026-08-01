@@ -1001,8 +1001,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 462;
-const APP_BUILD_DATE = '2026/08/01 10:20';
+const APP_VERSION = 463;
+const APP_BUILD_DATE = '2026/08/01 12:31';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1157,7 +1157,6 @@ const DEFAULT_ITEMS = [
   {id:'i_g11', name:'鹿の角アクセサリー',   price:1000, cat:'cat_goods',    stock:0, free_mura:false},
   {id:'i_g12', name:'鹿の角ピアス',         price:1000, cat:'cat_goods',    stock:0, free_mura:false},
   {id:'i_g13', name:'絵本',                 price:1200, cat:'cat_goods',    stock:0, free_mura:false},
-  {id:'i_g14', name:'有機米',               price:500,  cat:'cat_goods',    stock:0, free_mura:false},
   {id:'i_g15', name:'アルミプレート',       price:500,  cat:'cat_goods',    stock:0, free_mura:false},
   {id:'i_g16', name:'カップ麺',             price:400,  cat:'cat_goods',    stock:0, free_mura:false},
   {id:'i_g17', name:'マシュマロ',           price:400,  cat:'cat_goods',    stock:0, free_mura:false},
@@ -1167,6 +1166,7 @@ const DEFAULT_ITEMS = [
   {id:'i_1777769842699', name:'まな板',     price:1500, cat:'cat_goods',    stock:0, free_mura:false},
   {id:'i_hinoki_mimi', name:'ひのき耳つき板', price:3000, cat:'cat_goods', stock:0, free_mura:false, variants:[{label:'大',price:3000},{label:'中',price:2000},{label:'小',price:1000}]},
   {id:'i_azuma_ita_s', name:'東さんまな板（小）', price:1000, cat:'cat_goods', stock:0, free_mura:false},
+  {id:'i_g14', name:'有機米 1合',            price:500,  cat:'cat_goods',    stock:0, free_mura:false},
   {id:'i_yuki1kg', name:'有機米1キロ',       price:2000, cat:'cat_goods',    stock:0, free_mura:false},
   {id:'i_hburashi_set', name:'歯ブラシセット', price:500, cat:'cat_goods',    stock:0, free_mura:false},
   {id:'i_u01', name:'コーヒー',             price:100,  cat:'cat_unmanned', stock:0, free_mura:false},
@@ -6169,6 +6169,16 @@ restoreFromIDB(true).then(()=>{
     var _bi=items.findIndex(function(i){return i.id==='i_s02';}); // 消耗品の歯ブラシを削除
     if(_bi>=0){ items.splice(_bi,1); if(itemOrder){ var _oi=itemOrder.indexOf('i_s02'); if(_oi>=0) itemOrder.splice(_oi,1); } _changed=true; }
     if(_changed){ sv(KEYS.items,items); if(itemOrder) sv(KEYS.itemOrder,itemOrder); }
+  })();
+  // 【v463】有機米(i_g14)を「有機米 1合」にリネーム＋表示順を「有機米1キロ(i_yuki1kg)」の左へ移動。
+  (function(){
+    var _c=false;
+    var _yg=items.find(function(i){return i.id==='i_g14';});
+    if(_yg && _yg.name!=='有機米 1合'){ _yg.name='有機米 1合'; _c=true; }
+    if(itemOrder){ var _a=itemOrder.indexOf('i_g14'), _b=itemOrder.indexOf('i_yuki1kg');
+      if(_a>=0 && _b>=0){ itemOrder.splice(_a,1); _b=itemOrder.indexOf('i_yuki1kg'); itemOrder.splice(_b,0,'i_g14'); if(itemOrder.indexOf('i_g14')!==_a) _c=true; }
+    }
+    if(_c){ sv(KEYS.items,items); if(itemOrder) sv(KEYS.itemOrder,itemOrder); }
   })();
   loadDisplaySettings();
   // 売上明細フィルターを今日に初期化
