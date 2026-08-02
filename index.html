@@ -1001,8 +1001,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 463;
-const APP_BUILD_DATE = '2026/08/01 12:31';
+const APP_VERSION = 464;
+const APP_BUILD_DATE = '2026/08/02 13:26';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -5409,30 +5409,48 @@ function selectStayPeople(n){
     : totalPrice;
   const paidLabel = (isOta||stayPassKey) ? paidDisplaySettings.label : '';
   const cat = pendingStayCat;
-  cart.push({
-    id: pendingStayItem.id + '_' + Date.now(),
-    name: pendingStayItem.name + '（' + n + '人）',
-    origPrice: totalPrice,
-    price: finalPrice,
-    qty: 1,
-    discounted: finalPrice < totalPrice,
-    paidLabel: paidLabel,
-    free_mura: false,
-    isStay: true,
-    cat: pendingStayItem.cat || '',
-    catColor: cat ? cat.bg : '#fff',
-    muraOn: isMura,
-    groupOn: newGroupOn,
-    freeOn: newFreeOn,
-    passKey: stayPassKey,
-    otaKey: stayOtaKey
+  const _stayName = pendingStayItem.name + '（' + n + '人）';
+  // 連泊は「数量=泊数の1行」にまとめる：同一の宿泊行（同じ棟・人数・割引条件）が既にあれば
+  // 新規行ではなく数量（＝泊数）を+1する。集計の重複除去に当たらず、金額は泊数×単価・人数は1回計上で正しくなる。
+  var _exStay = cart.find(function(c){
+    return c.isStay
+      && c.name === _stayName
+      && c.origPrice === totalPrice
+      && c.price === finalPrice
+      && !!c.muraOn === !!isMura
+      && (c.groupOn||'') === (newGroupOn||'')
+      && !!c.freeOn === !!newFreeOn
+      && (c.passKey||'') === (stayPassKey||'')
+      && (c.otaKey||'') === (stayOtaKey||'');
   });
+  if(_exStay){
+    _exStay.qty = (_exStay.qty||1) + 1; // 泊数+1
+  } else {
+    cart.push({
+      id: pendingStayItem.id + '_' + Date.now(),
+      name: _stayName,
+      origPrice: totalPrice,
+      price: finalPrice,
+      qty: 1,
+      discounted: finalPrice < totalPrice,
+      paidLabel: paidLabel,
+      free_mura: false,
+      isStay: true,
+      cat: pendingStayItem.cat || '',
+      catColor: cat ? cat.bg : '#fff',
+      muraOn: isMura,
+      groupOn: newGroupOn,
+      freeOn: newFreeOn,
+      passKey: stayPassKey,
+      otaKey: stayOtaKey
+    });
+  }
   document.getElementById('stay-modal').classList.remove('open');
   pendingStayItem = null; pendingStayCat = null;
   recalcCartPrices();
   renderCart();
   renderPOS();
-  showToast('✓ ' + n + '人で追加しました');
+  showToast(_exStay ? ('✓ ' + _stayName + ' を' + _exStay.qty + '泊に') : ('✓ ' + n + '人で追加しました'));
 }
 
 // ===== 売上サブタブ =====
