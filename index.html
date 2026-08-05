@@ -1001,8 +1001,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 465;
-const APP_BUILD_DATE = '2026/08/05 14:02';
+const APP_VERSION = 466;
+const APP_BUILD_DATE = '2026/08/05 14:20';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1832,6 +1832,7 @@ function makeItemBtn(item, cat, grid){
   } else {
     // 空中ウォーク（日帰り）は「施設名／時間」を改行して1DAYと揃える
     var _dispName=item.name;
+    if(item.id==='i_nara55') _dispName=_dispName.replace('55分','<br>55分'); // 「奈良県職員券／55分」で改行
     if(item.cat==='cat_walk' && item.id!=='i_passday' && /\s/.test(_dispName)) _dispName=_dispName.replace(/\s+/, '<br>');
     nameHtml='<div class="item-name" style="color:'+(item.nameColor||cat.text)+';'+(item.fontSize||cat.fontSize?'font-size:'+(item.fontSize||cat.fontSize)+';':'')+'">'+dotHtml+_dispName+'</div>';
   }
