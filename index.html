@@ -1001,8 +1001,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 466;
-const APP_BUILD_DATE = '2026/08/05 14:20';
+const APP_VERSION = 467;
+const APP_BUILD_DATE = '2026/08/06 09:31';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2661,16 +2661,16 @@ function armCopyReservation(type,id){ _copyArmKey=type+':'+id; if(document.getEl
 function armMarkPaid(type,id){ _paidArmKey=type+':'+id; if(document.getElementById('yoyaku-modal').classList.contains('open')) renderYoyakuPicker(_yoyakuCache); }
 function markReservationPaid(type,id){ manualPaidRes[type+':'+id]=true; sv('pos_manual_paid_res',manualPaidRes); _paidArmKey=''; if(document.getElementById('yoyaku-modal').classList.contains('open')) renderYoyakuPicker(_yoyakuCache); showToast('会計済みにしました（レジ未計上）','#1a7a3a'); }
 function unmarkReservationPaid(type,id){ delete manualPaidRes[type+':'+id]; sv('pos_manual_paid_res',manualPaidRes); _paidArmKey=''; if(document.getElementById('yoyaku-modal').classList.contains('open')) renderYoyakuPicker(_yoyakuCache); showToast('会計済みを取り消しました','#c07000'); }
-// 宿泊者割引（yoyakuのstayGuestDiscと同じ判定）：OTAでない宿泊に紐づく空中ウォーク115分/1DAYは1人500円引き。村内優先で対象外。
+// 宿泊者割引（yoyakuのstayGuestDiscと同じ判定）：宿泊(OTA含む)に紐づく空中ウォーク115分/1DAYは1人500円引き。村内優先で対象外。
+// ※2026-08-06変更：楽天などOTA宿泊も対象に含める（以前はOTA除外だった）。
 function posStayGuestDisc(o,stays){
   if(o.mura) return 0;
   if(o.facility!=='walk') return 0;
   if([115,0].indexOf(Number(o.course))<0) return 0;
-  var ota=['rakuten','jalan','sou','other1','other2','other3'];
   var ids=o.linkedStayIds||[];
   for(var i=0;i<ids.length;i++){
     var s=(stays||[]).find(function(x){return x.id===ids[i];});
-    if(s && !(s.cancelled||/キャンセル/.test(s.memo||'')) && ota.indexOf(s.source)<0) return 500;
+    if(s && !(s.cancelled||/キャンセル/.test(s.memo||''))) return 500; // OTA(楽天)宿泊も対象
   }
   return 0;
 }
@@ -2797,7 +2797,7 @@ function applyYoyakuDiscountContext(o,isStay){
   if(OTA_KEYS.indexOf(src)>=0) activeDiscount=src;
   else if(src==='pass_day'||src==='pass_night') activeDiscount=src;
   else if(/年間パス/.test(memo)) activeDiscount=/夜/.test(memo)?'pass_night':(/昼/.test(memo)?'pass_day':(isStay?'pass_night':'pass_day'));
-  // 宿泊者割引：OTAでない宿泊に紐づく空中ウォーク115分/1DAYは1人500円引き（村内・OTA・パスが無い時のみ）
+  // 宿泊者割引：宿泊(OTA含む)に紐づく空中ウォーク115分/1DAYは1人500円引き（村内・パスが無い時のみ）
   else if(!isStay && !activeMura && posStayGuestDisc(o,(_yoyakuCache||{}).stays)) activeDiscount='stay_guest';
 }
 
