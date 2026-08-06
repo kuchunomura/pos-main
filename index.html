@@ -840,6 +840,23 @@ details.settings-section[open] > summary{margin-bottom:10px;}
   </div>
 </div>
 
+<!-- SOU（OTA）会計モーダル：色パターンを選ぶと構成商品を0円/SOU支払済で投入 -->
+<div class="modal-overlay" id="sou-modal">
+  <div class="modal" style="max-width:400px;">
+    <h3>SOU 会計（楽天と同じ 0円/支払済）</h3>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6;">
+      色を選ぶと、その内容の商品が<strong>0円（SOU支払済）</strong>でカートに入ります。<br>金額はレジに入れません（実収入は報告書に手入力＝楽天と同じ）。
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <button onclick="addSouPattern('yellow')" style="padding:12px;border:2px solid #e0b400;background:#fffbe6;border-radius:12px;text-align:left;cursor:pointer;font-family:inherit;color:#5a4a00;font-size:15px;font-weight:800;">🟡 イエロー<div style="font-size:12px;font-weight:500;color:#7a6a20;margin-top:3px;">空中ウォーク1DAY＋BBQ＋レンタル無料</div></button>
+      <button onclick="addSouPattern('orange')" style="padding:12px;border:2px solid #ff9800;background:#fff3e0;border-radius:12px;text-align:left;cursor:pointer;font-family:inherit;color:#7a3d00;font-size:15px;font-weight:800;">🟠 オレンジ<div style="font-size:12px;font-weight:500;color:#8a5020;margin-top:3px;">空中ウォーク1DAY＋BBQ＋レンタル無料＋ツリーハウス55分</div></button>
+      <button onclick="addSouPattern('green')" style="padding:12px;border:2px solid #4caf50;background:#e8f5e9;border-radius:12px;text-align:left;cursor:pointer;font-family:inherit;color:#1b5e20;font-size:15px;font-weight:800;">🟢 グリーン<div style="font-size:12px;font-weight:500;color:#2e6b32;margin-top:3px;">空中ウォーク115分＋ツリーハウス115分</div></button>
+      <button onclick="addSouPattern('blue')" style="padding:12px;border:2px solid #2196f3;background:#e3f2fd;border-radius:12px;text-align:left;cursor:pointer;font-family:inherit;color:#0d47a1;font-size:15px;font-weight:800;">🔵 ブルー<div style="font-size:12px;font-weight:500;color:#1565c0;margin-top:3px;">空中ウォーク1DAY</div></button>
+    </div>
+    <div class="modal-btns"><button onclick="closeSouModal()">閉じる</button></div>
+  </div>
+</div>
+
 <!-- 決済モーダル -->
 <style>
 /* 決済確認ボタンの指アニメ。現金は受取金額が売上以上(=pay-ready)になってから表示。カード/電子は最初から */
@@ -1001,8 +1018,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 467;
-const APP_BUILD_DATE = '2026/08/06 09:31';
+const APP_VERSION = 468;
+const APP_BUILD_DATE = '2026/08/06 12:20';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1689,6 +1706,7 @@ function renderPOS(){
         grid.appendChild(makeItemBtn(item, cat, grid));
       });
       appendCleanupTile(grid, cat);
+      appendSouTile(grid, cat);
       if(editMode){
         const addBtn=document.createElement('button');addBtn.className='add-item-btn';
         addBtn.innerHTML='<span style="font-size:18px">＋</span><span>追加</span>';
@@ -1744,6 +1762,7 @@ function renderPOS(){
       const grid=document.createElement('div');grid.className='cat-items';
       catItems.forEach(item=>{ grid.appendChild(makeItemBtn(item,cat,grid)); });
       appendCleanupTile(grid, cat);
+      appendSouTile(grid, cat);
       section.appendChild(header);section.appendChild(grid);
       if(isGroupLeader(cat.id)){
         const grp=getCatGroup(cat.id);
@@ -2232,6 +2251,45 @@ function addNaraTicket(){
   cart.push({id:NARA_ITEM_ID,name:'奈良県職員券',origPrice:-p,price:-p,qty:1,discounted:false,manualPrice:true,cat:'',catColor:'#e8fff0'});
   renderCart();
   showToast('✓ 奈良県職員券（空中ウォーク55分＋グッズ1）を追加');
+}
+
+// ===== SOU（OTA）会計：色パターン → 構成商品を0円/SOU支払済で投入 =====
+// 楽天と同じ扱い（otaKey='sou'・0円・支払済）。金額はレジに入れない（実収入は報告書へ手入力）。
+// 各行に本物の商品idを使うので商品別の回数集計に出る。売上メモにSOU色を残す(_souTag)。
+var SOU_PATTERNS={
+  yellow:{emoji:'🟡',jp:'イエロー',ids:['i_walk1day','i_bbq'],          memo:'SOU🟡（空中ウォーク1DAY＋BBQ＋レンタル無料）'},
+  orange:{emoji:'🟠',jp:'オレンジ',ids:['i_walk1day','i_bbq','i_tree55'],memo:'SOU🟠（空中ウォーク1DAY＋BBQ＋レンタル無料＋ツリーハウス55分）'},
+  green: {emoji:'🟢',jp:'グリーン',ids:['i_walk115','i_tree115'],       memo:'SOU🟢（空中ウォーク115分＋ツリーハウス115分）'},
+  blue:  {emoji:'🔵',jp:'ブルー',  ids:['i_walk1day'],                  memo:'SOU🔵（空中ウォーク1DAY）'}
+};
+function openSouModal(){ var m=document.getElementById('sou-modal'); if(m)m.classList.add('open'); }
+function closeSouModal(){ var m=document.getElementById('sou-modal'); if(m)m.classList.remove('open'); }
+function addSouPattern(key){
+  var p=SOU_PATTERNS[key]; if(!p){ return; }
+  var label=(typeof paidDisplaySettings!=='undefined'&&paidDisplaySettings.label)?paidDisplaySettings.label:'支払済';
+  var added=0, missing=[];
+  p.ids.forEach(function(id){
+    var it=items.find(function(x){return x.id===id;});
+    if(!it){ missing.push(id); return; }
+    var cat=(typeof cats!=='undefined'&&cats.find)?cats.find(function(c){return c.id===it.cat;}):null;
+    // 楽天の会計行と同じ形（otaKey='sou'・price0・支払済）。muraOn等も明示して他コードの前提を崩さない。
+    cart.push({id:it.id,name:it.name,origPrice:it.price,price:0,qty:1,discounted:true,paidLabel:label,free_mura:it.free_mura||false,cat:it.cat||'',catColor:cat?cat.bg:'#fff',muraOn:false,groupOn:'',freeOn:false,passKey:'',otaKey:'sou',_souTag:p.memo});
+    added++;
+  });
+  closeSouModal();
+  if(!added){ showToast('⚠ SOUの構成商品が見つかりません（'+missing.join(',')+'）','#c00'); return; }
+  renderCart();
+  showToast('✓ SOU'+p.emoji+p.jp+' を追加（0円/SOU支払済）');
+}
+// SOUトリガータイル（空中ウォークのグリッド末尾に。編集中は出さない）
+function appendSouTile(grid, cat){
+  if(editMode || !cat || cat.id!=='cat_walk' || !grid) return;
+  var b=document.createElement('button');
+  b.type='button'; b.className='item-btn';
+  b.style.cssText='background:#faf5ff;border:2px dashed #b98bd0;';
+  b.innerHTML='<div class="item-name" style="color:#7a3b9a;font-weight:800;">SOU ▾</div><div class="item-price" style="color:#a06fc0;font-size:11px;">4色から選ぶ</div>';
+  b.onclick=function(){ openSouModal(); };
+  grid.appendChild(b);
 }
 
 function addCustomItem(){
@@ -3290,6 +3348,9 @@ function confirmPayment(){
   if(_reservationResId && _resIds.indexOf(_reservationResId)<0) _resIds.push(_reservationResId);
   if(_reservationSaleTag && _resTags.indexOf(_reservationSaleTag)<0) _resTags.unshift(_reservationSaleTag);
   if(_resTags.length){ var _rt=_resTags.join(' / '); saleMemo = saleMemo ? _rt+' / '+saleMemo : _rt; }
+  // SOU（OTA）会計：カート行の_souTag（SOU色＋内容）を売上メモへ集約（日別シートでSOUと分かるように）
+  var _souTags=[]; cart.forEach(function(c){ if(c._souTag && _souTags.indexOf(c._souTag)<0) _souTags.push(c._souTag); });
+  if(_souTags.length){ var _st=_souTags.join(' / '); saleMemo = saleMemo ? _st+' / '+saleMemo : _st; }
   const record={
     id:'s_'+Date.now(),datetime:saleDatetime,
     items:cart.map(i=>({...i})),total,method:currentPayMethod,
