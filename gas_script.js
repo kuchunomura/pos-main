@@ -1035,7 +1035,7 @@ function createMonthlySummary(year, month, ssOverride) {
 
   var dailyMap={},dailyCatMap={},dailyCrossMap={},muraDailyCatMap={},passDailyCatMap={},otaDailyCatMap={},stayDailyCatMap={};
   var parentMap={},payMap={},discMap={},ageMap={},natMap={};
-  var txSeen={},txDiscMap={},txHasItems={},txUniqueRows={},txProcessedRows={},txTotalPeople={};
+  var txSeen={},txDiscMap={},txHasItems={},txUniqueRows={},txProcessedRows={},txTotalPeople={},txMaxAmt={},txVoucher={};
   var mura={count:0,people:0,total:0},pass={count:0,people:0,total:0},ota={count:0,people:0,total:0},stay={count:0,people:0,total:0};
   var grandTotal=0,grandCount=0,grandPeople=0;
   // 🎫ポイント: 商品売上には混ぜず別集計（各商品は定価満額＝ポイント込み単価のまま）
@@ -1056,7 +1056,9 @@ function createMonthlySummary(year, month, ssOverride) {
       if (!ptxId||ptxId==='undefined') continue;
       var pdisc=String(pr[8+co]||'');
       if (pdisc&&pdisc!==''&&pdisc!=='false') txDiscMap[ptxId]=pdisc;
+      var pamt=Number(pr[1+co])||0; if(txMaxAmt[ptxId]===undefined||pamt>txMaxAmt[ptxId])txMaxAmt[ptxId]=pamt; // 取引の売上合計（返金判定用）
       var pItemName=String(pr[2+co]||'');
+      if(pItemName==='ポイント利用'||pItemName==='奈良県職員券')txVoucher[ptxId]=true; // ボウチャー会計は返金扱いにしない（商品は満額計上）
       if (pItemName){
         txHasItems[ptxId]=true;
         var pUnitPrice=Number(pr[5+co])||0,pQty=Number(pr[4+co])||0;
@@ -1095,6 +1097,8 @@ function createMonthlySummary(year, month, ssOverride) {
       var isPass=(txDisc==='pass_day'||txDisc==='pass_night'||txDisc.indexOf('パス')!==-1||txDisc.indexOf('pass')!==-1);
       var isOTA=(txDisc==='rakuten'||txDisc==='jalan'||txDisc==='sou'||txDisc.indexOf('楽天')!==-1||txDisc.indexOf('じゃらん')!==-1||txDisc.indexOf('ブッキング')!==-1||txDisc.indexOf('booking')!==-1||txDisc.indexOf('Booking')!==-1||txDisc.indexOf('そうエクスペリエンス')!==-1||txDisc.indexOf('そう体験')!==-1||txDisc.indexOf('sou')!==-1);
       var isStay=(txDisc==='stay_guest'||txDisc.indexOf('宿泊')!==-1);
+      var isRefund=((txMaxAmt[txId]||0)===0 && !txVoucher[txId] && !isOTA); // 返金(売上合計0・非OTA・非ボウチャー)
+      if(isRefund) unitPrice=0; // 定価(単価×数量)も0にして「定価−実受取」の差を消す。実受取(amount)・人数・件数は不変
 
       if (itemName==='ポイント利用' || itemName==='奈良県職員券') {
         // 🎫ポイント利用・奈良県職員券は商品別に入れず別集計（後日振込分）。tx×種別で1回だけ加算
