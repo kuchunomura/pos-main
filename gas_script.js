@@ -998,6 +998,25 @@ function colLetter(n) {
   var s=''; while(n>0){var r=(n-1)%26;s=String.fromCharCode(65+r)+s;n=Math.floor((n-1)/26);} return s;
 }
 
+// 売上ID（O列/15列目）が空の行に、日別シート内で一意の「仮ID」を補う。
+// 削除復旧後などに手入力で作り直した日別シートは全行の売上IDが空で、集計は
+// 「売上IDが無い行を全部スキップ」するため、その日が丸ごと0件・0円になっていた（例: 7/19）。
+// 日時(A列)または売上合計(B列)がある行を「取引の先頭」とみなして仮IDを採番し、続く空の明細行は直前の仮IDに束ねる。
+// 既に本物のIDがある行・商品名も無い完全な空行は触らない（＝挙動を一切変えない）。
+function fillBlankTxIds(data, co, sheetName){
+  var seq=0, cur='';
+  for (var i=0;i<data.length;i++){
+    var raw=String(data[i][14+co]||'');
+    if (raw && raw!=='undefined'){ cur=raw; continue; }
+    var itemName=String(data[i][2+co]||'').replace(/\s/g,'');
+    if (!itemName){ continue; }
+    var dateCell=String(data[i][0]||'').replace(/\s/g,'');
+    var amtCell=String(data[i][1+co]||'').replace(/\s/g,'');
+    if (dateCell!=='' || amtCell!=='' || cur===''){ seq++; cur='_synID_'+sheetName+'_'+seq; }
+    data[i][14+co]=cur;
+  }
+}
+
 // 月別集計シートを作成して返す
 // ssOverride を渡すとそのSSを対象にする（メニュー実行時は「今開いているSS」を渡す）
 // 省略時は CURRENT_SS_ID（アプリ・自動タイマーからの実行用）
@@ -1029,6 +1048,7 @@ function createMonthlySummary(year, month, ssOverride) {
     var dataStart=isOld?3:4,co=isOld?1:0;
     if (lastRow<dataStart) continue;
     var data=sheet.getRange(dataStart,1,lastRow-dataStart+1,17).getValues();
+    fillBlankTxIds(data, co, sheet.getName()); // 売上ID空の手入力/復旧シートを集計から落とさない
 
     var pass1RowSeen={};
     for (var pi=0;pi<data.length;pi++){
