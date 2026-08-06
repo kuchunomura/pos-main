@@ -1018,8 +1018,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 469;
-const APP_BUILD_DATE = '2026/08/06 13:01';
+const APP_VERSION = 470;
+const APP_BUILD_DATE = '2026/08/06 13:29';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1824,7 +1824,10 @@ function makeItemBtn(item, cat, grid){
   const paidBadge = getPaidBadge(item);
   const dispPrice = (isStayItem2||hasVariants) ? null : getDiscountedPrice(item);
   let priceHtml;
-  if(isStayItem2 || hasVariants){
+  if(souRentalFree && item.cat==='cat_rental'){
+    // SOU🟡🟠レンタル無料モード中：備品は0円になるのでタイルにも「SOU無料」を表示
+    priceHtml='<div class="item-price"><span style="font-size:10px;color:#aaa;text-decoration:line-through;">¥'+item.price.toLocaleString()+'</span><br><span style="color:#7a3b9a;font-weight:800;font-size:12px;">🎁 SOU無料</span></div>';
+  } else if(isStayItem2 || hasVariants){
     const varLabel = hasVariants ? 'サイズで変動' : '人数で変動';
     if(paidBadge){
       priceHtml='<div class="item-price"><span style="font-size:10px;color:#aaa;text-decoration:line-through;">'+varLabel+'</span><br><span style="color:'+paidDisplaySettings.color+';font-weight:700;font-size:12px;">'+paidBadge+'</span></div>';
@@ -2282,7 +2285,7 @@ function addSouPattern(key){
   });
   closeSouModal();
   if(!added){ showToast('⚠ SOUの構成商品が見つかりません（'+missing.join(',')+'）','#c00'); return; }
-  renderCart();
+  renderCart(); renderPOS(); // renderPOS＝レンタル無料モードON時に備品タイルへ「SOU無料」を反映
   showToast('✓ SOU'+p.emoji+p.jp+' を追加（0円/SOU支払済'+((key==='yellow'||key==='orange')?'・レンタルも無料に':'')+'）');
 }
 // 🟡🟠モード中：備品レンタルを0円/区分souで追加（addToCartから呼ぶ）
