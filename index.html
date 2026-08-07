@@ -1018,8 +1018,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 474;
-const APP_BUILD_DATE = '2026/08/07 15:13';
+const APP_VERSION = 475;
+const APP_BUILD_DATE = '2026/08/07 15:34';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1330,6 +1330,7 @@ const DEFAULT_DISCOUNTS = [
   {key:'stay_guest',label:'宿泊者',        type:'discount', fixed:true},
   {key:'rakuten',   label:'楽天',          type:'paid',     fixed:false},
   {key:'jalan',     label:'じゃらん',      type:'paid',     fixed:false},
+  {key:'other2',    label:'アソビュー',    type:'paid',     fixed:false},
   {key:'sou',       label:'SOU',           type:'paid',     fixed:false},
   {key:'pass_day',  label:'年間パス（昼）',type:'paid',     fixed:false},
   {key:'pass_night',label:'年間パス（夜）',type:'paid',     fixed:false},
@@ -1358,6 +1359,13 @@ let discountItems = ld(KEYS.discounts) || DEFAULT_DISCOUNTS;
     var fi=discountItems.findIndex(function(d){return d.key==='free';});
     var half={key:'half',label:'50%引き',type:'discount',fixed:false,rate:50};
     if(fi>=0) discountItems.splice(fi,0,half); else discountItems.push(half);
+    changed=true;
+  }
+  // アソビュー（other2）を割引バーへ＝じゃらんの隣。予約読込用OTAだが手動会計でも選べるように（空中ウォーク1DAY用）
+  if(!discountItems.find(function(d){return d.key==='other2';})){
+    var aso={key:'other2',label:'アソビュー',type:'paid',fixed:false};
+    var ji=discountItems.findIndex(function(d){return d.key==='jalan';});
+    if(ji>=0) discountItems.splice(ji+1,0,aso); else discountItems.push(aso);
     changed=true;
   }
   if(changed) sv(KEYS.discounts,discountItems);
