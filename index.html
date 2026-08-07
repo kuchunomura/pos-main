@@ -1018,8 +1018,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 475;
-const APP_BUILD_DATE = '2026/08/07 15:34';
+const APP_VERSION = 476;
+const APP_BUILD_DATE = '2026/08/07 16:18';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1898,10 +1898,19 @@ function isOtaFreeCat(cat,id){
   if(id==='i_passday'||id==='i_passnight') return false; // 年間パスは常に定価
   return OTA_FREE_CATS.includes(cat) || STAY_CAT_IDS.includes(cat);
 }
-function isOtaFreeItem(item){
+// OTAごとの0円(支払済)対象範囲。ボタンで選んだOTAが実際に売る商品だけを支払済みにする。
+//  楽天＝ツリーハウス以外の宿泊（ドーム/空中テント/ハンモック）／じゃらん・アソビュー＝空中ウォーク1DAYのみ。
+//  other1(楽天体験)/other3(予備)/sou は範囲未定＝従来どおり広め（日帰り+宿泊）。souは専用タイルで直接0円。
+function otaCoversItem(otaKey,item){
   if(!item) return false;
-  if(item.id==='i_passday'||item.id==='i_passnight') return false;
-  return OTA_FREE_CATS.includes(item.cat) || isStayItem(item);
+  var cat=item.cat||'', id=item.id||'';
+  if(id==='i_passday'||id==='i_passnight') return false; // 年間パスは常に定価
+  if(otaKey==='rakuten') return (cat==='cat_stay_dome'||cat==='cat_stay_tent'||cat==='cat_stay_hm');
+  if(otaKey==='jalan'||otaKey==='other2') return (id==='i_walk1day');
+  return isOtaFreeCat(cat,id);
+}
+function isOtaFreeItem(item){
+  return otaCoversItem(activeDiscount,item);
 }
 
 function isStayInCart(){
@@ -3047,7 +3056,7 @@ function pushStayLine(item,cat,n,nights){
   var unitPrice=prices[n]||item.price;
   var totalPrice=unitPrice*n;
   var isMura=activeMura;
-  var isOta=OTA_KEYS.indexOf(activeDiscount)>=0;
+  var isOta=OTA_KEYS.indexOf(activeDiscount)>=0 && otaCoversItem(activeDiscount,item); // OTAごとの範囲外（例:楽天でツリーハウス）は0円にしない
   var stayOtaKey=isOta?activeDiscount:'';
   var stayPassKey=(activeDiscount==='pass_night')?'pass_night':'';
   var newGroupOn=activeRateKey, newFreeOn=activeFree;
