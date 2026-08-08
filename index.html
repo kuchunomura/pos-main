@@ -1018,8 +1018,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 476;
-const APP_BUILD_DATE = '2026/08/07 16:18';
+const APP_VERSION = 477;
+const APP_BUILD_DATE = '2026/08/07 16:52';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -4151,14 +4151,17 @@ function saleToRows(sale){
     // 宿泊はqty=泊数（各棟は物理的に1つ＝連泊のみ）。人数を泊数倍しないようqtyを1扱いにする。日帰り/物販は従来どおりqty倍。
     var qtyForPeople=i.isStay?1:i.qty;
     var persons=(isF&&!isExt)?(m?parseInt(m[1])*qtyForPeople:qtyForPeople):0;
+    // OTA（SOU以外）は「定価」を単価/小計に記録＝月別集計・簡潔報告書に定額の金額を出すため。売上合計(B=colB)は0のまま＝レジ締め・実受取・収入実績報告書には入れない（OTAは別枠）。SOUは振込額が可変なので0のまま。
+    var otaListRow=(i.otaKey && i.otaKey!=='sou');
+    var uPrice=otaListRow?(i.origPrice||i.price):i.price;
     return [
       isFirst?dtStr:'',                               // A: 日時
       isFirst?colB:'',                                // B: 売上合計（取引ごと）
       i.name,                                         // C: 商品名
       catName,                                        // D: カテゴリ
       i.qty,                                          // E: 数量
-      i.price,                                        // F: 単価（割引後）
-      i.price*i.qty,                                  // G: 小計
+      uPrice,                                         // F: 単価（OTA以外=割引後／OTA(SOU除く)=定価）
+      uPrice*i.qty,                                   // G: 小計
       persons,                                        // H: 人数
       isFirst?colI:'',                                // I: 割引区分（取引ごと）
       isFirst?method:'',                              // J: 支払方法
