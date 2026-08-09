@@ -1018,8 +1018,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 479;
-const APP_BUILD_DATE = '2026/08/08 20:43';
+const APP_VERSION = 480;
+const APP_BUILD_DATE = '2026/08/09 15:54';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1329,6 +1329,7 @@ const DEFAULT_DISCOUNTS = [
   {key:'mura',      label:'村内（半額）',  type:'discount', fixed:true},
   {key:'stay_guest',label:'宿泊者',        type:'discount', fixed:true},
   {key:'rakuten',   label:'楽天',          type:'paid',     fixed:false},
+  {key:'other1',    label:'楽天体験',      type:'paid',     fixed:false},
   {key:'jalan',     label:'じゃらん',      type:'paid',     fixed:false},
   {key:'other2',    label:'アソビュー',    type:'paid',     fixed:false},
   {key:'sou',       label:'SOU',           type:'paid',     fixed:false},
@@ -1366,6 +1367,13 @@ let discountItems = ld(KEYS.discounts) || DEFAULT_DISCOUNTS;
     var aso={key:'other2',label:'アソビュー',type:'paid',fixed:false};
     var ji=discountItems.findIndex(function(d){return d.key==='jalan';});
     if(ji>=0) discountItems.splice(ji+1,0,aso); else discountItems.push(aso);
+    changed=true;
+  }
+  // 楽天体験（other1）を割引バーへ＝楽天の隣。楽天(宿泊)とは別のOTAで空中ウォーク1DAY用。手動会計でも選べるように
+  if(!discountItems.find(function(d){return d.key==='other1';})){
+    var raku2={key:'other1',label:'楽天体験',type:'paid',fixed:false};
+    var ri=discountItems.findIndex(function(d){return d.key==='rakuten';});
+    if(ri>=0) discountItems.splice(ri+1,0,raku2); else discountItems.push(raku2);
     changed=true;
   }
   if(changed) sv(KEYS.discounts,discountItems);
@@ -1899,14 +1907,14 @@ function isOtaFreeCat(cat,id){
   return OTA_FREE_CATS.includes(cat) || STAY_CAT_IDS.includes(cat);
 }
 // OTAごとの0円(支払済)対象範囲。ボタンで選んだOTAが実際に売る商品だけを支払済みにする。
-//  楽天＝ツリーハウス以外の宿泊（ドーム/空中テント/ハンモック）／じゃらん・アソビュー＝空中ウォーク1DAYのみ。
-//  other1(楽天体験)/other3(予備)/sou は範囲未定＝従来どおり広め（日帰り+宿泊）。souは専用タイルで直接0円。
+//  楽天＝ツリーハウス以外の宿泊（ドーム/空中テント/ハンモック）／じゃらん・アソビュー・楽天体験＝空中ウォーク1DAYのみ。
+//  other3(予備)/sou は範囲未定＝従来どおり広め（日帰り+宿泊）。souは専用タイルで直接0円。
 function otaCoversItem(otaKey,item){
   if(!item) return false;
   var cat=item.cat||'', id=item.id||'';
   if(id==='i_passday'||id==='i_passnight') return false; // 年間パスは常に定価
   if(otaKey==='rakuten') return (cat==='cat_stay_dome'||cat==='cat_stay_tent'||cat==='cat_stay_hm');
-  if(otaKey==='jalan'||otaKey==='other2') return (id==='i_walk1day');
+  if(otaKey==='jalan'||otaKey==='other2'||otaKey==='other1') return (id==='i_walk1day'); // じゃらん/アソビュー/楽天体験＝空中ウォーク1DAY
   return isOtaFreeCat(cat,id);
 }
 function isOtaFreeItem(item){

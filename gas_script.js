@@ -1095,7 +1095,7 @@ function createMonthlySummary(year, month, ssOverride) {
       var txDisc=txDiscMap[txId]||'';
       var isMura=(txDisc==='mura'||txDisc.indexOf('村')!==-1);
       var isPass=(txDisc==='pass_day'||txDisc==='pass_night'||txDisc.indexOf('パス')!==-1||txDisc.indexOf('pass')!==-1);
-      var isOTA=(txDisc==='rakuten'||txDisc==='jalan'||txDisc==='sou'||txDisc.indexOf('楽天')!==-1||txDisc.indexOf('じゃらん')!==-1||txDisc.indexOf('ブッキング')!==-1||txDisc.indexOf('booking')!==-1||txDisc.indexOf('Booking')!==-1||txDisc.indexOf('そうエクスペリエンス')!==-1||txDisc.indexOf('そう体験')!==-1||txDisc.indexOf('sou')!==-1);
+      var isOTA=(txDisc==='rakuten'||txDisc==='jalan'||txDisc==='sou'||txDisc==='other1'||txDisc==='other2'||txDisc==='other3'||txDisc.indexOf('楽天')!==-1||txDisc.indexOf('じゃらん')!==-1||txDisc.indexOf('アソビュー')!==-1||txDisc.indexOf('ブッキング')!==-1||txDisc.indexOf('booking')!==-1||txDisc.indexOf('Booking')!==-1||txDisc.indexOf('そうエクスペリエンス')!==-1||txDisc.indexOf('そう体験')!==-1||txDisc.indexOf('sou')!==-1); // other1=楽天体験/other2=アソビュー/other3=予備もOTA
       var isStay=(txDisc==='stay_guest'||txDisc.indexOf('宿泊')!==-1);
       var isRefund=((txMaxAmt[txId]||0)===0 && !txVoucher[txId] && !isOTA); // 返金(売上合計0・非OTA・非ボウチャー)
       if(isRefund) unitPrice=0; // 定価(単価×数量)も0にして「定価−実受取」の差を消す。実受取(amount)・人数・件数は不変
