@@ -1018,8 +1018,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 484;
-const APP_BUILD_DATE = '2026/08/14 22:27';
+const APP_VERSION = 485;
+const APP_BUILD_DATE = '2026/08/14 22:30';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -3749,7 +3749,7 @@ function renderStatsCards(filtered){
     }
     return h;
   };
-  var walkHead=walkPeople>0?'<div style="display:flex;justify-content:flex-start;align-items:baseline;gap:10px;font-size:14px;font-weight:700;color:var(--accent2);padding:4px 0;border-bottom:2px solid #eee;margin-bottom:3px;"><span>🚶 空中ウォーク 合計</span><span>'+walkPeople+'人</span></div>':'';
+  var walkHead=walkPeople>0?'<div style="display:flex;justify-content:flex-start;align-items:baseline;gap:10px;font-size:14px;font-weight:700;color:#111;padding:4px 0;border-bottom:2px solid #eee;margin-bottom:3px;"><span>空中ウォーク 合計</span><span>'+walkPeople+'人</span></div>':'';
   var itemCardHtml='<div style="background:#fff;border-radius:10px;padding:10px;box-shadow:var(--shadow);">'+
     '<div style="font-size:13px;font-weight:700;color:var(--accent2);margin-bottom:6px;">🛍 商品別販売数</div>'+
     walkHead+
@@ -3901,7 +3901,7 @@ function renderSales(){
       }
       return h;
     };
-    var walkHeadS=walkPeople>0?'<div style="display:flex;justify-content:flex-start;align-items:baseline;gap:10px;font-size:14px;font-weight:700;color:var(--accent2);padding:4px 0;border-bottom:2px solid #eee;margin-bottom:3px;"><span>🚶 空中ウォーク 合計</span><span>'+walkPeople+'人</span></div>':'';
+    var walkHeadS=walkPeople>0?'<div style="display:flex;justify-content:flex-start;align-items:baseline;gap:10px;font-size:14px;font-weight:700;color:#111;padding:4px 0;border-bottom:2px solid #eee;margin-bottom:3px;"><span>空中ウォーク 合計</span><span>'+walkPeople+'人</span></div>':'';
     var itemCardS='<div style="background:#fff;border-radius:10px;padding:12px;box-shadow:var(--shadow);">'+
       '<div style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:8px;">🛍 商品別販売数</div>'+
       walkHeadS+
