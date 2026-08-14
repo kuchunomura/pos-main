@@ -1018,8 +1018,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 480;
-const APP_BUILD_DATE = '2026/08/09 15:54';
+const APP_VERSION = 481;
+const APP_BUILD_DATE = '2026/08/14 21:38';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -3808,14 +3808,22 @@ function renderSales(){
     // 商品別＋支払方法別（レジ締め用）＋ポイント利用合計
     const itemMap = {};
     const payMapS = {}; let pointTotalS = 0;
+    var WALK_CAT='cat_walk';
+    var FAC_CATS=['cat_walk','cat_tree_day','cat_bbq','cat_stay_tree','cat_stay_dome','cat_stay_tent','cat_stay_hm']; // 人数で数える施設系
+    var _isPeopleItem=function(i){ return (FAC_CATS.indexOf(i.cat||'')!==-1||!!i.isStay)&&(i.name||'').indexOf('延長')===-1; };
+    var _peopleOf=function(i){ var m=(i.name||'').match(/[（(](\d+)人[）)]/); return m?parseInt(m[1])*i.qty:i.qty; }; // （N人）表記があればN×数量、なければ数量＝人数
+    var _OTA_SHORT={rakuten:'楽天',other1:'楽天体験',jalan:'じゃらん',other2:'アソビュー',sou:'SOU',other3:'外部③'};
+    var _discBucket=function(i,r){ if(i.otaKey)return _OTA_SHORT[i.otaKey]||'OTA'; if(i.passKey)return '年パス'; if(i.groupOn)return '団体'; if(i.muraOn)return '村民'; if(i.freeOn)return '無料'; if(r&&r.discount==='stay_guest')return '宿泊者'; return '通常'; };
+    var walkPeople=0; // 空中ウォーク全体の人数
     filtered.forEach(r=>{
       const pm={cash:'現金',card:'カード',other:'電子決済'}[r.method]||r.method||'不明';
       payMapS[pm]=(payMapS[pm]||0)+r.total; // r.total はポイントを引いた後＝実際に受け取った額
       r.items.forEach(i=>{
         if(i.id===POINT_ITEM_ID||i.name==='ポイント利用'){ pointTotalS+=Math.abs(i.price*i.qty); return; }
-        itemMap[i.name]=(itemMap[i.name]||{count:0,total:0});
-        itemMap[i.name].count+=i.qty;
-        itemMap[i.name].total+=i.price*i.qty;
+        var e=itemMap[i.name]||(itemMap[i.name]={count:0,total:0,people:0,cat:i.cat||'',isStay:!!i.isStay,byDisc:null});
+        e.count+=i.qty; e.total+=i.price*i.qty;
+        var ppl=_isPeopleItem(i)?_peopleOf(i):0; e.people+=ppl;
+        if((i.cat||'')===WALK_CAT){ if(!e.byDisc)e.byDisc={}; var db=_discBucket(i,r); var g=e.byDisc[db]||(e.byDisc[db]={people:0,total:0}); g.people+=ppl; g.total+=i.price*i.qty; walkPeople+=ppl; } // 空中ウォークは割引区分(村民/宿泊者/OTA…)ごとに内訳
       });
     });
     const makeStatCard = (title, rows) =>
@@ -3846,25 +3854,45 @@ function renderSales(){
       return b[1].count-a[1].count;
     });
     var CUTOFF_S=8;
-    var rowFnS=function(k,v){return '<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid #f5f5f5;"><span style="color:var(--text2);">'+k+'</span><span style="font-weight:600;">'+v+'</span></div>';};
+    var _dbOrder=['通常','宿泊者','村民','団体','年パス','無料','楽天','楽天体験','じゃらん','アソビュー','SOU','外部③','OTA'];
+    // 施設系＝人数(人)／物販＝点数(点)。名前と数値は隣り合わせ(flex-start+gap)で近づける。空中ウォークは割引区分の内訳をぶら下げる。
+    var rowFnS=function(name,e){
+      var isPpl=(FAC_CATS.indexOf(e.cat)!==-1||e.isStay)&&e.people>0;
+      var val=(isPpl?e.people+'人':e.count+'点')+'　¥'+e.total.toLocaleString();
+      var h='<div style="display:flex;justify-content:flex-start;align-items:baseline;gap:10px;font-size:12px;padding:3px 0;border-bottom:1px solid #f5f5f5;"><span style="color:var(--text2);">'+name+'</span><span style="font-weight:600;white-space:nowrap;">'+val+'</span></div>';
+      if(e.byDisc){
+        var ks=Object.keys(e.byDisc).sort(function(a,b){var ia=_dbOrder.indexOf(a),ib=_dbOrder.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
+        ks.forEach(function(db){var g=e.byDisc[db];var gv=(g.people>0?g.people+'人':'')+(g.total?'　¥'+g.total.toLocaleString():'');h+='<div style="display:flex;justify-content:flex-start;gap:8px;font-size:10px;color:#999;padding:1px 0 1px 14px;"><span>└ '+db+'</span><span style="font-weight:600;white-space:nowrap;">'+gv+'</span></div>';});
+      }
+      return h;
+    };
+    var walkHeadS=walkPeople>0?'<div style="display:flex;justify-content:flex-start;gap:10px;font-size:12px;font-weight:700;color:var(--accent2);padding:4px 0;border-bottom:2px solid #eee;margin-bottom:2px;"><span>🚶 空中ウォーク 合計</span><span>'+walkPeople+'人</span></div>':'';
     var itemCardS='<div style="background:#fff;border-radius:10px;padding:12px;box-shadow:var(--shadow);">'+
       '<div style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:8px;">🛍 商品別販売数</div>'+
-      sortedItemEntriesS.slice(0,CUTOFF_S).map(function(e){return rowFnS(e[0],e[1].count+'点 ¥'+e[1].total.toLocaleString());}).join('');
+      walkHeadS+
+      sortedItemEntriesS.slice(0,CUTOFF_S).map(function(e){return rowFnS(e[0],e[1]);}).join('');
     if(sortedItemEntriesS.length>CUTOFF_S){
       var hiddenCountS=sortedItemEntriesS.length-CUTOFF_S;
       itemCardS+=
         '<div id="sales-item-more" style="display:none;">'+
-          sortedItemEntriesS.slice(CUTOFF_S).map(function(e){return rowFnS(e[0],e[1].count+'点 ¥'+e[1].total.toLocaleString());}).join('')+
+          sortedItemEntriesS.slice(CUTOFF_S).map(function(e){return rowFnS(e[0],e[1]);}).join('')+
         '</div>'+
         '<button onclick="var d=document.getElementById(\'sales-item-more\');var s=d.style.display===\'none\';d.style.display=s?\'\':\'none\';this.textContent=s?\'▲ 折りたたむ\':\'▼ 全て表示 ('+hiddenCountS+'件)\'" style="margin-top:6px;font-size:10px;color:var(--accent2);background:none;border:none;cursor:pointer;padding:2px 0;font-family:inherit;">▼ 全て表示 ('+hiddenCountS+'件)</button>';
     }
     itemCardS+='</div>';
-    // 支払方法別（レジ締め用）：現金/カード/電子=実際に受け取った額（ドロワーと一致）。ポイントは別枠＝後日振込
-    const payRowsS=Object.entries(payMapS).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[k,'¥'+v.toLocaleString()]);
-    if(pointTotalS>0) payRowsS.push(['🎫 ポイント利用','¥'+pointTotalS.toLocaleString()]);
-    var payCardS=payRowsS.length?('<div style="background:#fff;border-radius:10px;padding:12px;box-shadow:var(--shadow);">'+
+    // 支払方法別（レジ締め用）：現金/カード/電子=実際に受け取った額（ドロワーと一致）。「カード＋電子決済」の合算を最上部に最も大きく表示。ポイントは別枠＝後日振込。
+    var _cashS=payMapS['現金']||0,_cardS=payMapS['カード']||0,_elecS=payMapS['電子決済']||0,_ceS=_cardS+_elecS;
+    var payRowS=function(k,v,big){return '<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:'+(big?'14px':'12px')+';padding:'+(big?'7px 8px':'3px 0')+';border-bottom:1px solid #f5f5f5;'+(big?'background:#eef6ee;border-radius:8px;border-bottom:none;margin-bottom:3px;':'')+'"><span style="color:'+(big?'var(--accent2)':'var(--text2)')+';font-weight:'+(big?'700':'400')+';">'+k+'</span><span style="font-weight:'+(big?'800':'600')+';'+(big?'font-size:18px;color:var(--accent);':'')+'">'+v+'</span></div>';};
+    var payHtmlS='';
+    if(_cashS>0) payHtmlS+=payRowS('現金','¥'+_cashS.toLocaleString());
+    if(_cardS>0||_elecS>0) payHtmlS+=payRowS('カード＋電子決済','¥'+_ceS.toLocaleString(),true); // ★合算を最も大きく
+    if(_cardS>0) payHtmlS+=payRowS('　カード','¥'+_cardS.toLocaleString());
+    if(_elecS>0) payHtmlS+=payRowS('　電子決済','¥'+_elecS.toLocaleString());
+    Object.keys(payMapS).forEach(function(k){ if(k!=='現金'&&k!=='カード'&&k!=='電子決済'&&payMapS[k]) payHtmlS+=payRowS(k,'¥'+payMapS[k].toLocaleString()); }); // 不明などその他
+    if(pointTotalS>0) payHtmlS+=payRowS('🎫 ポイント利用','¥'+pointTotalS.toLocaleString());
+    var payCardS=payHtmlS?('<div style="background:#fff;border-radius:10px;padding:12px;box-shadow:var(--shadow);">'+
       '<div style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:8px;">💳 支払方法別（レジ締め用）</div>'+
-      payRowsS.map(([k,v])=>'<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid #f5f5f5;"><span style="color:var(--text2);">'+k+'</span><span style="font-weight:600;">'+v+'</span></div>').join('')+
+      payHtmlS+
       (pointTotalS>0?'<div style="font-size:10px;color:#b8860b;margin-top:6px;line-height:1.5">🎫 ポイント利用は手元に入らない分（後日振込）。<br>現金＋カード＋電子＝ドロワーの中身。</div>':'')+
     '</div>'):'';
     statsEl.innerHTML =
