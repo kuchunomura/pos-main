@@ -422,8 +422,9 @@ details.settings-section[open] > summary{margin-bottom:10px;}
       <div class="summary-card"><div class="sc-label">人数</div><div class="sc-value" id="sum-people">0人</div></div>
       <div class="summary-card"><div class="sc-label">客単価</div><div class="sc-value" id="sum-avg">¥0</div></div>
     </div>
-    <!-- グラフ切替 -->
-    <div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap;">
+    <div id="sales-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>
+    <!-- グラフ切替（各カードの下に配置） -->
+    <div style="display:flex;gap:4px;margin-top:14px;margin-bottom:8px;flex-wrap:wrap;">
       <button class="btn-sm2" onclick="renderChart('daily')">日別</button>
       <button class="btn-sm2" onclick="renderChart('hourly')">時間帯別</button>
       <button class="btn-sm2" onclick="renderChart('weekday')">曜日別</button>
@@ -433,7 +434,6 @@ details.settings-section[open] > summary{margin-bottom:10px;}
     </div>
     <div id="chart-title" style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:6px;"></div>
     <div id="chart-area" style="background:#fff;border-radius:10px;padding:12px;box-shadow:var(--shadow);margin-bottom:10px;overflow-x:auto;"></div>
-    <div id="sales-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>
   </div>
 
   <!-- 明細ビュー -->
@@ -1018,8 +1018,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 482;
-const APP_BUILD_DATE = '2026/08/14 21:59';
+const APP_VERSION = 483;
+const APP_BUILD_DATE = '2026/08/14 22:17';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -3710,8 +3710,8 @@ function renderStatsCards(filtered){
     discMap[d]=(discMap[d]||0)+1;
   });
   const card=(title,rows)=>'<div style="background:#fff;border-radius:10px;padding:10px;box-shadow:var(--shadow);">'+
-    '<div style="font-size:11px;font-weight:700;color:var(--accent2);margin-bottom:6px;">'+title+'</div>'+
-    (rows.length?rows.map(([k,v])=>'<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0;border-bottom:1px solid #f5f5f5;"><span style="color:var(--text2)">'+k+'</span><span style="font-weight:600">'+v+'</span></div>').join(''):'<div style="font-size:11px;color:#bbb">データなし</div>')+
+    '<div style="font-size:13px;font-weight:700;color:var(--accent2);margin-bottom:6px;">'+title+'</div>'+
+    (rows.length?rows.map(([k,v])=>'<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;border-bottom:1px solid #f5f5f5;"><span style="color:var(--text)">'+k+'</span><span style="font-weight:700">'+v+'</span></div>').join(''):'<div style="font-size:12px;color:#bbb">データなし</div>')+
   '</div>';
   const ageMap2={},natMap2={};
   filtered.forEach(r=>{
@@ -3736,24 +3736,24 @@ function renderStatsCards(filtered){
     var isPpl=(SUMMARY_FAC_CATS.indexOf(e.cat)!==-1||e.isStay)&&e.people>0;
     var num=isPpl?e.people+'人':e.count+'点';
     var tal=sumTally(isPpl?e.people:e.count);
-    var h='<div style="display:flex;justify-content:flex-start;align-items:baseline;gap:8px;font-size:11px;padding:2px 0;border-bottom:1px solid #f5f5f5;">'
-      +'<span style="color:var(--text2)">'+name+'</span>'
-      +'<span style="font-weight:600;white-space:nowrap">'+num+'</span>'
-      +'<span style="color:#c0392b;letter-spacing:-1px;word-break:break-all;flex:1">'+tal+'</span>'
-      +'<span style="font-weight:700;white-space:nowrap">¥'+e.total.toLocaleString()+'</span>'
+    var h='<div style="display:flex;justify-content:flex-start;align-items:baseline;gap:10px;font-size:14px;padding:4px 0;border-bottom:1px solid #f5f5f5;">'
+      +'<span style="color:var(--text);font-weight:600">'+name+'</span>'
+      +'<span style="font-weight:700;white-space:nowrap">'+num+'</span>'
+      +'<span style="color:#c0392b;font-weight:700;letter-spacing:1px;white-space:nowrap">'+tal+'</span>'
+      +'<span style="font-weight:700;white-space:nowrap;color:var(--accent)">¥'+e.total.toLocaleString()+'</span>'
     +'</div>';
     if(e.byDisc){
       var ks=Object.keys(e.byDisc).sort(function(a,b){var ia=SUM_DB_ORDER.indexOf(a),ib=SUM_DB_ORDER.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
-      ks.forEach(function(db){var g=e.byDisc[db];h+='<div style="display:flex;justify-content:flex-start;align-items:baseline;gap:6px;font-size:10px;color:#999;padding:1px 0 1px 12px;">'
+      ks.forEach(function(db){var g=e.byDisc[db];h+='<div style="display:flex;justify-content:flex-start;align-items:baseline;gap:8px;font-size:12px;color:#888;padding:1px 0 1px 14px;">'
         +'<span>└ '+db+'</span><span style="font-weight:600;white-space:nowrap">'+(g.people>0?g.people+'人':'')+'</span>'
-        +'<span style="color:#d99;letter-spacing:-1px;word-break:break-all;flex:1">'+(g.people>0?sumTally(g.people):'')+'</span>'
+        +'<span style="color:#d07;font-weight:600;letter-spacing:1px;white-space:nowrap">'+(g.people>0?sumTally(g.people):'')+'</span>'
         +'<span style="font-weight:600;white-space:nowrap">'+(g.total?'¥'+g.total.toLocaleString():'')+'</span></div>';});
     }
     return h;
   };
-  var walkHead=walkPeople>0?'<div style="display:flex;justify-content:flex-start;align-items:baseline;gap:8px;font-size:11px;font-weight:700;color:var(--accent2);padding:3px 0;border-bottom:2px solid #eee;margin-bottom:2px;"><span>🚶 空中ウォーク 合計</span><span>'+walkPeople+'人</span><span style="color:#c0392b;letter-spacing:-1px;word-break:break-all">'+sumTally(walkPeople)+'</span></div>':'';
+  var walkHead=walkPeople>0?'<div style="display:flex;justify-content:flex-start;align-items:baseline;gap:10px;font-size:14px;font-weight:700;color:var(--accent2);padding:4px 0;border-bottom:2px solid #eee;margin-bottom:3px;"><span>🚶 空中ウォーク 合計</span><span>'+walkPeople+'人</span><span style="color:#c0392b;letter-spacing:1px">'+sumTally(walkPeople)+'</span></div>':'';
   var itemCardHtml='<div style="background:#fff;border-radius:10px;padding:10px;box-shadow:var(--shadow);">'+
-    '<div style="font-size:11px;font-weight:700;color:var(--accent2);margin-bottom:6px;">🛍 商品別販売数</div>'+
+    '<div style="font-size:13px;font-weight:700;color:var(--accent2);margin-bottom:6px;">🛍 商品別販売数</div>'+
     walkHead+
     sortedItemEntries.slice(0,ITEM_CUTOFF).map(function(e){return rowFn(e[0],e[1]);}).join('');
   if(sortedItemEntries.length>ITEM_CUTOFF){
@@ -3771,14 +3771,14 @@ function renderStatsCards(filtered){
   var _cashN=payCount['現金']||0,_cardN=payCount['カード']||0,_elecN=payCount['電子決済']||0;
   var payRow=function(k,amt,cnt,big){var cn=(cnt!=null&&cnt!=='')?'<span style="font-weight:400;color:#999;font-size:'+(big?'11px':'10px')+';margin-left:6px">'+cnt+'件</span>':'';return '<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:'+(big?'13px':'11px')+';padding:'+(big?'6px 8px':'2px 0')+';border-bottom:1px solid #f5f5f5;'+(big?'background:#eef6ee;border-radius:8px;border-bottom:none;margin-bottom:3px;':'')+'"><span style="color:'+(big?'var(--accent2)':'var(--text2)')+';font-weight:'+(big?'700':'400')+'">'+k+'</span><span style="font-weight:'+(big?'800':'600')+';'+(big?'font-size:17px;color:var(--accent)':'')+'">'+amt+cn+'</span></div>';};
   var payHtml='';
-  if(_cash>0) payHtml+=payRow('現金','¥'+_cash.toLocaleString(),_cashN);
+  if(_cash>0) payHtml+=payRow('現金','¥'+_cash.toLocaleString(),_cashN,true);
   if(_card>0||_elec>0) payHtml+=payRow('カード＋電子決済','¥'+_ce.toLocaleString(),(_cardN+_elecN),true);
   if(_card>0) payHtml+=payRow('　カード','¥'+_card.toLocaleString(),_cardN);
   if(_elec>0) payHtml+=payRow('　電子決済','¥'+_elec.toLocaleString(),_elecN);
   Object.keys(payMap).forEach(function(k){ if(k!=='現金'&&k!=='カード'&&k!=='電子決済'&&payMap[k]) payHtml+=payRow(k,'¥'+payMap[k].toLocaleString(),payCount[k]||0); });
   if(pointTotal>0) payHtml+=payRow('🎫 ポイント利用','¥'+pointTotal.toLocaleString(),'');
   var payCardHtml=payHtml?('<div style="background:#fff;border-radius:10px;padding:10px;box-shadow:var(--shadow);">'+
-    '<div style="font-size:11px;font-weight:700;color:var(--accent2);margin-bottom:6px;">💳 支払方法別（レジ締め用）</div>'+
+    '<div style="font-size:13px;font-weight:700;color:var(--accent2);margin-bottom:6px;">💳 支払方法別（レジ締め用）</div>'+
     payHtml+
     (pointTotal>0?'<div style="font-size:10px;color:#b8860b;margin-top:5px;line-height:1.5">🎫 ポイント利用＝後日振込分（手元に入らない）。<br>現金＋カード＋電子＝ドロワーの中身。</div>':'')+
   '</div>'):'';
@@ -3896,14 +3896,14 @@ function renderSales(){
       var isPpl=(SUMMARY_FAC_CATS.indexOf(e.cat)!==-1||e.isStay)&&e.people>0;
       var num=isPpl?e.people+'人':e.count+'点';
       var tal=sumTally(isPpl?e.people:e.count);
-      var h='<div style="display:flex;justify-content:flex-start;align-items:baseline;gap:8px;font-size:12px;padding:3px 0;border-bottom:1px solid #f5f5f5;"><span style="color:var(--text2);">'+name+'</span><span style="font-weight:600;white-space:nowrap;">'+num+'</span><span style="color:#c0392b;letter-spacing:-1px;word-break:break-all;flex:1">'+tal+'</span><span style="font-weight:700;white-space:nowrap;">¥'+e.total.toLocaleString()+'</span></div>';
+      var h='<div style="display:flex;justify-content:flex-start;align-items:baseline;gap:10px;font-size:14px;padding:4px 0;border-bottom:1px solid #f5f5f5;"><span style="color:var(--text);font-weight:600;">'+name+'</span><span style="font-weight:700;white-space:nowrap;">'+num+'</span><span style="color:#c0392b;font-weight:700;letter-spacing:1px;white-space:nowrap">'+tal+'</span><span style="font-weight:700;white-space:nowrap;color:var(--accent)">¥'+e.total.toLocaleString()+'</span></div>';
       if(e.byDisc){
         var ks=Object.keys(e.byDisc).sort(function(a,b){var ia=SUM_DB_ORDER.indexOf(a),ib=SUM_DB_ORDER.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
-        ks.forEach(function(db){var g=e.byDisc[db];h+='<div style="display:flex;justify-content:flex-start;align-items:baseline;gap:6px;font-size:10px;color:#999;padding:1px 0 1px 14px;"><span>└ '+db+'</span><span style="font-weight:600;white-space:nowrap;">'+(g.people>0?g.people+'人':'')+'</span><span style="color:#d99;letter-spacing:-1px;word-break:break-all;flex:1">'+(g.people>0?sumTally(g.people):'')+'</span><span style="font-weight:600;white-space:nowrap;">'+(g.total?'¥'+g.total.toLocaleString():'')+'</span></div>';});
+        ks.forEach(function(db){var g=e.byDisc[db];h+='<div style="display:flex;justify-content:flex-start;align-items:baseline;gap:8px;font-size:12px;color:#888;padding:1px 0 1px 14px;"><span>└ '+db+'</span><span style="font-weight:600;white-space:nowrap;">'+(g.people>0?g.people+'人':'')+'</span><span style="color:#d07;font-weight:600;letter-spacing:1px;white-space:nowrap">'+(g.people>0?sumTally(g.people):'')+'</span><span style="font-weight:600;white-space:nowrap;">'+(g.total?'¥'+g.total.toLocaleString():'')+'</span></div>';});
       }
       return h;
     };
-    var walkHeadS=walkPeople>0?'<div style="display:flex;justify-content:flex-start;align-items:baseline;gap:10px;font-size:12px;font-weight:700;color:var(--accent2);padding:4px 0;border-bottom:2px solid #eee;margin-bottom:2px;"><span>🚶 空中ウォーク 合計</span><span>'+walkPeople+'人</span><span style="color:#c0392b;letter-spacing:-1px;word-break:break-all">'+sumTally(walkPeople)+'</span></div>':'';
+    var walkHeadS=walkPeople>0?'<div style="display:flex;justify-content:flex-start;align-items:baseline;gap:10px;font-size:14px;font-weight:700;color:var(--accent2);padding:4px 0;border-bottom:2px solid #eee;margin-bottom:3px;"><span>🚶 空中ウォーク 合計</span><span>'+walkPeople+'人</span><span style="color:#c0392b;letter-spacing:1px">'+sumTally(walkPeople)+'</span></div>':'';
     var itemCardS='<div style="background:#fff;border-radius:10px;padding:12px;box-shadow:var(--shadow);">'+
       '<div style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:8px;">🛍 商品別販売数</div>'+
       walkHeadS+
@@ -3922,7 +3922,7 @@ function renderSales(){
     var _cashNS=payCountS['現金']||0,_cardNS=payCountS['カード']||0,_elecNS=payCountS['電子決済']||0;
     var payRowS=function(k,amt,cnt,big){var cn=(cnt!=null&&cnt!=='')?'<span style="font-weight:400;color:#999;font-size:'+(big?'12px':'10px')+';margin-left:6px">'+cnt+'件</span>':'';return '<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:'+(big?'14px':'12px')+';padding:'+(big?'7px 8px':'3px 0')+';border-bottom:1px solid #f5f5f5;'+(big?'background:#eef6ee;border-radius:8px;border-bottom:none;margin-bottom:3px;':'')+'"><span style="color:'+(big?'var(--accent2)':'var(--text2)')+';font-weight:'+(big?'700':'400')+';">'+k+'</span><span style="font-weight:'+(big?'800':'600')+';'+(big?'font-size:18px;color:var(--accent);':'')+'">'+amt+cn+'</span></div>';};
     var payHtmlS='';
-    if(_cashS>0) payHtmlS+=payRowS('現金','¥'+_cashS.toLocaleString(),_cashNS);
+    if(_cashS>0) payHtmlS+=payRowS('現金','¥'+_cashS.toLocaleString(),_cashNS,true);
     if(_cardS>0||_elecS>0) payHtmlS+=payRowS('カード＋電子決済','¥'+_ceS.toLocaleString(),(_cardNS+_elecNS),true); // ★合算を最も大きく
     if(_cardS>0) payHtmlS+=payRowS('　カード','¥'+_cardS.toLocaleString(),_cardNS);
     if(_elecS>0) payHtmlS+=payRowS('　電子決済','¥'+_elecS.toLocaleString(),_elecNS);
