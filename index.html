@@ -901,7 +901,11 @@ details.settings-section[open] > summary{margin-bottom:10px;}
     </div>
     <div class="modal-btns" style="position:relative;">
       <button onclick="closePaymentModal()">キャンセル</button>
-      <button id="payment-confirm-btn" class="confirm" onclick="confirmPayment()" style="padding:20px 28px;font-size:19px;font-weight:800;flex:2;position:relative;">決済完了<span class="pay-tap-finger" aria-hidden="true">👆</span><span class="pay-tap-finger-left" aria-hidden="true">👆</span></button>
+      <div style="flex:2;position:relative;display:flex;">
+        <button id="payment-confirm-btn" class="confirm" onclick="confirmPayment()" style="padding:20px 28px;font-size:19px;font-weight:800;flex:1;">決済完了</button>
+        <span class="pay-tap-finger" aria-hidden="true">👆</span>
+        <span class="pay-tap-finger-left" aria-hidden="true">👆</span>
+      </div>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
       <div id="pay-merchant-note" style="display:none;font-size:15px;font-weight:700;color:#c00;">加盟店控えはレジへ！</div>
@@ -1020,8 +1024,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 501;
-const APP_BUILD_DATE = '2026/08/16 12:41';
+const APP_VERSION = 502;
+const APP_BUILD_DATE = '2026/08/16 12:52';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
