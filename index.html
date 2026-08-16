@@ -901,8 +901,10 @@ details.settings-section[open] > summary{margin-bottom:10px;}
         </div>
         <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
           <button onclick="addCash(10)" style="padding:14px 2px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">10</button>
-          <button onclick="addCash(5)"  style="padding:14px 2px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">5</button>
-          <button onclick="addCash(1)"  style="padding:14px 2px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">1</button>
+          <div style="display:flex;gap:5px;">
+            <button onclick="addCash(5)" style="flex:1;padding:14px 2px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">5</button>
+            <button onclick="addCash(1)" style="flex:1;padding:14px 2px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">1</button>
+          </div>
         </div>
       </div>
       <div style="text-align:center;padding:10px;background:#f0f7e8;border-radius:8px;margin-top:8px;">
@@ -1035,8 +1037,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 503;
-const APP_BUILD_DATE = '2026/08/16 13:05';
+const APP_VERSION = 504;
+const APP_BUILD_DATE = '2026/08/16 13:12';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
