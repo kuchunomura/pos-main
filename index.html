@@ -883,16 +883,27 @@ details.settings-section[open] > summary{margin-bottom:10px;}
       <!-- C（1/3）+ ちょうど（2/3） -->
       <div style="display:grid;grid-template-columns:1fr 2fr;gap:6px;margin-top:8px;">
         <button onclick="document.getElementById('cash-received').value='';calcChange();" style="padding:11px 4px;border:1px solid #fcc;border-radius:10px;background:#fff;color:var(--red);font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;">C</button>
-        <button onclick="setCashExact()" style="padding:11px 4px;border:1px solid var(--green);border-radius:10px;background:#f0f7e8;color:var(--green);font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;">ちょうど</button>
+        <button onclick="setCashExact()" style="padding:11px 4px;border:1px solid var(--green);border-radius:10px;background:#cbe6a8;color:#2d5016;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;">ちょうど</button>
       </div>
-      <!-- 金額ボタン -->
-      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:6px;">
-        <button onclick="addCash(10000)" style="padding:16px 2px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">10,000</button>
-        <button onclick="addCash(5000)"  style="padding:16px 2px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">5,000</button>
-        <button onclick="addCash(1000)"  style="padding:16px 2px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">1,000</button>
-        <button onclick="addCash(500)"   style="padding:16px 2px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">500</button>
-        <button onclick="addCash(100)"   style="padding:16px 2px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">100</button>
-        <button onclick="addCash(50)"    style="padding:16px 2px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">50</button>
+      <!-- 金額ボタン: 4列（各列 上/下）＋最終列は 10/5/1 の3段 -->
+      <div style="display:flex;gap:5px;margin-top:6px;">
+        <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+          <button onclick="addCash(10000)" style="padding:14px 2px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">10,000</button>
+          <button onclick="addCash(5000)"  style="padding:14px 2px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">5,000</button>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+          <button onclick="addCash(1000)" style="padding:14px 2px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">1,000</button>
+          <button onclick="addCash(500)"  style="padding:14px 2px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">500</button>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+          <button onclick="addCash(100)" style="padding:14px 2px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">100</button>
+          <button onclick="addCash(50)"  style="padding:14px 2px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">50</button>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+          <button onclick="addCash(10)" style="padding:14px 2px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">10</button>
+          <button onclick="addCash(5)"  style="padding:14px 2px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">5</button>
+          <button onclick="addCash(1)"  style="padding:14px 2px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">1</button>
+        </div>
       </div>
       <div style="text-align:center;padding:10px;background:#f0f7e8;border-radius:8px;margin-top:8px;">
         <div style="font-size:12px;color:var(--text2);margin-bottom:2px;">お釣り</div>
@@ -1024,8 +1035,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 502;
-const APP_BUILD_DATE = '2026/08/16 12:52';
+const APP_VERSION = 503;
+const APP_BUILD_DATE = '2026/08/16 13:05';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
