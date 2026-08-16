@@ -422,6 +422,14 @@ details.settings-section[open] > summary{margin-bottom:10px;}
       <div class="summary-card"><div class="sc-label">人数</div><div class="sc-value" id="sum-people">0人</div></div>
       <div class="summary-card"><div class="sc-label">客単価</div><div class="sc-value" id="sum-avg">¥0</div></div>
     </div>
+    <!-- 売上合計の説明（タップで開閉） -->
+    <button type="button" onclick="var d=document.getElementById('sum-total-note');var s=d.style.display==='none';d.style.display=s?'':'none';this.textContent=(s?'▲':'▼')+' 売上合計にポイントは含む？';" style="font-size:12px;color:var(--accent2);background:none;border:none;cursor:pointer;padding:2px 0;font-family:inherit;margin-bottom:4px;">▼ 売上合計にポイントは含む？</button>
+    <div id="sum-total-note" style="display:none;font-size:12px;color:#111;line-height:1.7;background:#f7f7f7;border-radius:8px;padding:9px 11px;margin-bottom:10px;">
+      <b>ポイント利用分は含みません。</b>受け取った金額だけ（現金・カード・電子）。<br>
+      <b>例）¥3,000でポイント¥2,000利用：</b><br>
+      カート＝商品 <b>+3,000</b> ＋ ポイント利用 <b>−2,000</b> → <b>売上合計に入るのは ¥1,000</b>（受け取った現金／カード分）。<br>
+      ポイントの ¥2,000 は入りません。✅
+    </div>
     <div id="sales-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>
     <!-- グラフ切替（各カードの下に配置） -->
     <div style="display:flex;gap:4px;margin-top:14px;margin-bottom:8px;flex-wrap:wrap;">
@@ -1018,8 +1026,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 497;
-const APP_BUILD_DATE = '2026/08/16 11:14';
+const APP_VERSION = 498;
+const APP_BUILD_DATE = '2026/08/16 11:24';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
