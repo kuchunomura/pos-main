@@ -863,7 +863,10 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 @keyframes payTapBob{0%,100%{transform:translateY(3px) rotate(-8deg)}45%{transform:translateY(-8px) rotate(-8deg)}55%{transform:translateY(-8px) rotate(-8deg)}}
 @keyframes payBtnGlow{0%,100%{box-shadow:0 0 0 0 rgba(45,80,22,0)}50%{box-shadow:0 0 0 7px rgba(45,80,22,.18)}}
 .pay-tap-finger{position:absolute;right:20px;bottom:-16px;font-size:30px;pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35));z-index:5;display:none;}
+.pay-tap-finger-left{position:absolute;left:20px;bottom:-16px;font-size:30px;pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35));z-index:5;display:none;}
+@keyframes payTapBobL{0%,100%{transform:translateY(3px) rotate(8deg)}45%{transform:translateY(-8px) rotate(8deg)}55%{transform:translateY(-8px) rotate(8deg)}}
 #payment-modal.pay-ready .pay-tap-finger{display:block;animation:payTapBob 1.05s ease-in-out infinite;}
+#payment-modal.pay-ready .pay-tap-finger-left{display:block;animation:payTapBobL 1.05s ease-in-out infinite;}
 #payment-modal.pay-ready #payment-confirm-btn{animation:payBtnGlow 1.2s ease-in-out infinite;}
 </style>
 <div class="modal-overlay" id="payment-modal" onclick="if(event.target===this &amp;&amp; document.getElementById('pay-inline-done').style.display!=='none') inlineNextCustomer();">
@@ -900,6 +903,7 @@ details.settings-section[open] > summary{margin-bottom:10px;}
       <button onclick="closePaymentModal()">キャンセル</button>
       <button id="payment-confirm-btn" class="confirm" onclick="confirmPayment()" style="padding:20px 28px;font-size:19px;font-weight:800;flex:2;">決済完了</button>
       <span class="pay-tap-finger" aria-hidden="true">👆</span>
+      <span class="pay-tap-finger-left" aria-hidden="true">👆</span>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
       <div id="pay-merchant-note" style="display:none;font-size:15px;font-weight:700;color:#c00;">加盟店控えはレジへ！</div>
@@ -1018,8 +1022,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 499;
-const APP_BUILD_DATE = '2026/08/16 11:34';
+const APP_VERSION = 500;
+const APP_BUILD_DATE = '2026/08/16 12:30';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
