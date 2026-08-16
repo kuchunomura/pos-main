@@ -1018,8 +1018,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 492;
-const APP_BUILD_DATE = '2026/08/14 23:30';
+const APP_VERSION = 493;
+const APP_BUILD_DATE = '2026/08/16 10:35';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -3771,8 +3771,14 @@ function renderStatsCards(filtered){
   var payHtml='';
   if(_cash>0) payHtml+=payRow('現金','¥'+_cash.toLocaleString(),_cashN,true);
   if(_card>0||_elec>0) payHtml+=payRow('カード＋電子決済','¥'+_ce.toLocaleString(),(_cardN+_elecN),true);
-  if(_card>0) payHtml+=payRow('　カード','¥'+_card.toLocaleString(),_cardN);
-  if(_elec>0) payHtml+=payRow('　電子決済','¥'+_elec.toLocaleString(),_elecN);
+  var _sub='';
+  if(_card>0) _sub+=payRow('カード','¥'+_card.toLocaleString(),_cardN);
+  if(_elec>0) _sub+=payRow('電子決済','¥'+_elec.toLocaleString(),_elecN);
+  if(_sub) payHtml+='<div style="display:flex;align-items:stretch;gap:2px;">'+ // 内訳はカード＋電子決済の中身＝【 】で囲む（行の文字サイズは変えない）
+    '<span style="display:flex;align-items:center;font-size:38px;color:#111;line-height:1;">【</span>'+
+    '<div style="flex:1;">'+_sub+'</div>'+
+    '<span style="display:flex;align-items:center;font-size:38px;color:#111;line-height:1;">】</span>'+
+  '</div>';
   Object.keys(payMap).forEach(function(k){ if(k!=='現金'&&k!=='カード'&&k!=='電子決済'&&payMap[k]) payHtml+=payRow(k,'¥'+payMap[k].toLocaleString(),payCount[k]||0); });
   if(pointTotal>0) payHtml+=payRow('🎫 ポイント利用','¥'+pointTotal.toLocaleString(),'');
   var payCardHtml=payHtml?('<div style="background:#fff;border-radius:10px;padding:10px;box-shadow:var(--shadow);">'+
@@ -3922,8 +3928,14 @@ function renderSales(){
     var payHtmlS='';
     if(_cashS>0) payHtmlS+=payRowS('現金','¥'+_cashS.toLocaleString(),_cashNS,true);
     if(_cardS>0||_elecS>0) payHtmlS+=payRowS('カード＋電子決済','¥'+_ceS.toLocaleString(),(_cardNS+_elecNS),true); // ★合算を最も大きく
-    if(_cardS>0) payHtmlS+=payRowS('　カード','¥'+_cardS.toLocaleString(),_cardNS);
-    if(_elecS>0) payHtmlS+=payRowS('　電子決済','¥'+_elecS.toLocaleString(),_elecNS);
+    var _subS='';
+    if(_cardS>0) _subS+=payRowS('カード','¥'+_cardS.toLocaleString(),_cardNS);
+    if(_elecS>0) _subS+=payRowS('電子決済','¥'+_elecS.toLocaleString(),_elecNS);
+    if(_subS) payHtmlS+='<div style="display:flex;align-items:stretch;gap:2px;">'+ // 内訳＝【 】で囲む
+      '<span style="display:flex;align-items:center;font-size:38px;color:#111;line-height:1;">【</span>'+
+      '<div style="flex:1;">'+_subS+'</div>'+
+      '<span style="display:flex;align-items:center;font-size:38px;color:#111;line-height:1;">】</span>'+
+    '</div>';
     Object.keys(payMapS).forEach(function(k){ if(k!=='現金'&&k!=='カード'&&k!=='電子決済'&&payMapS[k]) payHtmlS+=payRowS(k,'¥'+payMapS[k].toLocaleString(),payCountS[k]||0); }); // 不明などその他
     if(pointTotalS>0) payHtmlS+=payRowS('🎫 ポイント利用','¥'+pointTotalS.toLocaleString(),'');
     var payCardS=payHtmlS?('<div style="background:#fff;border-radius:10px;padding:12px;box-shadow:var(--shadow);">'+
