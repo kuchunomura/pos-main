@@ -422,14 +422,6 @@ details.settings-section[open] > summary{margin-bottom:10px;}
       <div class="summary-card"><div class="sc-label">人数</div><div class="sc-value" id="sum-people">0人</div></div>
       <div class="summary-card"><div class="sc-label">客単価</div><div class="sc-value" id="sum-avg">¥0</div></div>
     </div>
-    <!-- 売上合計の説明（タップで開閉） -->
-    <button type="button" onclick="var d=document.getElementById('sum-total-note');var s=d.style.display==='none';d.style.display=s?'':'none';this.textContent=(s?'▲':'▼')+' 売上合計にポイントは含む？';" style="font-size:12px;color:var(--accent2);background:none;border:none;cursor:pointer;padding:2px 0;font-family:inherit;margin-bottom:4px;">▼ 売上合計にポイントは含む？</button>
-    <div id="sum-total-note" style="display:none;font-size:12px;color:#111;line-height:1.7;background:#f7f7f7;border-radius:8px;padding:9px 11px;margin-bottom:10px;">
-      <b>ポイント利用分は含みません。</b>受け取った金額だけ（現金・カード・電子）。<br>
-      <b>例）¥3,000でポイント¥2,000利用：</b><br>
-      カート＝商品 <b>+3,000</b> ＋ ポイント利用 <b>−2,000</b> → <b>売上合計に入るのは ¥1,000</b>（受け取った現金／カード分）。<br>
-      ポイントの ¥2,000 は入りません。✅
-    </div>
     <div id="sales-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>
     <!-- グラフ切替（各カードの下に配置） -->
     <div style="display:flex;gap:4px;margin-top:14px;margin-bottom:8px;flex-wrap:wrap;">
@@ -1026,8 +1018,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 498;
-const APP_BUILD_DATE = '2026/08/16 11:24';
+const APP_VERSION = 499;
+const APP_BUILD_DATE = '2026/08/16 11:34';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -3615,6 +3607,8 @@ var SUM_OTA_SHORT={rakuten:'楽天',other1:'楽天体験',jalan:'じゃらん',o
 function sumDiscBucket(i,r){ if(i.otaKey)return SUM_OTA_SHORT[i.otaKey]||'OTA'; if(i.passKey)return '年パス'; if(i.groupOn)return '団体'; if(i.muraOn)return '村民半額'; if(i.freeOn)return '無料'; if(r&&r.discount==='stay_guest')return '宿泊者'; return '通常料金'; }
 var SUM_DB_ORDER=['通常料金','宿泊者','村民半額','団体','年パス','無料','楽天','楽天体験','じゃらん','アソビュー','SOU','外部③','OTA'];
 function sumTally(n){ n=Math.max(0,Math.round(n||0)); var q=Math.floor(n/5), r=n%5; var s=''; for(var a=0;a<q;a++)s+='正'; for(var b=0;b<r;b++)s+='丨'; return s; } // 正の字＝5ごとに「正」、端数は「丨」
+// 「売上合計にポイントは含む？」タップ開閉の説明（💳支払方法別カードの左下に置く）。nextElementSiblingでnoteを開閉＝id不要・再描画でも安全。
+function pointNoteHtml(){ return '<button type="button" onclick="var d=this.nextElementSibling;var s=d.style.display===\'none\';d.style.display=s?\'\':\'none\';this.textContent=(s?\'▲\':\'▼\')+\' 売上合計にポイントは含む？\';" style="font-size:11px;color:var(--accent2);background:none;border:none;cursor:pointer;padding:2px 0;font-family:inherit;margin-top:8px;display:block;text-align:left;">▼ 売上合計にポイントは含む？</button><div style="display:none;font-size:11px;color:#111;line-height:1.7;background:#f7f7f7;border-radius:8px;padding:8px 10px;margin-top:4px;"><b>ポイント利用分は含みません。</b>受け取った金額だけ（現金・カード・電子）。<br><b>例）¥3,000でポイント¥2,000利用：</b><br>カート＝商品 <b>+3,000</b> ＋ ポイント利用 <b>−2,000</b> → <b>売上合計に入るのは ¥1,000</b>（受け取った現金／カード分）。<br>ポイントの ¥2,000 は入りません。✅</div>'; }
 
 function renderSummary(){
   const filtered = getPeriodFiltered();
@@ -3795,6 +3789,7 @@ function renderStatsCards(filtered){
   var payCardHtml=payHtml?('<div style="background:#fff;border-radius:10px;padding:10px;box-shadow:var(--shadow);">'+
     '<div style="font-size:13px;font-weight:700;color:var(--accent2);margin-bottom:6px;">💳 支払方法別（レジ締め用）</div>'+
     payHtml+
+    pointNoteHtml()+
   '</div>'):'';
   statsEl.innerHTML=
     payCardHtml+
@@ -3953,6 +3948,7 @@ function renderSales(){
     var payCardS=payHtmlS?('<div style="background:#fff;border-radius:10px;padding:12px;box-shadow:var(--shadow);">'+
       '<div style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:8px;">💳 支払方法別（レジ締め用）</div>'+
       payHtmlS+
+      pointNoteHtml()+
     '</div>'):'';
     statsEl.innerHTML =
       payCardS+
