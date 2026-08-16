@@ -1018,8 +1018,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 495;
-const APP_BUILD_DATE = '2026/08/16 10:53';
+const APP_VERSION = 496;
+const APP_BUILD_DATE = '2026/08/16 11:05';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -3780,11 +3780,13 @@ function renderStatsCards(filtered){
     '<span style="position:absolute;right:0;top:0;bottom:0;display:flex;align-items:center;font-size:26px;color:#111;line-height:1;">】</span>'+
   '</div>';
   Object.keys(payMap).forEach(function(k){ if(k!=='現金'&&k!=='カード'&&k!=='電子決済'&&payMap[k]) payHtml+=payRow(k,'¥'+payMap[k].toLocaleString(),payCount[k]||0); });
-  if(pointTotal>0) payHtml+=payRow('🎫 ポイント利用','¥'+pointTotal.toLocaleString(),'');
+  // 受取合計＝実際に手元に入った額（現金＋カード＋電子＋その他）＝レジ締めで照合する金額。ポイントは含めない。
+  var _recv=0; Object.keys(payMap).forEach(function(k){ _recv+=payMap[k]; });
+  payHtml+='<div style="display:grid;grid-template-columns:150px auto;column-gap:8px;align-items:baseline;padding:7px 0 3px;border-top:2px solid #333;margin-top:3px;"><span style="font-weight:800;color:#111;font-size:15px;">受取合計</span><span style="font-weight:800;color:#111;font-size:16px;">¥'+_recv.toLocaleString()+'</span></div>';
+  if(pointTotal>0) payHtml+='<div style="margin-top:8px;padding-top:6px;border-top:1px dashed #ccc;">'+payRow('🎫 ポイント利用','¥'+pointTotal.toLocaleString(),'')+'<div style="font-size:11px;color:#b8860b;margin-top:2px;line-height:1.5;">※ポイント分は<b>レジに入りません</b>（後日振込）。レジ締めは上の<b>受取合計</b>で確認。</div></div>';
   var payCardHtml=payHtml?('<div style="background:#fff;border-radius:10px;padding:10px;box-shadow:var(--shadow);">'+
     '<div style="font-size:13px;font-weight:700;color:var(--accent2);margin-bottom:6px;">💳 支払方法別（レジ締め用）</div>'+
     payHtml+
-    (pointTotal>0?'<div style="font-size:10px;color:#b8860b;margin-top:5px;line-height:1.5">🎫 ポイント利用＝後日振込分（手元に入らない）。<br>現金＋カード＋電子＝ドロワーの中身。</div>':'')+
   '</div>'):'';
   statsEl.innerHTML=
     payCardHtml+
@@ -3937,11 +3939,12 @@ function renderSales(){
       '<span style="position:absolute;right:0;top:0;bottom:0;display:flex;align-items:center;font-size:26px;color:#111;line-height:1;">】</span>'+
     '</div>';
     Object.keys(payMapS).forEach(function(k){ if(k!=='現金'&&k!=='カード'&&k!=='電子決済'&&payMapS[k]) payHtmlS+=payRowS(k,'¥'+payMapS[k].toLocaleString(),payCountS[k]||0); }); // 不明などその他
-    if(pointTotalS>0) payHtmlS+=payRowS('🎫 ポイント利用','¥'+pointTotalS.toLocaleString(),'');
+    var _recvS=0; Object.keys(payMapS).forEach(function(k){ _recvS+=payMapS[k]; }); // 受取合計＝実際に手元に入った額。ポイントは含めない。
+    payHtmlS+='<div style="display:grid;grid-template-columns:150px auto;column-gap:8px;align-items:baseline;padding:7px 0 3px;border-top:2px solid #333;margin-top:3px;"><span style="font-weight:800;color:#111;font-size:15px;">受取合計</span><span style="font-weight:800;color:#111;font-size:16px;">¥'+_recvS.toLocaleString()+'</span></div>';
+    if(pointTotalS>0) payHtmlS+='<div style="margin-top:8px;padding-top:6px;border-top:1px dashed #ccc;">'+payRowS('🎫 ポイント利用','¥'+pointTotalS.toLocaleString(),'')+'<div style="font-size:11px;color:#b8860b;margin-top:2px;line-height:1.5;">※ポイント分は<b>レジに入りません</b>（後日振込）。レジ締めは上の<b>受取合計</b>で確認。</div></div>';
     var payCardS=payHtmlS?('<div style="background:#fff;border-radius:10px;padding:12px;box-shadow:var(--shadow);">'+
       '<div style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:8px;">💳 支払方法別（レジ締め用）</div>'+
       payHtmlS+
-      (pointTotalS>0?'<div style="font-size:10px;color:#b8860b;margin-top:6px;line-height:1.5">🎫 ポイント利用は手元に入らない分（後日振込）。<br>現金＋カード＋電子＝ドロワーの中身。</div>':'')+
     '</div>'):'';
     statsEl.innerHTML =
       payCardS+
