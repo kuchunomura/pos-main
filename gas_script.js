@@ -373,11 +373,7 @@ function setTotalsFormulas(sheet) {
   sheet.getRange(1, 14).setNumberFormat('#,##0');
   sheet.getRange(1, 13, 1, 2).setFontWeight('bold').setBackground('#fdf5ff').setHorizontalAlignment('center');
 
-  // 現金: 背景なし（白）
-  sheet.getRange(1, 15).setValue('現金');
-  sheet.getRange(1, 16).setFormula('=SUMIF(J4:J,"現金",B4:B)');
-  sheet.getRange(1, 16).setNumberFormat('#,##0');
-  sheet.getRange(1, 15, 1, 2).setFontWeight('bold').setHorizontalAlignment('center');
+  // 現金はRow1右端から撤去 → Row2の「総売上(P差引後)寄り(G:H列)」に赤系背景で表示（setupCashInputRowで設定）。クレ+電子はその右(I:J列)へずらす。
 }
 
 // Row2: レジ現金入力行
@@ -392,10 +388,14 @@ function setupCashInputRow(sheet) {
   sheet.getRange(2, 4).setValue('対10万差額').setFontWeight('bold');
   sheet.getRange(2, 5).setFormula('=IF(B2="","",B2-100000)');
   sheet.getRange(2, 5).setNumberFormat('+#,##0;-#,##0;0').setFontColor('#B22222').setFontWeight('bold');
-  // G2: クレ+電子ラベル, H2: 合計金額
-  sheet.getRange(2, 7).setValue('クレ+電子').setFontWeight('bold').setHorizontalAlignment('center');
-  sheet.getRange(2, 8).setFormula('=SUMIF(J4:J,"クレジットカード",B4:B)+SUMIF(J4:J,"電子決済",B4:B)');
-  sheet.getRange(2, 8).setNumberFormat('#,##0').setFontWeight('bold').setHorizontalAlignment('center').setBackground('#e8e4ff');
+  // G2: 現金ラベル, H2: 現金売上（背景赤系＝総売上の内訳としてレジ締めで目立たせる／総売上(P差引後)寄り＝クレ+電子の左）
+  sheet.getRange(2, 7).setValue('現金').setFontWeight('bold').setHorizontalAlignment('center').setBackground('#f4cccc');
+  sheet.getRange(2, 8).setFormula('=SUMIF(J4:J,"現金",B4:B)');
+  sheet.getRange(2, 8).setNumberFormat('#,##0').setFontWeight('bold').setHorizontalAlignment('center').setBackground('#f4cccc');
+  // I2: クレ+電子ラベル（現金の右へずらした）, J2: 合計金額
+  sheet.getRange(2, 9).setValue('クレ+電子').setFontWeight('bold').setHorizontalAlignment('center');
+  sheet.getRange(2, 10).setFormula('=SUMIF(J4:J,"クレジットカード",B4:B)+SUMIF(J4:J,"電子決済",B4:B)');
+  sheet.getRange(2, 10).setNumberFormat('#,##0').setFontWeight('bold').setHorizontalAlignment('center').setBackground('#e8e4ff');
   // K2: 繰越合計ラベル, L2: SUMIF（繰越を含む行の売上合計）
   sheet.getRange(2, 11).setValue('前日繰越合計').setFontWeight('bold').setHorizontalAlignment('center').setBackground('#fff3cd');
   sheet.getRange(2, 12).setFormula('=SUMIF(N4:N,"*繰越*",B4:B)');
