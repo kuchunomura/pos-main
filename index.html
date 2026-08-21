@@ -48,8 +48,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 .cat-drag-handle{font-size:14px;color:#bbb;cursor:grab;padding:0 2px;display:none;}
 .edit-mode .cat-drag-handle{display:block;}
 .cat-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px;}
-.item-btn{border-radius:10px;padding:10px 6px;cursor:pointer;text-align:center;transition:all 0.15s;box-shadow:var(--shadow);position:relative;user-select:none;font-family:inherit;border-width:2px;border-style:solid;}
-.item-btn:active{transform:scale(0.96);box-shadow:none;}
+.item-btn{border-radius:10px;padding:10px 6px;cursor:pointer;text-align:center;transition:transform .05s ease,box-shadow .05s ease;box-shadow:0 3px 0 rgba(0,0,0,.16),0 5px 7px rgba(0,0,0,.14);position:relative;user-select:none;font-family:inherit;border-width:2px;border-style:solid;}
+.item-btn:active{transform:translateY(3px);box-shadow:0 0 0 rgba(0,0,0,.16),0 1px 2px rgba(0,0,0,.2);}
 .item-btn.dragging-item{opacity:0.4;}
 .item-btn.drag-over-item{outline:3px dashed var(--accent);}
 .item-btn .item-name{font-size:13px;font-weight:600;line-height:1.3;margin-bottom:2px;}
@@ -1040,8 +1040,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 507;
-const APP_BUILD_DATE = '2026/08/16 13:40';
+const APP_VERSION = 508;
+const APP_BUILD_DATE = '2026/08/21 11:59';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
