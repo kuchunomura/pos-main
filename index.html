@@ -207,7 +207,7 @@ details.settings-section[open] > summary{margin-bottom:10px;}
   <button onclick="switchTab('timer')">⏱時間</button>
   <button onclick="switchTab('sales')">📊売上</button>
   <button onclick="switchTab('settings-pos')">⚙️設定</button>
-  <button id="reload-btn" onclick="this.classList.add('btn-spinning');location.href=location.pathname+'?r='+Date.now()" title="リロード"><span class="spin-ico">🔄</span></button>
+  <button id="reload-btn" onclick="this.classList.add('btn-spinning');var u=location.pathname+'?r='+Date.now();setTimeout(function(){location.href=u;},450)" title="リロード"><span class="spin-ico">🔄</span></button>
   <span id="tabbar-version"></span>
 </div>
 
@@ -1046,8 +1046,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 509;
-const APP_BUILD_DATE = '2026/08/21 12:10';
+const APP_VERSION = 510;
+const APP_BUILD_DATE = '2026/08/21 12:16';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
