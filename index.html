@@ -190,6 +190,12 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a7a3a;color:#fff;padding:10px 22px;border-radius:10px;font-size:13px;font-weight:600;z-index:300;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;}
 
+/* 取得中スピナー（🔄再取得・設定右のリロード） */
+@keyframes posSpin{to{transform:rotate(360deg);}}
+.spin-ico{display:inline-block;}
+.btn-spinning{opacity:0.75;pointer-events:none;}
+.btn-spinning .spin-ico{animation:posSpin 0.7s linear infinite;}
+
 
 
 </style>
@@ -201,7 +207,7 @@ details.settings-section[open] > summary{margin-bottom:10px;}
   <button onclick="switchTab('timer')">⏱時間</button>
   <button onclick="switchTab('sales')">📊売上</button>
   <button onclick="switchTab('settings-pos')">⚙️設定</button>
-  <button id="reload-btn" onclick="location.href=location.pathname+'?r='+Date.now()" title="リロード">🔄</button>
+  <button id="reload-btn" onclick="this.classList.add('btn-spinning');location.href=location.pathname+'?r='+Date.now()" title="リロード"><span class="spin-ico">🔄</span></button>
   <span id="tabbar-version"></span>
 </div>
 
@@ -990,7 +996,7 @@ details.settings-section[open] > summary{margin-bottom:10px;}
     <h3>📅 予約から会計を起票</h3>
     <div id="yoyaku-modal-content" style="margin:8px 0;overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;"></div>
     <div class="modal-btns">
-      <button onclick="refreshYoyaku(true)">🔄 再取得</button>
+      <button id="yoyaku-refresh-btn" onclick="refreshYoyaku(true)"><span class="spin-ico">🔄</span> 再取得</button>
       <button onclick="document.getElementById('yoyaku-modal').classList.remove('open')">閉じる</button>
     </div>
   </div>
@@ -1040,8 +1046,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 508;
-const APP_BUILD_DATE = '2026/08/21 11:59';
+const APP_VERSION = 509;
+const APP_BUILD_DATE = '2026/08/21 12:10';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2947,10 +2953,14 @@ function refreshYoyaku(force){
   // 以前は _yoyakuFetching が立っていると即returnしていたため、前回の取得が
   // 例外で中断してフラグが立ちっぱなしだと画面が永久に空のままになっていた（2026/07/16）。
   if(_yoyakuFetching){
-    if(force && c && !_yoyakuCache) c.innerHTML='<div style="text-align:center;color:#888;padding:1.5rem">読み込み中…</div>';
+    if(force){
+      var _rb=document.getElementById('yoyaku-refresh-btn'); if(_rb) _rb.classList.add('btn-spinning');
+      if(c && !_yoyakuCache) c.innerHTML='<div style="text-align:center;color:#888;padding:1.5rem">読み込み中…</div>';
+    }
     return;
   }
   _yoyakuFetching=true;
+  var _rbtn=document.getElementById('yoyaku-refresh-btn'); if(_rbtn) _rbtn.classList.add('btn-spinning');
   if(c && !_yoyakuCache) c.innerHTML='<div style="text-align:center;color:#888;padding:1.5rem">読み込み中…（初回のみ数秒かかります）</div>';
   var showErr=function(e){
     // 描画側(renderYoyakuPicker)の例外もここへ来るので、キャッシュがあってもエラーを画面に出す。
@@ -2975,6 +2985,7 @@ function refreshYoyaku(force){
     showErr(e); // 通信・GAS側のエラー。ここでは必ず画面に出す（トーストで隠さない）
   }).then(function(){
     _yoyakuFetching=false; // 成功/失敗どちらでも必ずフラグを戻す（固まり防止）
+    var b=document.getElementById('yoyaku-refresh-btn'); if(b) b.classList.remove('btn-spinning');
   });
 }
 
