@@ -113,7 +113,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 .pay-other-btn{flex:1;padding:8px 6px;background:var(--accent2);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
 .cart-bottom-btns{display:flex;gap:6px;}
 .hold-btn{flex:1;padding:7px;border:1px solid var(--accent3);border-radius:8px;background:#fff;color:var(--accent2);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;}
-.clear-btn{flex:1;padding:7px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text2);font-size:11px;cursor:pointer;font-family:inherit;}
+.clear-btn{flex:1;padding:7px;border:1px solid #c0392b;border-radius:8px;background:#fff;color:#c0392b;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;}
 
 /* ===== 売上タブ ===== */
 #tab-sales{flex-direction:column;overflow:hidden;}
@@ -266,6 +266,7 @@ details.settings-section[open] > summary{margin-bottom:10px;}
       <div class="cart-list" id="cart-list"></div>
       <div class="cart-footer">
         <div id="orig-amount-row" class="orig-amount" style="display:none"></div>
+        <div id="res-banner" style="display:none;background:#fdf5ed;border:1px solid #e0b070;border-radius:8px;padding:6px 10px;margin-bottom:6px;font-size:12px;color:#7a1030;line-height:1.45;"></div>
 
         <div class="total-row" id="point-btn-row" style="position:relative;flex-direction:row;justify-content:space-between;align-items:center;margin-bottom:6px;padding:0 0 6px;">
           <div style="display:flex;align-items:baseline;gap:6px;">
@@ -1046,8 +1047,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 511;
-const APP_BUILD_DATE = '2026/08/21 12:22';
+const APP_VERSION = 512;
+const APP_BUILD_DATE = '2026/08/21 12:40';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2373,8 +2374,21 @@ function addCustomItem(){
   renderCart();showToast('✓ 未登録商品を追加');
 }
 
+// 予約者バナー（カート上部・合計/ポイント決済の直上）。予約読込中は常時表示、×削除では残りクリアで消える
+function updateResBanner(){
+  var rb=document.getElementById('res-banner'); if(!rb) return;
+  if(_reservationInfo && _reservationInfo.name){
+    var i=_reservationInfo;
+    rb.style.display='block';
+    rb.innerHTML='<div style="font-weight:700;">📅 予約者：'+(i.head?esc(i.head)+'　':'')+esc(i.name)+'</div>'
+      +(i.detail?'<div style="color:#555;margin-top:1px;">'+esc(i.detail)+'</div>':'')
+      +'<div style="color:#c0392b;font-size:11px;margin-top:3px;">別のお客様の会計に移るときは「🗑 クリア」で消してください</div>';
+  }else{ rb.style.display='none'; rb.innerHTML=''; }
+}
+
 function renderCart(){
   const c=document.getElementById('cart-list');c.innerHTML='';
+  updateResBanner();
   if(!cart.length){
     c.innerHTML='<div style="text-align:center;color:#bbb;padding:1.5rem;font-size:12px">商品を選択してください</div>';
     document.getElementById('cart-count').textContent='';
@@ -2634,7 +2648,7 @@ function removeActiveHold(){
   activeHoldIdx=-1;
 }
 function clearCart(){
-  _reservationSaleTag='';_reservationResId='';_pendingHoldTitle='';
+  _reservationSaleTag='';_reservationResId='';_reservationInfo=null;_pendingHoldTitle='';
   if(editingSaleId){
     // 修正モード中はeditingSaleIdを保持（タブ切り替え時に削除確認できるように）
     removeActiveHold();
@@ -2716,9 +2730,9 @@ function parkCurrentCart(){
   if(!cart.length) return;
   if(activeHoldIdx>=0 && holds[activeHoldIdx]){
     const p=holds[activeHoldIdx];
-    holds[activeHoldIdx]={title:p.title,cart:[...cart],attrs:{...selectedAttrs},discount:activeDiscount,resId:p.resId,resTag:p.resTag};
+    holds[activeHoldIdx]={title:p.title,cart:[...cart],attrs:{...selectedAttrs},discount:activeDiscount,resId:p.resId,resTag:p.resTag,resInfo:p.resInfo||_reservationInfo||undefined};
   } else if(holds.length<MAX_HOLDS){
-    holds.push({title:(_pendingHoldTitle||new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})),cart:[...cart],attrs:{...selectedAttrs},discount:activeDiscount,resId:_reservationResId||undefined,resTag:_reservationSaleTag||undefined});
+    holds.push({title:(_pendingHoldTitle||new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})),cart:[...cart],attrs:{...selectedAttrs},discount:activeDiscount,resId:_reservationResId||undefined,resTag:_reservationSaleTag||undefined,resInfo:_reservationInfo||undefined});
   }
   sv(KEYS.holds,holds); saveSnapshotToIDB();
 }
@@ -2735,13 +2749,13 @@ function confirmHold(){
   const title=document.getElementById('hold-title-input').value.trim()||new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
   if(activeHoldIdx>=0 && holds[activeHoldIdx]){
     const p=holds[activeHoldIdx];
-    holds[activeHoldIdx]={title,cart:[...cart],attrs:{...selectedAttrs},discount:activeDiscount,resId:p.resId,resTag:p.resTag||_reservationSaleTag||undefined};
+    holds[activeHoldIdx]={title,cart:[...cart],attrs:{...selectedAttrs},discount:activeDiscount,resId:p.resId,resTag:p.resTag||_reservationSaleTag||undefined,resInfo:p.resInfo||_reservationInfo||undefined};
   } else {
     if(holds.length>=MAX_HOLDS){ showToast('⚠ 保留は最大'+MAX_HOLDS+'件です','#c00'); return; }
-    holds.push({title,cart:[...cart],attrs:{...selectedAttrs},discount:activeDiscount,resId:_reservationResId||undefined,resTag:_reservationSaleTag||undefined});
+    holds.push({title,cart:[...cart],attrs:{...selectedAttrs},discount:activeDiscount,resId:_reservationResId||undefined,resTag:_reservationSaleTag||undefined,resInfo:_reservationInfo||undefined});
   }
   sv(KEYS.holds,holds); saveSnapshotToIDB();
-  _pendingHoldTitle='';_reservationSaleTag='';_reservationResId='';
+  _pendingHoldTitle='';_reservationSaleTag='';_reservationResId='';_reservationInfo=null;
   // 保留後は新しいお客様用にクリア
   cart=[];selectedAttrs={age:[],nationality:[]};activeDiscount='';activeMura=false;souRentalFree=false;
   activeHoldIdx=-1;
@@ -2753,7 +2767,7 @@ function confirmHold(){
 function switchHold(idx){
   if(idx<0||idx>=holds.length) return;
   parkCurrentCart();                 // 現在の作業カートを退避（新規なら末尾へ追加）
-  _reservationSaleTag='';_reservationResId='';_pendingHoldTitle='';
+  _reservationSaleTag='';_reservationResId='';_reservationInfo=null;_pendingHoldTitle='';
   activeHoldIdx=idx;
   const h=holds[idx];
   cart=[...h.cart];
@@ -2761,6 +2775,7 @@ function switchHold(idx){
   activeDiscount=h.discount||'';
   _reservationSaleTag=h.resTag||''; // 予約由来なら決済メモ用タグを復元
   _reservationResId=h.resId||'';    // 予約由来なら会計済み判定用のresIdも復元
+  _reservationInfo=h.resInfo||null; // 予約者バナー情報も復元
   _pendingHoldTitle=h.title||'';
   recalcCartPrices();
   renderCart();renderAttrs();renderDiscountBar();renderPOS();renderHoldTabs();
@@ -2782,7 +2797,36 @@ let _yoyakuFetching=false;  // 二重取得ガード
 let _pendingHoldTitle='';   // 予約読込時に保留の既定名へ引き継ぐ
 let _reservationSaleTag='';  // 予約読込時に決済売上メモへ付与する「予約: 名前（M/D）」（ダブり確認用）
 let _reservationResId='';    // 予約読込時のresId（type:id）。決済売上に記録しピッカーの会計済み判定に使う
+let _reservationInfo=null;   // カート上部バナー用の予約者情報 {name,head,detail}。クリアで消す（×削除では残す）
 let _copyArmKey='';          // 会計済み予約の「＋コピー」2回タップ確定用にアーム中のresKey
+
+// 予約者バナー用の説明を予約オブジェクトから作る（ピッカー行と同じ表記）
+function buildResInfo(o,type,dateStr){
+  if(!o) return null;
+  var wk=['日','月','火','水','木','金','土'];
+  var p=String(dateStr||'').split('-');
+  var head='';
+  if(p.length===3){
+    var _pad=function(n){return String(n).padStart(2,'0');};
+    var dt=new Date(+p[0],+p[1]-1,+p[2]);
+    var now=new Date();
+    var today=now.getFullYear()+'-'+_pad(now.getMonth()+1)+'-'+_pad(now.getDate());
+    var tmr=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1);
+    var tomorrow=tmr.getFullYear()+'-'+_pad(tmr.getMonth()+1)+'-'+_pad(tmr.getDate());
+    head=(+p[1])+'/'+(+p[2])+'（'+wk[dt.getDay()]+'）'+(dateStr===today?' （本日）':(dateStr===tomorrow?' （翌日）':''));
+  }
+  var detail='';
+  if(type==='day'){
+    var fac={walk:'空中ウォーク',tree:'ツリーハウス昼',bbq:'BBQ'}[o.facility]||o.facility;
+    var crs={55:'55分',115:'115分',0:'1DAY'}[o.course]||'';
+    detail='日帰り '+fac+' '+crs+'　'+(o.ninzu||'')+'名';
+  }else{
+    var sit=items.find(function(it){return it.id==='i_'+o.facility;});
+    var facName=sit?sit.name:(o.facGroup||'棟未選択');
+    detail='宿泊 '+facName+'　'+(o.nights||1)+'泊 '+(o.ninzu||'')+'名'+((o.petCount||0)>0?'　ペット'+o.petCount:'');
+  }
+  return {name:(o.name||'（無名）'),head:head,detail:detail};
+}
 let _paidArmKey='';          // 「レジ未計上→会計済みに」2回タップ確定用にアーム中のresKey
 let manualPaidRes = ld('pos_manual_paid_res') || {}; // レジに入れず会計してしまった予約を手動で会計済み扱い {resId:true}
 
@@ -3126,7 +3170,7 @@ function loadReservationToCart(type,id){
   var _rdate=(o.date||o.checkin||'');
   var _rmd=_rdate?((+_rdate.slice(5,7))+'/'+(+_rdate.slice(8,10))):'';
   _reservationSaleTag='予約: '+(o.name||'（無名）')+(_rmd?'（'+_rmd+'）':'');
-  _reservationResId=resId;
+  _reservationResId=resId; _reservationInfo=buildResInfo(o,type,_rdate);
   parkCurrentCart();      // 現在の作業カートを退避（新規なら末尾へ）
   cart=[]; activeHoldIdx=-1; souRentalFree=false;
   applyYoyakuDiscountContext(o,type==='stay');
@@ -3157,7 +3201,7 @@ function loadReservationToCart(type,id){
   recalcCartPrices();
   // 予約者名つきの保留として末尾に追加（タブに名前表示＋重複防止のresId付与）
   if(holds.length<MAX_HOLDS){
-    holds.push({title:(o.name||'予約'),cart:cart.map(function(c){return Object.assign({},c);}),attrs:Object.assign({},selectedAttrs),discount:activeDiscount,resId:resId,resTag:_reservationSaleTag});
+    holds.push({title:(o.name||'予約'),cart:cart.map(function(c){return Object.assign({},c);}),attrs:Object.assign({},selectedAttrs),discount:activeDiscount,resId:resId,resTag:_reservationSaleTag,resInfo:_reservationInfo||undefined});
     activeHoldIdx=holds.length-1;
     sv(KEYS.holds,holds); saveSnapshotToIDB();
   } else {
@@ -3211,7 +3255,7 @@ function copyReservationToCart(type,id){
   for(var i=startLen;i<cart.length;i++){ cart[i]._resId=resId; cart[i]._resTag=resTag; }
   recalcCartPrices();
   _pendingHoldTitle=o.name||_pendingHoldTitle||'';
-  _reservationSaleTag=resTag; _reservationResId=resId;
+  _reservationSaleTag=resTag; _reservationResId=resId; _reservationInfo=buildResInfo(o,type,_rdate);
   renderCart();renderPOS();renderAttrs();renderDiscountBar();
   if(document.getElementById('yoyaku-modal').classList.contains('open')) renderYoyakuPicker(_yoyakuCache); // ボタンを「コピー✅」に更新
   var msg='✓ 「'+(o.name||'予約')+'」をカートに追加';
@@ -3448,7 +3492,7 @@ function confirmPayment(){
     editingSaleId=null;
   }
   sales.push(record);sv(KEYS.sales,sales);
-  _reservationSaleTag='';_reservationResId='';_pendingHoldTitle='';
+  _reservationSaleTag='';_reservationResId='';_reservationInfo=null;_pendingHoldTitle='';
   saveSnapshotToIDB();
   lastSaleId=record.id;
   autoSyncSale(record).then(function(ok){
@@ -4105,6 +4149,7 @@ function editSaleRecord(id){
   // 予約由来の売上を修正する場合は、再確定後も会計済み判定が保てるようresId/タグを引き継ぐ
   _reservationResId=record.resId||'';
   var _em=record.memo||''; _reservationSaleTag=(_em.indexOf('予約: ')===0)?(_em.indexOf(' / ')>0?_em.slice(0,_em.indexOf(' / ')):_em):'';
+  _reservationInfo=_reservationSaleTag?{name:_reservationSaleTag.replace(/^予約:\s*/,''),head:'',detail:'（予約から起票された会計の修正）'}:null;
   cart=[...record.items];selectedAttrs={...record.attrs};activeDiscount=record.discount||'';
   lastSaleId=null;
   switchTab('pos');
