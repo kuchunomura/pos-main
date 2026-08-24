@@ -43,7 +43,18 @@ function doGet(e) {
     if (e && e.parameter && e.parameter.action === 'getCarryOver') {
       return getCarryOverTotal(e.parameter.date || '');
     }
-    var d = (e && e.parameter && e.parameter.d) ? JSON.parse(decodeURIComponent(e.parameter.d)) : null;
+    // Apps Script は e.parameter を「既にURLデコードした状態」で渡す。ここでさらに
+    // decodeURIComponent をかけるのは二重デコードで、値に「%」が含まれる売上
+    // （割引区分「50%引き」／メモの「20%オフ」など）で「%引」が不正なパーセント
+    // エスケープと判定され URIError: URI malformed となり、GASが {status:'error'} を返す。
+    // その結果その売上だけが永久に「要再送」のままになっていた（2026/08/24 判明）。
+    // まず素のままパースし、旧クライアントが二重エンコードしていた場合だけデコードして再挑戦する。
+    var d = null;
+    if (e && e.parameter && e.parameter.d) {
+      var _raw = e.parameter.d;
+      try { d = JSON.parse(_raw); }
+      catch (e1) { d = JSON.parse(decodeURIComponent(_raw)); }
+    }
     if (!d) return ok();
     if (d.type === 'test') return ok();
     var result = handleRequest(d);
