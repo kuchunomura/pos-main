@@ -1047,8 +1047,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 518;
-const APP_BUILD_DATE = '2026/08/24 22:54';
+const APP_VERSION = 519;
+const APP_BUILD_DATE = '2026/08/24 23:02';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -4632,16 +4632,30 @@ async function doMonthlySummary(){
   }
 }
 
+// 直近の同期失敗の理由。従来 autoSyncSale は catch でエラーを捨てており、「要再送」だけが出て
+// 原因（レジ側のJSエラー／通信断／GASのエラー）がまったく分からなかった。再送時に表示するため残す。
+var _lastSyncError='';
+function _syncErrText(e){
+  if(!e) return '不明';
+  var n=e.name?e.name+': ':'';
+  return n+(e.message||String(e));
+}
 // 決済ごとに自動送信（新規）
 async function autoSyncSale(sale){
   const url=ld(KEYS.gas)||DEFAULT_GAS_URL;
-  if(!url) return false;
+  if(!url){ _lastSyncError='GAS URLが未設定です（設定タブで確認）'; return false; }
+  var rows;
+  try{ rows=saleToRows(sale); }
+  catch(e){ _lastSyncError='売上の変換に失敗（レジ側の不具合）: '+_syncErrText(e); return false; }
   try{
-    var qs='?d='+encodeURIComponent(JSON.stringify({type:'add_rows',rows:saleToRows(sale)}));
+    var qs='?d='+encodeURIComponent(JSON.stringify({type:'add_rows',rows:rows}));
     var res=await fetch(url+qs,{method:'GET',redirect:'follow'});
+    if(!res.ok){ _lastSyncError='GASの応答エラー HTTP '+res.status+'（デプロイURL・アクセス権を確認）'; return false; }
     var json=await res.json();
-    return json.status==='ok';
-  }catch(e){ return false; }
+    if(json.status!=='ok'){ _lastSyncError='GASがエラーを返した: '+(json.message||JSON.stringify(json).slice(0,150)); return false; }
+    _lastSyncError='';
+    return true;
+  }catch(e){ _lastSyncError='通信エラー: '+_syncErrText(e); return false; }
 }
 
 // ポップアップで変更した売上を再送（replace）
@@ -4695,6 +4709,9 @@ async function retrySyncSale(id){
   s.syncStatus='pending';sv(KEYS.sales,sales);renderSales();
   var ok=await autoSyncSale(s);
   s.syncStatus=ok?'ok':'fail';sv(KEYS.sales,sales);renderSales();
+  // 失敗の理由をそのまま出す（従来は「要再送」だけで原因が分からなかった）
+  if(ok) showToast('✓ 同期しました');
+  else showToast('⚠ 同期できません／'+(_lastSyncError||'原因不明'),'#c00',12000);
 }
 
 function toggleTopBtns(){
