@@ -1047,8 +1047,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 515;
-const APP_BUILD_DATE = '2026/08/24 10:33';
+const APP_VERSION = 516;
+const APP_BUILD_DATE = '2026/08/24 11:23';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2954,8 +2954,50 @@ function normDayTimeJST(t){
   return ('0'+((hh+9)%24)).slice(-2)+':'+m[2];
 }
 // 備考テキスト中の「認識できたレンタル語」の直後に橙✓を付ける（yoyaku準拠）。未認識語はそのまま＝スタッフが手動確認できる
+// ── 予約備考の表示整形（yoyaku と同一ロジック） ───────────────────
+// 客フォームのレンタルチェック項目の定型英訳＋価格だけを表示から隠す。
+// 例「ローテーブル✓ Table　800JPY」→「ローテーブル✓」
+// 英字＋数字＋JPY の直前が下表のレンタル品名のときだけ削るので、
+// お客さんの手記入（例「延泊 extra night 9000JPY」）は消えない。表示専用。
+// ※ 下表は yoyaku/index.html の RENTAL_ALIAS と同一（変更時は両方あわせること）
+const POS_RENTAL_ALIAS={
+  b01:/焚.?火|たき火|タキ火|バーベキューコンロ|\bbon\s*fire\b|\bfire\s*pit\b|\bfirepit\b|\bbrazier\b/i,
+  b02:/スキレット|フライパン|鉄板|鍋|なべ|ナベ|\bskillet\b|\bfrying\s*pan\b|\bfrypan\b|\bpan\b|\bpot\b/i,
+  b03:/ローテーブル|テーブル|机|つくえ|卓|\blow\s*table\b|\btable\b|\bdesk\b/i,
+  b04:/ベンチ|椅子|いす|イス|チェア|\bbench\b|\bchair\b|\bstool\b/i,
+  b05:/木炭|炭|\bcharcoal\b(?!\s*(?:starter|chimney))/i,
+  b06:/ガスコンロ|コンロ|\bgas\s*stove\b|\bgas\s*cooker\b|\bstove\b/i,
+  b06b:/バーナー|トーチ|\bburner\b|\btorch\b/i,
+  b06c:/マッチ|ライター|チャッカマン|着火|\bmatch(?:es)?\b|\blighter\b/i,
+  b06d:/ランタン|ランプ|\blantern\b|\blamp\b/i,
+  b07:/薪割|まき割|薪わり|まきわり|マキワリ|\b(?:axe|hatchet)\b|\blog\s*splitter\b|\bwood\s*split/i,
+  b08:/コーヒー|珈琲|\bcoffee\b/i,
+  b13:/電源.{0,3}大|大.{0,3}電源|ポータブル電源(?!.{0,3}小)|ポタ電(?!.{0,3}小)|\b(?:large|big)\s*(?:portable\s*)?power\s*(?:station|bank|supply)\b|\b(?:portable\s*)?power\s*(?:station|bank|supply)\b(?!.{0,8}(?:small|mini))/i,
+  b14:/電源.{0,3}小|小.{0,3}電源|ポータブル電源.{0,3}小|ポタ電.{0,3}小|\b(?:small|mini)\s*(?:portable\s*)?power\s*(?:station|bank|supply)\b|\b(?:portable\s*)?power\s*(?:station|bank|supply)\b.{0,8}(?:small|mini)/i,
+  b12:/ケトル|やかん|ヤカン|薬缶|\bkettle\b/i,
+  b12b:/飯ごう|飯盒|はんごう|ハンゴウ|メスティン|\bmess\s*(?:tin|kit)\b|\bmesstin\b/i,
+  b12c:/ホットサンド|\bhot\s*sand(?:wich)?\b|\bsandwich\s*maker\b|\bpanini\b/i,
+  b09:/火起こし|火おこし|火起し|チャコールスターター|ファイ[アヤ]ー?スターター|\bfire\s*starter\b|\bfirestarter\b|\bchimney\s*starter\b|\bcharcoal\s*starter\b/i,
+  b10:/カート|台車|ワゴン|リ[ヤア]カー|\bcart\b|\btrolley\b|\bwagon\b|\bhand\s*truck\b/i,
+  b_yutanpo:/湯たんぽ|湯タンポ|ゆたんぽ|\bhot\s*water\s*bottle\b/i,
+  b18:/焼き?網|あみ焼|\bgrill\s*(?:net|grate|rack|mesh)\b|\bwire\s*mesh\b|\bbbq\s*net\b/i,
+  b20:/(寝袋|シュラフ).{0,3}冬|冬.{0,3}(寝袋|シュラフ)|\bsleeping\s*bag\b.{0,8}\bwinter\b|\bwinter\b.{0,8}\bsleeping\s*bag\b/i,
+  b19:/(寝袋|シュラフ)(?!.{0,4}冬)|\bsleeping\s*bag\b(?!.{0,8}winter)/i
+};
+function posStripFormEn(m){
+  var s=String(m||'');
+  if(!/[0-9０-９][ \t　]*JPY/i.test(s)) return s;
+  s=s.replace(/[A-Za-z][A-Za-z0-9\s.,+&\/'’()\-]*?[0-9０-９]+[ \t　]*JPY/gi,function(tail,idx,whole){
+    var head=whole.slice(0,idx);
+    var jp=head.match(/[ぁ-んァ-ヶー一-龥々〆＋+✓]+[ \t　]*$/);
+    if(!jp) return tail;
+    for(var k in POS_RENTAL_ALIAS){ if(POS_RENTAL_ALIAS[k].test(jp[0])) return ''; }
+    return tail;
+  });
+  return s.replace(/[ \t　]{2,}/g,' ').trim();
+}
 function posMemoRentalChecks(memo, rental){
-  memo=String(memo||'').replace(/✓/g,'');
+  memo=posStripFormEn(String(memo||'').replace(/✓/g,''));
   if(!memo) return '';
   var marks=[];
   (rental||[]).forEach(function(it){
@@ -3086,9 +3128,9 @@ function renderYoyakuPicker(data){
     var rentalLine=(o.rental&&o.rental.length)?'<div style="font-size:11px;color:#111;margin-top:2px">レンタル: '+esc(o.rental.map(function(r){return r.name+'×'+(r.qty||1);}).join('、'))+'</div>':'';
     var memoHtml='';
     if(o.memo){
-      var full=posMemoRentalChecks(o.memo,o.rental);
-      if(o.memo.length<=50) memoHtml='<div style="font-size:11px;color:#111;margin-top:3px;white-space:pre-wrap">備考: '+full+'</div>';
-      else memoHtml='<details onclick="event.stopPropagation()" style="font-size:11px;color:#111;margin-top:3px"><summary style="cursor:pointer;color:#333;list-style:revert">備考: '+esc(o.memo.replace(/\s+/g,' ').slice(0,30))+'…</summary><div style="white-space:pre-wrap;margin-top:3px">'+full+'</div></details>';
+      var _pm=posStripFormEn(o.memo); var full=posMemoRentalChecks(_pm,o.rental);
+      if(_pm.length<=50) memoHtml='<div style="font-size:11px;color:#111;margin-top:3px;white-space:pre-wrap">備考: '+full+'</div>';
+      else memoHtml='<details onclick="event.stopPropagation()" style="font-size:11px;color:#111;margin-top:3px"><summary style="cursor:pointer;color:#333;list-style:revert">備考: '+esc(_pm.replace(/\s+/g,' ').slice(0,30))+'…</summary><div style="white-space:pre-wrap;margin-top:3px">'+full+'</div></details>';
     }
     var idAttr=String(x.id).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     var onload="loadReservationToCart('"+x.type+"','"+idAttr+"')";
