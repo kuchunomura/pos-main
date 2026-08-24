@@ -1047,8 +1047,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 519;
-const APP_BUILD_DATE = '2026/08/24 23:02';
+const APP_VERSION = 520;
+const APP_BUILD_DATE = '2026/08/24 23:22';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -4103,7 +4103,7 @@ function renderSales(){
     const itemStr=r.items.map(function(i){var t=i.name+(i.qty>1?'×'+i.qty:'');return (SUMMARY_FAC_CATS.indexOf(i.cat||'')!==-1)?'<span style="font-size:14px;font-weight:700;">'+t+'</span>':t;}).join('、'); // 施設系(空中ウォーク/宿泊等)は大きく表示
     const courseEnds=saleCourseEnds(r);
     const methodLabel={cash:'現金',card:'カード',other:'電子'}[r.method]||r.method;
-    const discLabel=r.discount==='mura'?'村内半額':r.discount==='stay_guest'?'宿泊者':r.discount?r.discount:'';
+    const discLabel=saleDiscLabel(r,'宿泊者','');
     const attrParts=[];
     if(r.attrs){Object.keys(r.attrs).forEach(function(k){const v=r.attrs[k];if(Array.isArray(v)&&v.length)attrParts.push(v.join('・'));else if(v)attrParts.push(v);});}
     const attrStr=attrParts.join(' ');
@@ -4132,7 +4132,7 @@ function openSaleDetail(id){
   const r = sales.find(s=>s.id===id); if(!r) return;
   currentDetailSaleId = id;
   const methodLabel={cash:'現金',card:'クレジットカード',other:'電子決済'}[r.method]||r.method;
-  const discLabel=r.discount==='mura'?'村内半額':r.discount==='stay_guest'?'宿泊者割引':r.discount?r.discount:'なし';
+  const discLabel=saleDiscLabel(r,'宿泊者割引','なし');
   const itemRows=r.items.map(i=>
     '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px;">'+
       '<span>'+i.name+(i.qty>1?' ×'+i.qty:'')+'</span>'+
@@ -4640,6 +4640,65 @@ function _syncErrText(e){
   var n=e.name?e.name+': ':'';
   return n+(e.message||String(e));
 }
+// 売上の割引区分。sale.discount は率割引（50%引き・団体）と無料を持たない
+// ＝それらは activeRateKey / activeFree という別トグルで、会計時に sale.discount へ入らない。
+// そのため売上履歴の「割引」欄が空のままだった。saleToRows の grpKeyOf と同じ順で明細からも拾う。
+function saleDiscKey(r){
+  if(r&&r.discount) return r.discount;
+  var its=(r&&r.items)||[];
+  for(var i=0;i<its.length;i++){
+    var it=its[i]||{};
+    if(it.otaKey) return it.otaKey;
+    if(it.passKey) return it.passKey;
+    if(it.groupOn) return getDiscKeyOf(it.groupOn);
+    if(it.muraOn) return 'mura';
+    if(it.freeOn) return 'free';
+  }
+  return '';
+}
+// 表示用ラベル。stayLabel/emptyLabel は呼び出し元ごとの従来表記に合わせる。
+function saleDiscLabel(r,stayLabel,emptyLabel){
+  var k=saleDiscKey(r);
+  if(!k) return emptyLabel||'';
+  if(k==='mura') return '村内半額';
+  if(k==='stay_guest') return stayLabel||'宿泊者';
+  var di=ld(KEYS.discounts)||discountItems;
+  var d=(di||[]).find(function(x){return x.key===k;});
+  return (d&&d.label)||k;
+}
+// 同期エラーなどをコピーできる形で出す。トーストは消えるうえ選択もコピーもできない。
+function showCopyableError(title,text){
+  var old=document.getElementById('copy-err-modal'); if(old&&old.parentNode) old.parentNode.removeChild(old);
+  var ov=document.createElement('div'); ov.id='copy-err-modal';
+  ov.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;';
+  var box=document.createElement('div');
+  box.style.cssText='background:#fff;border-radius:12px;max-width:560px;width:100%;padding:16px;box-shadow:0 8px 32px rgba(0,0,0,.3);';
+  var hd=document.createElement('div');
+  hd.style.cssText='font-size:15px;font-weight:700;color:#c0392b;margin-bottom:8px;'; hd.textContent=title;
+  var ta=document.createElement('textarea'); ta.readOnly=true; ta.value=text;
+  ta.style.cssText='width:100%;height:130px;font-family:monospace;font-size:12px;line-height:1.5;padding:8px;border:1px solid #ddd;border-radius:8px;resize:vertical;-webkit-user-select:text;user-select:text;box-sizing:border-box;';
+  var row=document.createElement('div'); row.style.cssText='display:flex;gap:8px;margin-top:10px;';
+  var bc=document.createElement('button'); bc.textContent='📋 コピー';
+  bc.style.cssText='flex:1;padding:10px;font-size:14px;font-weight:700;border:none;border-radius:8px;background:#2c6fbb;color:#fff;cursor:pointer;font-family:inherit;';
+  bc.onclick=function(){
+    ta.focus(); ta.select(); try{ ta.setSelectionRange(0,ta.value.length); }catch(e){}
+    var done=false; try{ done=document.execCommand('copy'); }catch(e){}
+    if(done){ bc.textContent='✓ コピーしました'; return; }
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(ta.value).then(function(){bc.textContent='✓ コピーしました';},
+        function(){bc.textContent='⚠ 上の枠を選択してコピーしてください';});
+      return;
+    }
+    bc.textContent='⚠ 上の枠を選択してコピーしてください';
+  };
+  var bx=document.createElement('button'); bx.textContent='閉じる';
+  bx.style.cssText='padding:10px 16px;font-size:14px;border:1px solid #ccc;border-radius:8px;background:#fff;cursor:pointer;font-family:inherit;';
+  bx.onclick=function(){ if(ov.parentNode) ov.parentNode.removeChild(ov); };
+  row.appendChild(bc); row.appendChild(bx);
+  box.appendChild(hd); box.appendChild(ta); box.appendChild(row); ov.appendChild(box);
+  ov.addEventListener('click',function(ev){ if(ev.target===ov&&ov.parentNode) ov.parentNode.removeChild(ov); });
+  document.body.appendChild(ov); ta.focus();
+}
 // 決済ごとに自動送信（新規）
 async function autoSyncSale(sale){
   const url=ld(KEYS.gas)||DEFAULT_GAS_URL;
@@ -4710,8 +4769,15 @@ async function retrySyncSale(id){
   var ok=await autoSyncSale(s);
   s.syncStatus=ok?'ok':'fail';sv(KEYS.sales,sales);renderSales();
   // 失敗の理由をそのまま出す（従来は「要再送」だけで原因が分からなかった）
-  if(ok) showToast('✓ 同期しました');
-  else showToast('⚠ 同期できません／'+(_lastSyncError||'原因不明'),'#c00',12000);
+  if(ok){ showToast('✓ 同期しました'); return; }
+  // 原因をそのままコピーして貼れる形で出す（トーストは消えるうえコピーできない）
+  var NL=String.fromCharCode(10);
+  showCopyableError('同期できませんでした',
+    '日時: '+new Date().toLocaleString('ja-JP')+NL+
+    'レジ版: v'+APP_VERSION+NL+
+    '売上ID: '+s.id+'（'+new Date(s.datetime).toLocaleString('ja-JP')+' '+(s.total||0)+'円）'+NL+
+    '割引区分: '+saleDiscLabel(s,'宿泊者','なし')+NL+
+    '理由: '+(_lastSyncError||'原因不明'));
 }
 
 function toggleTopBtns(){
@@ -5827,7 +5893,7 @@ function openSaleDetail(saleId){
   const r=sales.find(s=>s.id===saleId);if(!r)return;
   const mLabel={cash:'現金',card:'クレジットカード',other:'電子決済'}[r.method]||r.method||'';
   const discountItems2=ld(KEYS.discounts)||discountItems;
-  const discLabel=r.discount?(discountItems2.find(d=>d.key===r.discount)?.label||r.discount):'なし';
+  const discLabel=saleDiscLabel(r,'宿泊者','なし');
   const iRows=(r.items||[]).map(i=>'<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid #f5f5f5;"><span>'+i.name+(i.qty>1?' ×'+i.qty:'')+'</span><span style="font-weight:600;">¥'+(i.price*i.qty).toLocaleString()+'</span></div>').join('');
   document.getElementById('sale-detail-content').innerHTML=
     '<div style="font-size:10px;color:var(--text2);margin-bottom:6px;word-break:break-all;">ID: '+r.id+'</div>'+
