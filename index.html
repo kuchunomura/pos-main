@@ -1047,8 +1047,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 517;
-const APP_BUILD_DATE = '2026/08/24 19:59';
+const APP_VERSION = 518;
+const APP_BUILD_DATE = '2026/08/24 22:54';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -4404,7 +4404,12 @@ function saleToRows(sale){
   if(!isSplit){
     // 従来どおり1取引。セット会計（同一決済で複数予約）なら注記のみ付与。
     var memo1=baseMemo+(isSet?' ／【セット会計（同一決済で複数予約）】':'');
-    var discLabel1=sale.discount?labelFor(sale.discount):'';
+    // sale.discount は率割引（50%引き・団体）と無料を持たない＝それらは activeRateKey / activeFree という
+    // 別のトグルで、会計時に sale.discount へ入らない。そのため単一区分の会計だと I列(割引区分)が空になり、
+    // 月別集計・収入実績報告書の「定価外の商品」表からまるごと漏れていた（混在会計だけは下の分割側が
+    // grpKeyOf で明細から拾うため正しく出ていた）。ここも同じく明細から判定した区分で補う。
+    // ※ sale.discount がある場合は従来どおり優先＝既存の挙動は変えない。
+    var discLabel1=sale.discount?labelFor(sale.discount):labelFor(groupOrder[0]||'');
     return items.map(function(i,idx){ return mkRow(i,idx===0,sale.total,discLabel1,memo1,sale.id); });
   }
   // 混在会計：割引区分ごとに別取引へ分割（各取引に正しい区分が入るので集計はそのまま正確）
