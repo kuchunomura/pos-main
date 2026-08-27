@@ -1051,8 +1051,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 523;
-const APP_BUILD_DATE = '2026/08/27 11:02';
+const APP_VERSION = 524;
+const APP_BUILD_DATE = '2026/08/27 11:10';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2402,7 +2402,7 @@ function updateResBanner(){
     if(h3) h3.style.display='none'; // 予約中は「🛒 カート」ラベルは省略（スペース確保）
     rb.innerHTML='<div style="flex:1;min-width:0;">'
       +'<span style="white-space:nowrap;"><span style="font-weight:700;">予約：</span>'+(i.head?esc(i.head)+'　':'')+esc(i.name)+'様</span>'
-      +(i.detail?'<span style="color:#555;">　'+esc(i.detail)+'</span>':'')
+      +(i.detail?'<div style="color:#555;margin-top:1px;">'+esc(i.detail)+'</div>':'')
       +'</div>'
       +'<button onclick="clearCart()" title="予約者のカートをクリア" style="flex:0 0 auto;width:26px;height:26px;border:1px solid #c0392b;background:#fff;color:#c0392b;border-radius:7px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;line-height:1;padding:0;">×</button>';
   }else{ rb.style.display='none'; rb.innerHTML=''; if(h3) h3.style.display=''; }
