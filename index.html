@@ -1047,8 +1047,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 520;
-const APP_BUILD_DATE = '2026/08/24 23:22';
+const APP_VERSION = 521;
+const APP_BUILD_DATE = '2026/08/27 10:24';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -3020,6 +3020,27 @@ function posMemoRentalChecks(memo, rental){
   h+=esc(memo.slice(p));
   return h;
 }
+// 予約ピッカーの備考を「☑チェック項目 / ✎お客様記入 / 👤スタッフ記入」に区別表示（yoyaku fmtMemoChecks と同型）
+var POS_STAFF_MEMO_MARK='――スタッフメモ――';
+function posMemoBlocks(memo,rental){
+  var s=posStripFormEn(String(memo||'').replace(/✓/g,''));
+  if(!s) return '';
+  var staffPart='';
+  var si=s.indexOf(POS_STAFF_MEMO_MARK);
+  if(si>=0){ staffPart=s.slice(si+POS_STAFF_MEMO_MARK.length).trim(); s=s.slice(0,si).trim(); }
+  var html='';
+  var sm=s.match(/^([\s\S]*?)[ \t　]+[\/／][ \t　]+([\s\S]*)$/);
+  if(sm && sm[1].trim() && sm[2].trim()){
+    html='<div><span style="color:#5a8f6a;font-weight:700">☑ チェック項目</span> '+posMemoRentalChecks(sm[1].trim(),rental)+'</div>'
+       + '<div style="margin-top:2px;padding-top:2px;border-top:1px dashed #d8c0b0"><span style="color:#b5651d;font-weight:700">✎ お客様記入</span> '+posMemoRentalChecks(sm[2].trim(),rental)+'</div>';
+  } else if(s){
+    html='<div>'+posMemoRentalChecks(s,rental)+'</div>';
+  }
+  if(staffPart){
+    html+='<div style="margin-top:2px;padding-top:2px;border-top:1px dashed #a9c0d8"><span style="color:#1565c0;font-weight:700">👤 スタッフ記入</span> '+posMemoRentalChecks(staffPart,rental)+'</div>';
+  }
+  return html||posMemoRentalChecks(s,rental);
+}
 
 // 予約の割引区分をPOSグローバルへ反映
 function applyYoyakuDiscountContext(o,isStay){
@@ -3128,7 +3149,7 @@ function renderYoyakuPicker(data){
     var rentalLine=(o.rental&&o.rental.length)?'<div style="font-size:11px;color:#111;margin-top:2px">レンタル: '+esc(o.rental.map(function(r){return r.name+'×'+(r.qty||1);}).join('、'))+'</div>':'';
     var memoHtml='';
     if(o.memo){
-      var _pm=posStripFormEn(o.memo); var full=posMemoRentalChecks(_pm,o.rental);
+      var _pm=posStripFormEn(o.memo); var full=posMemoBlocks(o.memo,o.rental);
       if(_pm.length<=120) memoHtml='<div style="font-size:11px;color:#111;margin-top:3px;white-space:pre-wrap">備考: '+full+'</div>';
       else memoHtml='<details onclick="event.stopPropagation()" style="font-size:11px;color:#111;margin-top:3px"><summary style="cursor:pointer;color:#333;list-style:revert">備考: '+esc(_pm.replace(/\s+/g,' ').slice(0,60))+'…</summary><div style="white-space:pre-wrap;margin-top:3px">'+full+'</div></details>';
     }
