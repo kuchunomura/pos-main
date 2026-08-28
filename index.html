@@ -1083,8 +1083,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 527;
-const APP_BUILD_DATE = '2026/08/28 09:20';
+const APP_VERSION = 528;
+const APP_BUILD_DATE = '2026/08/28 09:40';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -6050,22 +6050,33 @@ function openRefundModal(saleId){
 }
 function renderRefundModal(){
   var el=document.getElementById('refund-item-list'); if(!el||!_refundState) return;
+  var bstyle='width:30px;height:30px;border:1px solid var(--border);border-radius:6px;background:#fff;font-size:16px;cursor:pointer;font-family:inherit;';
   el.innerHTML=_refundState.lines.map(function(l,li){
     return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f0f0f0;">'
       +'<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;">'+esc(l.name)+'</div>'
-      +'<div style="font-size:11px;color:var(--text2);">@¥'+l.price.toLocaleString()+'　（'+l.maxQty+' まで返品可）</div></div>'
+      +'<div style="font-size:11px;color:var(--text2);">@¥'+l.price.toLocaleString()+'</div></div>'
+      +'<span style="font-size:11px;color:var(--text2);white-space:nowrap;flex-shrink:0;">（'+l.maxQty+'まで返品可）</span>'
       +'<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">'
-      +'<button type="button" onclick="refundAdj('+li+',-1)" style="width:30px;height:30px;border:1px solid var(--border);border-radius:6px;background:#fff;font-size:16px;cursor:pointer;font-family:inherit;">－</button>'
+      +'<button id="refund-minus-'+li+'" type="button" onclick="refundAdj('+li+',-1)" style="'+bstyle+'">－</button>'
       +'<span id="refund-q-'+li+'" style="min-width:24px;text-align:center;font-weight:700;font-size:15px;">'+l.qty+'</span>'
-      +'<button type="button" onclick="refundAdj('+li+',1)" style="width:30px;height:30px;border:1px solid var(--border);border-radius:6px;background:#fff;font-size:16px;cursor:pointer;font-family:inherit;">＋</button>'
+      +'<button id="refund-plus-'+li+'" type="button" onclick="refundAdj('+li+',1)" style="'+bstyle+'">＋</button>'
       +'</div></div>';
   }).join('');
+  for(var li=0;li<_refundState.lines.length;li++) _refundSetBtnState(li);
   updateRefundTotal();
+}
+// 購入数を超えて返品できないよう、上限で＋を、0で－を押せなくする（数量自体もrefundAdjで頭打ち）
+function _refundSetBtnState(li){
+  var l=_refundState.lines[li]; if(!l) return;
+  var mn=document.getElementById('refund-minus-'+li), pl=document.getElementById('refund-plus-'+li);
+  if(mn){ mn.disabled=(l.qty<=0); mn.style.opacity=(l.qty<=0)?'0.3':''; mn.style.cursor=(l.qty<=0)?'default':'pointer'; }
+  if(pl){ pl.disabled=(l.qty>=l.maxQty); pl.style.opacity=(l.qty>=l.maxQty)?'0.3':''; pl.style.cursor=(l.qty>=l.maxQty)?'default':'pointer'; }
 }
 function refundAdj(li,delta){
   if(!_refundState) return; var l=_refundState.lines[li]; if(!l) return;
-  l.qty=Math.max(0,Math.min(l.maxQty,l.qty+delta));
+  l.qty=Math.max(0,Math.min(l.maxQty,l.qty+delta)); // 購入数(maxQty)を超えない・0未満にならない
   var q=document.getElementById('refund-q-'+li); if(q) q.textContent=l.qty;
+  _refundSetBtnState(li);
   updateRefundTotal();
 }
 function updateRefundTotal(){
