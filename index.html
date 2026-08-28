@@ -1083,8 +1083,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 530;
-const APP_BUILD_DATE = '2026/08/28 10:10';
+const APP_VERSION = 531;
+const APP_BUILD_DATE = '2026/08/28 10:35';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -3802,7 +3802,7 @@ function pointNoteHtml(){ return '<button type="button" onclick="var d=this.next
 function renderSummary(){
   const filtered = getPeriodFiltered();
   const total = filtered.reduce((s,r)=>s+r.total,0);
-  const count = filtered.length;
+  const count = filtered.filter(function(r){return !r.refund;}).length; // 返品は件数に数えない（金額・人数はそのまま）
   const people = calcPersonCount(filtered);
   const el_t=document.getElementById('sum-total');
   const el_c=document.getElementById('sum-count');
@@ -3889,7 +3889,7 @@ function renderStatsCards(filtered){
   const payMap={},payCount={},itemMap={},discMap={}; let pointTotal=0; var walkPeople=0;
   filtered.forEach(r=>{
     const k={cash:'現金',card:'カード',other:'電子決済'}[r.method]||r.method;
-    payMap[k]=(payMap[k]||0)+r.total; payCount[k]=(payCount[k]||0)+1; // 金額＋件数（レジ締め用）
+    payMap[k]=(payMap[k]||0)+r.total; payCount[k]=(payCount[k]||0)+(r.refund?0:1); // 金額＋件数（レジ締め用・返品は件数に数えない）
     r.items.forEach(i=>{
       if(i.id===POINT_ITEM_ID||i.name==='ポイント利用'){ pointTotal+=Math.abs(i.price*i.qty); return; }
       var e=itemMap[i.name]||(itemMap[i.name]={count:0,total:0,people:0,cat:i.cat||'',isStay:!!i.isStay,byDisc:null});
@@ -4036,10 +4036,11 @@ function renderSales(){
   });
   const total=filtered.reduce((s,r)=>s+r.total,0);
   const people=calcPersonCount(filtered);
+  var _cntNR=filtered.filter(function(r){return !r.refund;}).length; // 返品は件数に数えない（金額・人数はそのまま）
   document.getElementById('sc-total').textContent='¥'+total.toLocaleString();
-  document.getElementById('sc-count').textContent=filtered.length+'件';
+  document.getElementById('sc-count').textContent=_cntNR+'件';
   document.getElementById('sc-people').textContent=people+'人';
-  document.getElementById('sc-avg').textContent=filtered.length?'¥'+Math.round(total/filtered.length).toLocaleString():'¥0';
+  document.getElementById('sc-avg').textContent=_cntNR?'¥'+Math.round(total/_cntNR).toLocaleString():'¥0';
 
   // ===== 統計 =====
   const statsEl = document.getElementById('sales-stats');
@@ -4051,7 +4052,7 @@ function renderSales(){
     var walkPeople=0; // 空中ウォーク全体の人数（共通ヘルパー sumIsPeopleItem/sumPeopleOf/sumDiscBucket/sumTally を使用）
     filtered.forEach(r=>{
       const pm={cash:'現金',card:'カード',other:'電子決済'}[r.method]||r.method||'不明';
-      payMapS[pm]=(payMapS[pm]||0)+r.total; payCountS[pm]=(payCountS[pm]||0)+1; // 金額＋件数
+      payMapS[pm]=(payMapS[pm]||0)+r.total; payCountS[pm]=(payCountS[pm]||0)+(r.refund?0:1); // 金額＋件数（返品は件数に数えない）
       r.items.forEach(i=>{
         if(i.id===POINT_ITEM_ID||i.name==='ポイント利用'){ pointTotalS+=Math.abs(i.price*i.qty); return; }
         var e=itemMap[i.name]||(itemMap[i.name]={count:0,total:0,people:0,cat:i.cat||'',isStay:!!i.isStay,byDisc:null});
