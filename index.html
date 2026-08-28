@@ -1100,8 +1100,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 539;
-const APP_BUILD_DATE = '2026/08/28 21:02';
+const APP_VERSION = 540;
+const APP_BUILD_DATE = '2026/08/28 21:08';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -3838,27 +3838,10 @@ function popConfetti(){
   document.body.appendChild(wrap);
   setTimeout(function(){ if(wrap.parentNode) wrap.parentNode.removeChild(wrap); },1600);
 }
-// レジが合った瞬間の全部入り演出：クラッカー2回＋くす玉が開いて「おめでとう」横断幕が下りる。
+// レジが合った瞬間の演出：クラッカー2回。（くす玉＋横断幕は一旦停止・CSSは残置＝復活しやすいように）
 function popCelebration(){
   popConfetti(); // クラッカー1回目
-  var lay=document.createElement('div'); lay.className='cele-layer';
-  lay.innerHTML='<div class="kusu-string"></div>'+
-    '<div class="kusudama"><div class="kusu-streamwrap"></div><div class="kusu-half l"></div><div class="kusu-half r"></div></div>'+
-    '<div class="cele-banner">㊗ おめでとう ㊗</div>';
-  document.body.appendChild(lay);
-  var sw=lay.querySelector('.kusu-streamwrap');
-  var scol=['#e74c3c','#f1c40f','#2ecc71','#3498db','#9b59b6','#ff6b9d','#1abc9c','#e67e22'];
-  for(var i=0;i<11;i++){
-    var s=document.createElement('span'); s.className='kusu-streamer';
-    s.style.background=scol[i%scol.length];
-    s.style.left=(4+i*11)+'px';
-    s.style.setProperty('--sway',((Math.random()*2-1)*46)+'px');
-    s.style.animationDelay=(0.28+Math.random()*0.3)+'s';
-    sw.appendChild(s);
-  }
   setTimeout(popConfetti,650); // クラッカー2回目
-  setTimeout(function(){ lay.style.transition='opacity .5s'; lay.style.opacity='0'; },2700);
-  setTimeout(function(){ if(lay.parentNode) lay.parentNode.removeChild(lay); },3300);
 }
 function updateCashDiff(){
   var el=document.getElementById('cash-counted'); if(!el) return;
