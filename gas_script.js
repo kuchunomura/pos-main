@@ -367,7 +367,7 @@ function setTotalsFormulas(sheet) {
 
   // 総件数・総人数: 背景なし
   sheet.getRange(1, 7).setValue('総件数');
-  sheet.getRange(1, 8).setFormula('=COUNTA(B4:B)');
+  sheet.getRange(1, 8).setFormula('=COUNTIF(B4:B,">=0")'); // 返品(売上合計マイナス)は件数に数えない（人数・金額はマイナスで反映）
   sheet.getRange(1, 9).setValue('総人数');
   sheet.getRange(1, 10).setFormula('=SUM(H4:H)-SUMIF(C4:C,"*延長*",H4:H)'); // 55分延長など追加課金は人数に数えない
   sheet.getRange(1, 7, 1, 4).setFontWeight('bold').setHorizontalAlignment('center');
@@ -1179,22 +1179,23 @@ function createMonthlySummary(year, month, ssOverride) {
       if (!txSeen[txId]) {
         txSeen[txId]=true;
         var txPpl=(txTotalPeople[txId]||people); // 取引の総人数（宿泊複数棟も合算）
-        dailyMap[dateStr].total+=amount;dailyMap[dateStr].count+=1;dailyMap[dateStr].people+=txPpl;
+        var isRefundTx=(amount<0), _cnt=isRefundTx?0:1; // 返品(売上合計マイナス)は「件数」に数えない（人数・金額はマイナスで反映）
+        dailyMap[dateStr].total+=amount;dailyMap[dateStr].count+=_cnt;dailyMap[dateStr].people+=txPpl;
         if (payment==='現金') dailyMap[dateStr].cash+=amount;
         else if (payment==='クレジットカード') dailyMap[dateStr].card+=amount;
         else if (payment==='電子決済') dailyMap[dateStr].elec+=amount;
-        grandTotal+=amount;grandCount+=1;grandPeople+=txPpl;
+        grandTotal+=amount;grandCount+=_cnt;grandPeople+=txPpl;
         if (!payMap[payment]) payMap[payment]={total:0,count:0};
-        payMap[payment].total+=amount;payMap[payment].count+=1;
+        payMap[payment].total+=amount;payMap[payment].count+=_cnt;
         var dKey=(disc&&disc!==''&&disc!=='false')?disc:'なし';
         if (!discMap[dKey]) discMap[dKey]={count:0,total:0};
-        discMap[dKey].count++;discMap[dKey].total+=amount;
-        if (isMura){mura.count++;mura.people+=txPpl;mura.total+=amount;dailyMap[dateStr].muraAmt+=amount;}
-        if (isPass){pass.count++;pass.people+=txPpl;pass.total+=amount;dailyMap[dateStr].passAmt+=amount;}
-        if (isOTA){ota.count++;ota.people+=txPpl;ota.total+=amount;dailyMap[dateStr].otaAmt+=amount;}
-        if (isStay){stay.count++;stay.people+=txPpl;stay.total+=amount;dailyMap[dateStr].stayAmt+=amount;}
-        if (ageStr){ageStr.split('・').forEach(function(ag){ag=ag.trim();if(!ag)return;if(!ageMap[ag])ageMap[ag]={groups:0,people:0};ageMap[ag].groups++;ageMap[ag].people+=txPpl;});}
-        if (natStr){natStr.split('・').forEach(function(nat){nat=nat.trim();if(!nat)return;if(!natMap[nat])natMap[nat]={groups:0,people:0};natMap[nat].groups++;natMap[nat].people+=txPpl;});}
+        discMap[dKey].count+=_cnt;discMap[dKey].total+=amount;
+        if (isMura){mura.count+=_cnt;mura.people+=txPpl;mura.total+=amount;dailyMap[dateStr].muraAmt+=amount;}
+        if (isPass){pass.count+=_cnt;pass.people+=txPpl;pass.total+=amount;dailyMap[dateStr].passAmt+=amount;}
+        if (isOTA){ota.count+=_cnt;ota.people+=txPpl;ota.total+=amount;dailyMap[dateStr].otaAmt+=amount;}
+        if (isStay){stay.count+=_cnt;stay.people+=txPpl;stay.total+=amount;dailyMap[dateStr].stayAmt+=amount;}
+        if (ageStr){ageStr.split('・').forEach(function(ag){ag=ag.trim();if(!ag)return;if(!ageMap[ag])ageMap[ag]={groups:0,people:0};ageMap[ag].groups+=_cnt;ageMap[ag].people+=txPpl;});}
+        if (natStr){natStr.split('・').forEach(function(nat){nat=nat.trim();if(!nat)return;if(!natMap[nat])natMap[nat]={groups:0,people:0};natMap[nat].groups+=_cnt;natMap[nat].people+=txPpl;});}
         if (!txHasItems[txId]&&amount>0){
           var sotKey='その他（カテゴリ・商品登録なし）';
           if (!dailyCatMap[dateStr][sotKey]) dailyCatMap[dateStr][sotKey]={people:0,total:0,txSet:{}};
