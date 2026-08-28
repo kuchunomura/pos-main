@@ -1083,8 +1083,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 528;
-const APP_BUILD_DATE = '2026/08/28 09:40';
+const APP_VERSION = 529;
+const APP_BUILD_DATE = '2026/08/28 09:55';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -4165,14 +4165,14 @@ function renderSales(){
       '<td style="text-align:center;font-size:14px;cursor:pointer;" onclick="event.stopPropagation();quickToggleFlag(\''+r.id+'\',this)">'+(r.flagged?'🔴':'⚪')+'</td>'+
       '<td style="white-space:nowrap;font-size:10px">'+(r.nextDay?'<span style="color:#7a5500;font-weight:700;">🌙</span> ':'')+dtDateTimeHtml(r.datetime)+(r.device_name?'<div style="font-size:9px;color:var(--text2);margin-top:1px;">📱'+r.device_name+'</div>':'')+(r.syncStatus==='ok'?'<div style="font-size:9px;margin-top:2px;"><span style="background:#27ae60;color:#fff;padding:1px 6px;border-radius:8px;font-weight:600;">同期済</span></div>':r.syncStatus==='fail'?'<div style="font-size:9px;margin-top:2px;"><span style="background:#c0392b;color:#fff;padding:1px 6px;border-radius:8px;font-weight:600;">要再送</span><button onclick="event.stopPropagation();retrySyncSale(\''+r.id+'\')" style="font-size:9px;background:#c0392b;color:#fff;border:none;border-radius:4px;padding:1px 6px;cursor:pointer;font-family:inherit;margin-left:8px;">再送</button></div>':r.syncStatus==='pending'?'<div style="font-size:9px;color:#999;margin-top:2px;">送信中...</div>':'')+'</td>'+
       '<td style="font-size:10px;min-width:160px;max-width:220px;">'+
-        '<div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+itemStr+'</div>'+
+        '<div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(r.refund?'<span style="background:#c0392b;color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;margin-right:4px;white-space:nowrap;">↩返金</span>':'')+itemStr+'</div>'+
         (courseEnds.length?'<div style="font-size:11px;color:#111;font-weight:700;margin-top:1px;">⏱ '+courseEnds.join('<br>⏱ ')+'</div>':'')+
         (attrStr?'<div style="font-size:9px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+attrStr+'</div>':'')+
         ((r.memo&&r.memo.indexOf('伝票2枚だからレジ締め注意')===-1)?(r.memo.indexOf('予約:')===0?'<div style="font-size:12px;font-weight:700;color:#7a1030;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📝'+r.memo+'</div>':'<div style="font-size:9px;color:#7a5500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📝'+r.memo+'</div>'):'')+
       '</td>'+
       '<td style="font-size:10px">'+discLabel+(r.paid?'<span style="color:var(--blue)"> 済</span>':'')+'</td>'+
       '<td style="font-size:10px">'+methodLabel+'</td>'+
-      '<td style="font-weight:600;text-align:right;font-size:11px">¥'+r.total.toLocaleString()+'</td>'+
+      '<td style="font-weight:600;text-align:right;font-size:11px'+(r.refund?';color:#c0392b':'')+'">'+(r.total<0?'−¥'+Math.abs(r.total).toLocaleString():'¥'+r.total.toLocaleString())+(r.refund?'<div style="font-size:9px;color:#c0392b;font-weight:700;">返金</div>':'')+'</td>'+
       '<td><button class="edit-sale-btn" onclick="event.stopPropagation();editSaleRecord(\''+r.id+'\')">カートで修正</button></td>';
     tr.onclick=()=>openSaleDetail(r.id);
     tbody.appendChild(tr);
