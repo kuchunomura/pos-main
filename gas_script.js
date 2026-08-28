@@ -395,9 +395,10 @@ function setupCashInputRow(sheet) {
   // C2: 全レジ現金 − 現金売上 = 差額
   sheet.getRange(2, 3).setFormula('=IF(B2="","",B2-SUMIF(J4:J,"現金",B4:B))');
   sheet.getRange(2, 3).setNumberFormat('+#,##0;-#,##0;');
-  // D2: ラベル, E2: 対10万差額（ゼロ=0、常に赤太字）
-  sheet.getRange(2, 4).setValue('対10万差額').setFontWeight('bold');
-  sheet.getRange(2, 5).setFormula('=IF(B2="","",B2-100000)');
+  // D2: ラベル, E2: 現金過不足（0=一致、常に赤太字）。全レジ現金 −（現金売上=現金の増減）− 釣銭10万。
+  // ★現金売上を引くので、現金返金(マイナス)があっても正しく数えれば0になる（従来は B2-100000 で返金分がズレていた）。
+  sheet.getRange(2, 4).setValue('現金過不足(0で一致)').setFontWeight('bold');
+  sheet.getRange(2, 5).setFormula('=IF(B2="","",B2-SUMIF(J4:J,"現金",B4:B)-100000)');
   sheet.getRange(2, 5).setNumberFormat('+#,##0;-#,##0;0').setFontColor('#B22222').setFontWeight('bold');
   // G2: 現金ラベル, H2: 現金売上（背景赤系＝総売上の内訳としてレジ締めで目立たせる／総売上(P差引後)寄り＝クレ+電子の左）
   sheet.getRange(2, 7).setValue('現金').setFontWeight('bold').setHorizontalAlignment('center').setBackground('#f4cccc');
