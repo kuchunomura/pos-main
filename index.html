@@ -1083,8 +1083,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 532;
-const APP_BUILD_DATE = '2026/08/28 11:05';
+const APP_VERSION = 533;
+const APP_BUILD_DATE = '2026/08/28 11:12';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -4005,9 +4005,9 @@ function renderStatsCards(filtered){
     '<div style="font-size:10px;color:var(--text2);margin-top:5px;line-height:1.5;">※期間を「今日」にして締めてください。返金した現金分は「数えるべき現金」に反映済み＝正しく数えれば過不足0（10万に無理に合わせなくてOK）。</div>'+
   '</div>';
   statsEl.innerHTML=
-    cashCloseCard+
     payCardHtml+
     itemCardHtml+
+    cashCloseCard+
     card('🏷 割引・予約',Object.entries(discMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[k,v+'件']))+
     (Object.keys(facilityPeople).length?card('🏕 施設別人数',Object.entries(facilityPeople).map(([k,v])=>[k,v+'人'])):'')+
     (Object.keys(ageMap2).length?card('👤 年齢層',Object.entries(ageMap2).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[k,v+'件'])):'')+
