@@ -1100,8 +1100,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 544;
-const APP_BUILD_DATE = '2026/08/28 21:34';
+const APP_VERSION = 545;
+const APP_BUILD_DATE = '2026/08/29 11:06';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -4123,7 +4123,11 @@ function renderSales(){
   document.getElementById('sc-avg').textContent=_cntNR?'¥'+Math.round(total/_cntNR).toLocaleString():'¥0';
 
   // ===== 統計 =====
-  const statsEl = document.getElementById('sales-stats');
+  // 集計カード（レジ締め含む）は renderStatsCards（📊集計ビュー）が #sales-stats を描画する。
+  // 明細ビューには統計グリッドが無く、ここで #sales-stats（＝集計ビューの要素）に書き込むと、
+  // 売上同期のたびに走る renderSales() が集計タブのレジ締めカードを上書きして消す不具合になっていた（v545修正）。
+  // よって明細ビューでは #sales-stats に一切書かない（statsEl=null で下のブロックを丸ごとスキップ）。
+  const statsEl = null;
   if(statsEl && filtered.length > 0){
     // 商品別＋支払方法別（レジ締め用）＋ポイント利用合計
     const itemMap = {};
