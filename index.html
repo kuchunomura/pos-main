@@ -772,6 +772,43 @@ details.settings-section[open] > summary{margin-bottom:10px;}
   </div>
 </div>
 
+<!-- 手動返金モーダル（元売上が特定できない返金用） -->
+<div class="modal-overlay" id="refund-manual-modal">
+  <div class="modal">
+    <h3>↩ 返金（元売上なし）</h3>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.5;">どの決済のお客様か分からない返金用。<b>別の返品取引（マイナス計上）</b>として記録し、総売上・支払方法別・レジ締め（現金）に反映されます。</div>
+    <div style="display:flex;gap:6px;margin-bottom:10px;">
+      <button type="button" id="mrf-mode-amount" class="refund-mbtn sel" onclick="setManualRefundMode('amount')">金額で返金</button>
+      <button type="button" id="mrf-mode-cart" class="refund-mbtn" onclick="setManualRefundMode('cart')">カートの商品で返金</button>
+    </div>
+    <div id="mrf-amount-box">
+      <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">返金する金額</div>
+      <div style="display:flex;align-items:center;gap:6px;"><input id="mrf-amount" type="number" inputmode="numeric" placeholder="例）5000" oninput="updateManualRefundTotal()" style="flex:1;padding:10px;font-size:16px;text-align:right;border:1px solid var(--border);border-radius:8px;font-family:inherit;"> 円</div>
+      <div style="font-size:10px;color:var(--text2);margin-top:4px;">※商品は不明なので記録しません（商品別販売数は変わりません）。</div>
+    </div>
+    <div id="mrf-cart-box" style="display:none;">
+      <div id="mrf-cart-list" style="font-size:12px;"></div>
+    </div>
+    <div style="margin-top:10px;">
+      <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">返金の支払方法</div>
+      <div id="mrf-method-btns" style="display:flex;gap:6px;">
+        <button type="button" data-m="cash" onclick="setManualRefundMethod('cash')" class="refund-mbtn sel">💴 現金</button>
+        <button type="button" data-m="card" onclick="setManualRefundMethod('card')" class="refund-mbtn">💳 カード</button>
+        <button type="button" data-m="other" onclick="setManualRefundMethod('other')" class="refund-mbtn">📱 電子</button>
+      </div>
+      <div style="font-size:10px;color:var(--text2);margin-top:4px;">※お客様に返した手段を選ぶ（現金→金庫から補填／カード・電子→端末やジョランに報告）。</div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:8px;border-top:1px solid var(--border);">
+      <span style="font-weight:700;">返金合計</span>
+      <span id="mrf-total" style="font-weight:800;font-size:20px;color:var(--red);">¥0</span>
+    </div>
+    <div class="modal-btns" style="margin-top:12px;">
+      <button onclick="document.getElementById('refund-manual-modal').classList.remove('open')">キャンセル</button>
+      <button class="confirm" style="background:var(--red);border-color:var(--red);" onclick="confirmManualRefund()">この内容で返金する</button>
+    </div>
+  </div>
+</div>
+
 <!-- カートからの請求書モーダル -->
 <div class="modal-overlay" id="invoice-cart-modal" style="display:none;align-items:center;justify-content:center;">
   <div class="modal" style="max-width:380px;padding:20px;" onclick="event.stopPropagation()">
@@ -1100,8 +1137,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 548;
-const APP_BUILD_DATE = '2026/08/29 11:34';
+const APP_VERSION = 549;
+const APP_BUILD_DATE = '2026/08/30 10:27';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1784,6 +1821,13 @@ function renderDiscountBar(){
     };
     c.appendChild(b);
   });
+  // 「↩ 返金」ボタン（元売上が特定できない返金用）＝割引・予約サイトバーの末尾に配置
+  var rb=document.createElement('button');
+  rb.className='disc-btn';
+  rb.textContent='↩ 返金';
+  rb.style.cssText='background:#ffe0b8;color:#9a4e00;border:1px solid #d99a5a;font-weight:700;';
+  rb.onclick=openManualRefund;
+  c.appendChild(rb);
 }
 
 // ===== POS描画 =====
@@ -3951,6 +3995,7 @@ function renderStatsCards(filtered){
     const k={cash:'現金',card:'カード',other:'電子決済'}[r.method]||r.method;
     payMap[k]=(payMap[k]||0)+r.total; payCount[k]=(payCount[k]||0)+(r.refund?0:1); // 金額＋件数（レジ締め用・返品は件数に数えない）
     r.items.forEach(i=>{
+      if(i.id==='REFUND_MANUAL'||i._manualRefund){ return; } // 金額のみの手動返金は商品別に出さない（総売上・支払方法別・レジ締めには反映済み）
       if(i.id===POINT_ITEM_ID||i.name==='ポイント利用'){ pointTotal+=Math.abs(i.price*i.qty); return; }
       var e=itemMap[i.name]||(itemMap[i.name]={count:0,total:0,people:0,cat:i.cat||'',isStay:!!i.isStay,byDisc:null});
       e.count+=i.qty; e.total+=i.price*i.qty;
@@ -4138,6 +4183,7 @@ function renderSales(){
       const pm={cash:'現金',card:'カード',other:'電子決済'}[r.method]||r.method||'不明';
       payMapS[pm]=(payMapS[pm]||0)+r.total; payCountS[pm]=(payCountS[pm]||0)+(r.refund?0:1); // 金額＋件数（返品は件数に数えない）
       r.items.forEach(i=>{
+        if(i.id==='REFUND_MANUAL'||i._manualRefund){ return; } // 金額のみの手動返金は商品別に出さない
         if(i.id===POINT_ITEM_ID||i.name==='ポイント利用'){ pointTotalS+=Math.abs(i.price*i.qty); return; }
         var e=itemMap[i.name]||(itemMap[i.name]={count:0,total:0,people:0,cat:i.cat||'',isStay:!!i.isStay,byDisc:null});
         e.count+=i.qty; e.total+=i.price*i.qty;
@@ -6198,6 +6244,74 @@ function confirmRefund(){
   _refundState=null;
   document.getElementById('refund-modal').classList.remove('open');
   document.getElementById('sale-detail-modal').classList.remove('open');
+  renderSales();
+  showToast('↩ 返金を記録しました（−¥'+total.toLocaleString()+'・'+mLabel+'）','#1a7a3a');
+}
+
+// ===== 手動返金（元売上が特定できない返金用・割引バーの「↩ 返金」から） =====
+// 「金額で返金」＝金額だけ入力（商品不明・商品別販売数は変えない：REFUND_MANUAL行は集計で除外）。
+// 「カートの商品で返金」＝いまのカート内容をそのままマイナス計上（実商品なので商品別も符号付きで減る）。
+var _manualRefund={mode:'amount', method:'cash'};
+function openManualRefund(){
+  _manualRefund={mode:'amount', method:'cash'};
+  var a=document.getElementById('mrf-amount'); if(a) a.value='';
+  setManualRefundMode('amount');
+  setManualRefundMethod('cash');
+  document.getElementById('refund-manual-modal').classList.add('open');
+}
+function setManualRefundMode(m){
+  _manualRefund.mode=m;
+  var ba=document.getElementById('mrf-mode-amount'), bc=document.getElementById('mrf-mode-cart');
+  if(ba) ba.classList.toggle('sel',m==='amount'); if(bc) bc.classList.toggle('sel',m==='cart');
+  var ab=document.getElementById('mrf-amount-box'), cb=document.getElementById('mrf-cart-box');
+  if(ab) ab.style.display=(m==='amount')?'':'none'; if(cb) cb.style.display=(m==='cart')?'':'none';
+  if(m==='cart') renderManualRefundCart();
+  updateManualRefundTotal();
+}
+function renderManualRefundCart(){
+  var el=document.getElementById('mrf-cart-list'); if(!el) return;
+  if(!cart.length){ el.innerHTML='<div style="color:var(--red);padding:8px 0;">カートが空です。返金したい商品をカートに入れてから選んでください。</div>'; return; }
+  el.innerHTML=cart.map(function(i){ return '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0f0;"><span>'+esc(i.name)+(i.qty>1?' ×'+i.qty:'')+'</span><span style="color:var(--red);">−¥'+(i.price*i.qty).toLocaleString()+'</span></div>'; }).join('')
+    +'<div style="font-size:10px;color:var(--text2);margin-top:4px;">※いまのカートの内容をそのまま返金（マイナス計上）。商品別販売数もこの分だけ減ります。</div>';
+}
+function manualRefundAmount(){
+  if(_manualRefund.mode==='cart') return cart.reduce(function(s,i){return s+i.price*i.qty;},0);
+  var v=parseInt((document.getElementById('mrf-amount')||{}).value,10); return isNaN(v)?0:Math.max(0,v);
+}
+function updateManualRefundTotal(){
+  var t=manualRefundAmount();
+  var el=document.getElementById('mrf-total'); if(el) el.textContent=(t>0?'−¥':'¥')+t.toLocaleString();
+}
+function setManualRefundMethod(m){
+  _manualRefund.method=m;
+  var btns=document.querySelectorAll('#mrf-method-btns .refund-mbtn');
+  for(var i=0;i<btns.length;i++){ btns[i].classList.toggle('sel', btns[i].getAttribute('data-m')===m); }
+}
+function confirmManualRefund(){
+  var total=manualRefundAmount();
+  if(total<=0){ showToast(_manualRefund.mode==='cart'?'カートに商品がありません':'返金する金額を入力してください','#c00'); return; }
+  var mLabel={cash:'現金',card:'カード',other:'電子決済'}[_manualRefund.method]||_manualRefund.method;
+  var items;
+  if(_manualRefund.mode==='cart'){
+    items=cart.map(function(i){ var it=Object.assign({},i); it.qty=-Math.abs(i.qty); delete it._resId; delete it._resTag; delete it._souTag; return it; });
+  } else {
+    items=[{id:'REFUND_MANUAL', name:'返金（手動）', price:-total, qty:1, cat:'', _manualRefund:true}];
+  }
+  if(!confirm('返金内容を確認してください。\n\n'+(_manualRefund.mode==='cart'?'カートの商品を返金':'金額のみ返金')+'\n返金合計 −¥'+total.toLocaleString()+'（'+mLabel+'で返金）\n\n元売上なしの返金として記録します。')) return;
+  var rec={
+    id:'s_'+Date.now(), datetime:new Date().toISOString(),
+    items:items, total:-total, method:_manualRefund.method,
+    attrs:{}, discount:'', paid:false,
+    memo:'↩返金（元売上なし・'+(_manualRefund.mode==='cart'?'カート商品':'金額のみ')+'）',
+    refund:true, refundOf:null,
+    device:localStorage.getItem('pos_device_id')||'',
+    device_name:localStorage.getItem('pos_device_name')||'',
+    syncStatus:'pending',
+  };
+  sales.push(rec); sv(KEYS.sales,sales); saveSnapshotToIDB();
+  autoSyncSale(rec).then(function(ok){ var s=sales.find(function(x){return x.id===rec.id;}); if(s){ s.syncStatus=ok?'ok':'fail'; sv(KEYS.sales,sales); saveSnapshotToIDB(); renderSales(); } });
+  document.getElementById('refund-manual-modal').classList.remove('open');
+  if(_manualRefund.mode==='cart'){ clearCart(); }
   renderSales();
   showToast('↩ 返金を記録しました（−¥'+total.toLocaleString()+'・'+mLabel+'）','#1a7a3a');
 }
