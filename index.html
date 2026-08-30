@@ -1137,8 +1137,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 549;
-const APP_BUILD_DATE = '2026/08/30 10:27';
+const APP_VERSION = 550;
+const APP_BUILD_DATE = '2026/08/30 10:36';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1825,7 +1825,7 @@ function renderDiscountBar(){
   var rb=document.createElement('button');
   rb.className='disc-btn';
   rb.textContent='↩ 返金';
-  rb.style.cssText='background:#ffe0b8;color:#9a4e00;border:1px solid #d99a5a;font-weight:700;';
+  rb.style.cssText='background:none;color:#9a4e00;font-weight:700;';
   rb.onclick=openManualRefund;
   c.appendChild(rb);
 }
