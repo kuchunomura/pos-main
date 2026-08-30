@@ -1137,8 +1137,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 554;
-const APP_BUILD_DATE = '2026/08/30 11:20';
+const APP_VERSION = 555;
+const APP_BUILD_DATE = '2026/08/30 11:32';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -4094,11 +4094,14 @@ function renderStatsCards(filtered){
   var _shortfall=Math.max(0,_cashFloat-_cashExpectedVal); // 10万に足りない分＝金庫から補填（現金返金が現金売上を上回った日）
   var _bankable=Math.max(0,_cashExpectedVal-_cashFloat);  // 10万を超えた分＝銀行へ入れる現金売上
   var _deltaStr=(_cash<0?'−¥'+Math.abs(_cash).toLocaleString():'+¥'+_cash.toLocaleString());
+  var _cashSalesGross=_cash+_cashRefundTotal; // 今日の現金売上（gross）＝出入り＋現金返金
+  var _netSpan='<span style="color:'+(_cash<0?'#c0392b':'#111')+';">'+_deltaStr+'</span>';
+  var _flowHtml=(_cashRefundTotal>0)?('+¥'+_cashSalesGross.toLocaleString()+' <span style="color:#c0392b;">−¥'+_cashRefundTotal.toLocaleString()+'（返金）</span> = '+_netSpan):_netSpan; // 現金返金がある日は「売上−返金=出入り」を式で表示
   var _refillRow=(_shortfall>0)?'<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:6px 9px;background:#fff4e6;border:1px solid #e8b878;border-radius:8px;margin-top:6px;"><span style="font-weight:700;color:#8a4b00;">🏦 金庫から補填する額<span style="font-weight:600;font-size:10px;color:#8a4b00;display:block;">（10万に足りない分＝釣銭準備金に戻す）</span></span><span style="font-weight:800;font-size:17px;color:#8a4b00;">¥'+_shortfall.toLocaleString()+'</span></div>':(_bankable>0?'<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:6px 9px;background:#eef6ee;border:1px solid #a7d3a7;border-radius:8px;margin-top:6px;"><span style="font-weight:700;color:#2d5016;">🏦 銀行へ入れる額<span style="font-weight:600;font-size:10px;color:#2d5016;display:block;">（10万を超えた分＝今日の現金売上）</span></span><span style="font-weight:800;font-size:17px;color:#2d5016;">¥'+_bankable.toLocaleString()+'</span></div>':'');
   var cashCloseCard='<div style="background:#fff;border-radius:10px;padding:10px;box-shadow:var(--shadow);">'+
-    '<div style="font-size:13px;font-weight:700;color:var(--accent2);margin-bottom:6px;">🧾 レジ締め（現金での返金があった時）</div>'+
+    '<div style="font-size:13px;font-weight:700;color:var(--accent2);margin-bottom:6px;">🧾 レジ締め（カード・電子決済を現金で返金した日）</div>'+
     '<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:3px 0;"><span>釣銭準備金（開始時）</span><span><input id="cash-float" type="number" value="'+_cashFloat+'" onchange="setCashFloat(this.value)" style="width:96px;text-align:right;font-size:13px;padding:3px 5px;border:1px solid var(--border);border-radius:6px;font-family:inherit;"> 円</span></div>'+
-    '<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span>今日の現金の出入り（売上−現金の返金があれば）</span><span style="font-weight:700;color:'+(_cash<0?'#c0392b':'#111')+';">'+_deltaStr+'</span></div>'+
+    '<div style="display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;font-size:13px;padding:3px 0;"><span style="flex-shrink:0;">今日の現金の出入り（売上−現金の返金があれば）</span><span style="font-weight:700;text-align:right;">'+_flowHtml+'</span></div>'+
     '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:2px solid #333;margin-top:3px;"><span style="font-weight:800;font-size:14px;">正しい現金額<span style="font-weight:600;font-size:10px;color:var(--text2);display:block;">（釣銭準備金＋出入り＝ドロワーにあるべき額）</span></span><span style="font-weight:800;font-size:22px;color:var(--accent2);">¥'+_cashExpectedVal.toLocaleString()+'</span></div>'+
     '<div style="font-size:13px;padding:3px 0;"><div style="display:flex;justify-content:space-between;align-items:center;"><span>実際に数えた現金額</span><span><input id="cash-counted" type="number" placeholder="数えた額" oninput="updateCashDiff()" style="width:96px;text-align:right;font-size:13px;padding:3px 5px;border:1px solid var(--border);border-radius:6px;font-family:inherit;"> 円</span></div><div style="font-size:10px;color:var(--text2);margin-top:2px;">（ドロワーの現金をそのまま数えて入れる）</div></div>'+
     '<div id="cash-diff-row" style="display:none;justify-content:space-between;font-size:15px;padding:6px 0 2px;font-weight:800;"><span>過不足</span><span id="cash-diff-val"></span></div>'+
