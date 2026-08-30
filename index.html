@@ -1137,8 +1137,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 551;
-const APP_BUILD_DATE = '2026/08/30 10:42';
+const APP_VERSION = 552;
+const APP_BUILD_DATE = '2026/08/30 10:55';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -4084,24 +4084,27 @@ function renderStatsCards(filtered){
     payHtml+
     pointNoteHtml()+
   '</div>'):'';
-  // 🧾 レジ締め（現金の数え合わせ）：釣銭準備金＋今日の現金の出入り＝正しい現金額。返金があっても「合わせるべき額」が出るので10万に無理に合わせなくてよい。
-  var _cashFloat=getCashFloat(); _cashExpectedVal=_cashFloat+_cash; // _cash=payMap['現金']（現金の純増減＝現金売上−現金返金）
-  _cashHasRefund=filtered.some(function(r){return r.refund;}); // この期間に返金取引があるか（クラッカー後の補填案内の出し分け）
+  // 🧾 レジ締め：正しい現金額＝「現金売上を引いた後の残り」＝釣銭準備金−現金返金（返金なければ10万・現金返金があれば10万以下）。
+  var _cashFloat=getCashFloat();
+  _cashHasRefund=filtered.some(function(r){return r.refund;}); // この期間に返金取引があるか（補填案内の出し分け）
   _cashMatchedFired=false; // 再描画のたびにクラッカーを再アーム（次に一致したら1回だけ発火）
   var _cashRefundTotal=0; // 現金で返した返金の合計＝金庫から補填する額（現金返金のみ・カード/電子は金庫に関係ない）
   filtered.forEach(function(r){ if(r.refund && r.total<0){ var _mk={cash:'現金',card:'カード',other:'電子決済'}[r.method]||r.method; if(_mk==='現金') _cashRefundTotal+=(-r.total); } });
-  var _refillRow=(_cashRefundTotal>0)?'<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:6px 9px;background:#fff4e6;border:1px solid #e8b878;border-radius:8px;margin-top:6px;"><span style="font-weight:700;color:#8a4b00;">🏦 金庫から補填する額<span style="font-weight:600;font-size:10px;color:#8a4b00;display:block;">（＝現金で返した合計）</span></span><span style="font-weight:800;font-size:17px;color:#8a4b00;">¥'+_cashRefundTotal.toLocaleString()+'</span></div>':'';
-  var _deltaStr=(_cash<0?'−¥'+Math.abs(_cash).toLocaleString():'+¥'+_cash.toLocaleString());
+  var _cashSales=_cash+_cashRefundTotal; // 今日の現金売上（＝現金の純増減＋現金返金）＝ドロワーから抜いて銀行へ入れる額
+  _cashExpectedVal=_cashFloat-_cashRefundTotal; // 正しい現金額＝釣銭準備金−現金返金（＝レジ全現金−現金売上／返金なければ10万）
+  var _refundStr=(_cashRefundTotal>0?'−¥'+_cashRefundTotal.toLocaleString():'¥0');
+  var _countHint=(_cashSales>0?'（ドロワーの現金 − 今日の現金売上 ¥'+_cashSales.toLocaleString()+'）':'（ドロワーの現金）');
+  var _refillRow=(_cashRefundTotal>0)?'<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:6px 9px;background:#fff4e6;border:1px solid #e8b878;border-radius:8px;margin-top:6px;"><span style="font-weight:700;color:#8a4b00;">🏦 金庫から補填する額<span style="font-weight:600;font-size:10px;color:#8a4b00;display:block;">（＝現金で返した合計・翌日ぶんを10万に戻す）</span></span><span style="font-weight:800;font-size:17px;color:#8a4b00;">¥'+_cashRefundTotal.toLocaleString()+'</span></div>':'';
   var cashCloseCard='<div style="background:#fff;border-radius:10px;padding:10px;box-shadow:var(--shadow);">'+
     '<div style="font-size:13px;font-weight:700;color:var(--accent2);margin-bottom:6px;">🧾 レジ締め（現金での返金があった時）</div>'+
     '<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:3px 0;"><span>釣銭準備金（開始時）</span><span><input id="cash-float" type="number" value="'+_cashFloat+'" onchange="setCashFloat(this.value)" style="width:96px;text-align:right;font-size:13px;padding:3px 5px;border:1px solid var(--border);border-radius:6px;font-family:inherit;"> 円</span></div>'+
-    '<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span>今日の現金の出入り（売上−現金の返金があれば）</span><span style="font-weight:700;color:'+(_cash<0?'#c0392b':'#111')+';">'+_deltaStr+'</span></div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span>現金返金（あれば）</span><span style="font-weight:700;color:'+(_cashRefundTotal>0?'#c0392b':'#111')+';">'+_refundStr+'</span></div>'+
     '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:2px solid #333;margin-top:3px;"><span style="font-weight:800;font-size:14px;">正しい現金額<span style="font-weight:600;font-size:12px;color:var(--text2);">　※現金返金あれば１０万以下になるはず</span><span style="font-weight:600;font-size:10px;color:var(--text2);display:block;">（レジ全現金ｰ現金売上）</span></span><span style="font-weight:800;font-size:22px;color:var(--accent2);">¥'+_cashExpectedVal.toLocaleString()+'</span></div>'+
-    '<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:3px 0;"><span>実際に数えた現金額</span><span><input id="cash-counted" type="number" placeholder="数えた額" oninput="updateCashDiff()" style="width:96px;text-align:right;font-size:13px;padding:3px 5px;border:1px solid var(--border);border-radius:6px;font-family:inherit;"> 円</span></div>'+
+    '<div style="font-size:13px;padding:3px 0;"><div style="display:flex;justify-content:space-between;align-items:center;"><span>実際に数えた現金額</span><span><input id="cash-counted" type="number" placeholder="数えた額" oninput="updateCashDiff()" style="width:96px;text-align:right;font-size:13px;padding:3px 5px;border:1px solid var(--border);border-radius:6px;font-family:inherit;"> 円</span></div><div style="font-size:10px;color:var(--text2);margin-top:2px;">'+_countHint+'</div></div>'+
     '<div id="cash-diff-row" style="display:none;justify-content:space-between;font-size:15px;padding:6px 0 2px;font-weight:800;"><span>過不足</span><span id="cash-diff-val"></span></div>'+
     _refillRow+
     '<div id="cash-refund-note" style="display:none;font-size:12px;color:#8a4b00;background:#fff4e6;border:1px solid #e8b878;border-radius:8px;padding:8px 10px;margin-top:6px;line-height:1.6;font-weight:600;">🔁 返金があった日：金庫から釣銭準備金（開始時）の金額になるように補填＋ジョランにカードor電子決済の返金金額を報告。</div>'+
-    '<div style="font-size:10px;color:var(--text2);margin-top:5px;line-height:1.5;">※期間を「今日」にして締めてください。返金した現金分は「正しい現金額」に反映済み＝正しく数えれば過不足0（10万に無理に合わせなくてOK）。</div>'+
+    '<div style="font-size:10px;color:var(--text2);margin-top:5px;line-height:1.5;">※期間を「今日」に。「実際に数えた現金額」は<b>ドロワーの現金から今日の現金売上を引いた残り</b>を入れてください。正しく数えれば過不足0（現金返金があれば正しい現金額は10万以下になります）。</div>'+
   '</div>';
   statsEl.innerHTML=
     payCardHtml+
