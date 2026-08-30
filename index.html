@@ -739,7 +739,7 @@ details.settings-section[open] > summary{margin-bottom:10px;}
     <div class="modal-btns" style="flex-wrap:wrap;gap:6px;">
       <button onclick="document.getElementById('sale-detail-modal').classList.remove('open')">閉じる</button>
       <button onclick="saveSaleChanges()" style="background:#e8f4fd;color:var(--blue);border:1px solid #a0c8e8;">💾 変更して保存</button>
-      <button onclick="openRefundModal(currentDetailSaleId)" style="background:#fff4e6;color:#b25900;border:1px solid #e8b878;">↩ 返品/返金</button>
+      <button onclick="openRefundModal(currentDetailSaleId)" style="background:#d9741a;color:#fff;border:1px solid #a85610;font-weight:700;">↩ 返品/返金</button>
       <button id="sale-detail-flag-btn" onclick="toggleSaleFlag()" style="background:#fde8e8;color:var(--red);border:1px solid #f5c0c0;">🔴 印</button>
       <button class="confirm" style="background:var(--red);border-color:var(--red);" onclick="deleteSaleFromDetail()">削除</button>
     </div>
@@ -1100,8 +1100,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 546;
-const APP_BUILD_DATE = '2026/08/29 11:20';
+const APP_VERSION = 547;
+const APP_BUILD_DATE = '2026/08/29 11:28';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
