@@ -1137,8 +1137,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 563;
-const APP_BUILD_DATE = '2026/09/12 10:30';
+const APP_VERSION = 564;
+const APP_BUILD_DATE = '2026/09/18 10:20';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1341,6 +1341,8 @@ const DEFAULT_ITEMS = [
   {id:'i_b18', name:'BBQ焼き網',           price:200, cat:'cat_rental',stock:5, free_mura:false},
   {id:'i_b19', name:'寝袋（夏用）',        price:1000,cat:'cat_rental',stock:10,free_mura:false},
   {id:'i_b20', name:'寝袋（冬用）',        price:1000,cat:'cat_rental',stock:2, free_mura:false},
+  {id:'i_event100', name:'イベント100円',   price:100,  cat:'cat_other',    stock:0, free_mura:false},
+  {id:'i_event500', name:'イベント500円',   price:500,  cat:'cat_other',    stock:0, free_mura:false},
 ];
 
 // 起動時に常にmain用URLを強制セット（古いURLが残っていても必ず上書き）
@@ -7010,6 +7012,17 @@ restoreFromIDB(true).then(()=>{
       if(_a>=0 && _b>=0){ itemOrder.splice(_a,1); _b=itemOrder.indexOf('i_yuki1kg'); itemOrder.splice(_b,0,'i_g14'); if(itemOrder.indexOf('i_g14')!==_a) _c=true; }
     }
     if(_c){ sv(KEYS.items,items); if(itemOrder) sv(KEYS.itemOrder,itemOrder); }
+  })();
+  // 【v564】その他に「イベント100円」「イベント500円」を追加（通常商品＝集計は名前で自動）。
+  (function(){
+    var toAdd=[];
+    if(!items.some(function(i){return i.id==='i_event100';})) toAdd.push({id:'i_event100',name:'イベント100円',price:100,cat:'cat_other',stock:0,free_mura:false});
+    if(!items.some(function(i){return i.id==='i_event500';})) toAdd.push({id:'i_event500',name:'イベント500円',price:500,cat:'cat_other',stock:0,free_mura:false});
+    if(toAdd.length){
+      items.push.apply(items,toAdd);
+      if(itemOrder){ toAdd.forEach(function(it){ if(itemOrder.indexOf(it.id)<0) itemOrder.push(it.id); }); }
+      sv(KEYS.items,items); if(itemOrder) sv(KEYS.itemOrder,itemOrder);
+    }
   })();
   loadDisplaySettings();
   // 売上明細フィルターを今日に初期化
