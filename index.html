@@ -942,8 +942,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
     <h3>イベント会計</h3>
     <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6;">金額を選ぶとカートに入ります。</div>
     <div style="display:flex;flex-direction:column;gap:10px;">
-      <button onclick="addEventItem('i_event100')" style="padding:16px;border:2px solid #aeb9c9;background:#e9edf3;border-radius:12px;cursor:pointer;font-family:inherit;color:#37475e;font-size:20px;font-weight:800;">イベント 100円</button>
-      <button onclick="addEventItem('i_event500')" style="padding:16px;border:2px solid #aeb9c9;background:#e9edf3;border-radius:12px;cursor:pointer;font-family:inherit;color:#37475e;font-size:20px;font-weight:800;">イベント 500円</button>
+      <button onclick="addEventItem('i_event100')" style="padding:16px;border:2px solid #a9c3e2;background:#eef4fb;border-radius:12px;cursor:pointer;font-family:inherit;color:#3f5c82;font-size:20px;font-weight:800;">イベント 100円</button>
+      <button onclick="addEventItem('i_event500')" style="padding:16px;border:2px solid #a9c3e2;background:#eef4fb;border-radius:12px;cursor:pointer;font-family:inherit;color:#3f5c82;font-size:20px;font-weight:800;">イベント 500円</button>
     </div>
     <div class="modal-btns"><button onclick="closeEventModal()">閉じる</button></div>
   </div>
@@ -1150,8 +1150,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 565;
-const APP_BUILD_DATE = '2026/09/18 10:45';
+const APP_VERSION = 566;
+const APP_BUILD_DATE = '2026/09/18 11:05';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1994,8 +1994,8 @@ function makeItemBtn(item, cat, grid){
   btn.style.borderColor=cat.border;
   btn.style.borderWidth='2px';
   if(inCartQty>0) btn.style.boxShadow='inset 0 0 0 2px '+cat.border+',var(--shadow)';
-  // 奈良県職員券は、SOU・イベントと同じ「空中ウォークより目立たない青系」の色に統一
-  if(item.id==='i_nara55'){ btn.style.background=SPECIAL_TILE_BG; btn.style.borderColor=SPECIAL_TILE_BORDER; }
+  // 奈良県職員券は、SOU・イベントと同じ「空中ウォークより目立たない青系」＋点線枠に統一
+  if(item.id==='i_nara55'){ btn.style.background=SPECIAL_TILE_BG; btn.style.borderColor=SPECIAL_TILE_BORDER; btn.style.borderStyle='dashed'; }
   const isStayItem2 = item.stay_prices && Object.keys(item.stay_prices).length > 0;
   const hasVariants = !!(item.variants && item.variants.length > 0);
   const paidBadge = getPaidBadge(item);
@@ -2517,7 +2517,7 @@ function addSouFreeRental(item, cat){
 }
 function souRentalFreeOff(){ souRentalFree=false; renderCart(); renderPOS(); showToast('SOUレンタル無料モードをOFFにしました'); }
 // 奈良県職員券・SOU・イベントの共通色（空中ウォーク #f0f6ff/#a0c0e8 より目立たない青系）
-const SPECIAL_TILE_BG='#e9edf3', SPECIAL_TILE_BORDER='#aeb9c9', SPECIAL_TILE_TEXT='#4f5f76';
+const SPECIAL_TILE_BG='#eef4fb', SPECIAL_TILE_BORDER='#a9c3e2', SPECIAL_TILE_TEXT='#3f5c82';
 // SOUトリガータイル（空中ウォークのグリッド末尾に。編集中は出さない）
 function appendSouTile(grid, cat){
   if(editMode || !cat || cat.id!=='cat_walk' || !grid) return;
