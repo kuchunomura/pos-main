@@ -1150,8 +1150,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 567;
-const APP_BUILD_DATE = '2026/09/18 11:30';
+const APP_VERSION = 568;
+const APP_BUILD_DATE = '2026/09/18 12:05';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1193,6 +1193,8 @@ function saveSnapshotToIDB(){
     SNAP.forEach(k=>{const v=localStorage.getItem(k);if(v!=null)st.put(v,k);});
   }).catch(()=>{});
 }
+// 決済時刻を「M/D HH:MM」表記に（売上修正メモ用）
+function _fmtEditHM(iso){ try{var d=new Date(iso);return (d.getMonth()+1)+'/'+d.getDate()+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}catch(e){return '';} }
 function ld(k){
   try{const v=localStorage.getItem(k);if(v!=null)return JSON.parse(v);}catch(e){}
   return null;
@@ -3731,11 +3733,20 @@ function confirmPayment(){
   // SOU（OTA）会計：カート行の_souTag（SOU色＋内容）を売上メモへ集約（日別シートでSOUと分かるように）
   var _souTags=[]; cart.forEach(function(c){ if(c._souTag && _souTags.indexOf(c._souTag)<0) _souTags.push(c._souTag); });
   if(_souTags.length){ var _st=_souTags.join(' / '); saleMemo = saleMemo ? _st+' / '+saleMemo : _st; }
+  // 【再発防止】カートで修正した会計は、元の決済時刻を引き継ぐ（誤打ちの訂正＝新規取引ではないため）。
+  // これで版履歴を掘らなくても元の時刻が売上に残る。修正の事実と時刻はメモ＋editedAtに記録。
+  var _origRec = editingSaleId ? sales.find(function(s){return s.id===editingSaleId;}) : null;
+  if(_origRec && _origRec.datetime){
+    saleMemo = (saleMemo?saleMemo+' / ':'') + '修正済(元決済 '+_fmtEditHM(_origRec.datetime)+' → 修正 '+_fmtEditHM(new Date().toISOString())+')';
+    saleDatetime = _origRec.datetime; // 元の決済時刻を採用
+  }
   const record={
     id:'s_'+Date.now(),datetime:saleDatetime,
     items:cart.map(i=>({...i})),total,method:currentPayMethod,
     attrs:{...selectedAttrs},discount:saleDiscount,paid:isPaid,
     memo:saleMemo,
+    origSaleId:_origRec?_origRec.id:undefined,
+    editedAt:_origRec?new Date().toISOString():undefined,
     resId:_resIds[0]||undefined,
     resIds:_resIds.length?_resIds:undefined,
     nextDay:nextDayMode,
