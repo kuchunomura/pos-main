@@ -1150,8 +1150,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 568;
-const APP_BUILD_DATE = '2026/09/18 12:05';
+const APP_VERSION = 569;
+const APP_BUILD_DATE = '2026/09/18 12:25';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1195,6 +1195,8 @@ function saveSnapshotToIDB(){
 }
 // 決済時刻を「M/D HH:MM」表記に（売上修正メモ用）
 function _fmtEditHM(iso){ try{var d=new Date(iso);return (d.getMonth()+1)+'/'+d.getDate()+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}catch(e){return '';} }
+// 丸囲み数字（修正①②③…／21以上は(n)）
+function _circledNum(n){ var c='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳'; return (n>=1&&n<=20)?c.charAt(n-1):'('+n+')'; }
 function ld(k){
   try{const v=localStorage.getItem(k);if(v!=null)return JSON.parse(v);}catch(e){}
   return null;
@@ -3736,17 +3738,22 @@ function confirmPayment(){
   // 【再発防止】カートで修正した会計は、元の決済時刻を引き継ぐ（誤打ちの訂正＝新規取引ではないため）。
   // これで版履歴を掘らなくても元の時刻が売上に残る。修正の事実と時刻はメモ＋editedAtに記録。
   var _origRec = editingSaleId ? sales.find(function(s){return s.id===editingSaleId;}) : null;
+  var _editLog=null;
   if(_origRec && _origRec.datetime){
-    saleMemo = (saleMemo?saleMemo+' / ':'') + '修正済(元決済 '+_fmtEditHM(_origRec.datetime)+' → 修正 '+_fmtEditHM(new Date().toISOString())+')';
-    saleDatetime = _origRec.datetime; // 元の決済時刻を採用
+    _editLog = (Array.isArray(_origRec.editLog)?_origRec.editLog.slice():[]);
+    _editLog.push(new Date().toISOString()); // 今回の修正時刻を追加
+    var _fixStr = _editLog.map(function(t,ix){return '修正'+_circledNum(ix+1)+_fmtEditHM(t);}).join(' ');
+    saleMemo = (saleMemo?saleMemo+' / ':'') + '元決済'+_fmtEditHM(_origRec.datetime)+' '+_fixStr;
+    saleDatetime = _origRec.datetime; // 元の決済時刻を採用（新規取引でなく訂正のため）
   }
   const record={
     id:'s_'+Date.now(),datetime:saleDatetime,
     items:cart.map(i=>({...i})),total,method:currentPayMethod,
     attrs:{...selectedAttrs},discount:saleDiscount,paid:isPaid,
     memo:saleMemo,
-    origSaleId:_origRec?_origRec.id:undefined,
-    editedAt:_origRec?new Date().toISOString():undefined,
+    origSaleId:_origRec?(_origRec.origSaleId||_origRec.id):undefined,
+    editedAt:_editLog?_editLog[_editLog.length-1]:undefined,
+    editLog:_editLog||undefined,
     resId:_resIds[0]||undefined,
     resIds:_resIds.length?_resIds:undefined,
     nextDay:nextDayMode,
