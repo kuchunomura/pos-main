@@ -936,6 +936,19 @@ details.settings-section[open] > summary{margin-bottom:10px;}
   </div>
 </div>
 
+<!-- イベント会計モーダル（100円/500円を選ぶ） -->
+<div class="modal-overlay" id="event-modal">
+  <div class="modal" style="max-width:340px;">
+    <h3>イベント会計</h3>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6;">金額を選ぶとカートに入ります。</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button onclick="addEventItem('i_event100')" style="padding:16px;border:2px solid #aeb9c9;background:#e9edf3;border-radius:12px;cursor:pointer;font-family:inherit;color:#37475e;font-size:20px;font-weight:800;">イベント 100円</button>
+      <button onclick="addEventItem('i_event500')" style="padding:16px;border:2px solid #aeb9c9;background:#e9edf3;border-radius:12px;cursor:pointer;font-family:inherit;color:#37475e;font-size:20px;font-weight:800;">イベント 500円</button>
+    </div>
+    <div class="modal-btns"><button onclick="closeEventModal()">閉じる</button></div>
+  </div>
+</div>
+
 <!-- 決済モーダル -->
 <style>
 /* 決済確認ボタンの指アニメ。現金は受取金額が売上以上(=pay-ready)になってから表示。カード/電子は最初から */
@@ -1137,8 +1150,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 564;
-const APP_BUILD_DATE = '2026/09/18 10:20';
+const APP_VERSION = 565;
+const APP_BUILD_DATE = '2026/09/18 10:45';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1341,8 +1354,8 @@ const DEFAULT_ITEMS = [
   {id:'i_b18', name:'BBQ焼き網',           price:200, cat:'cat_rental',stock:5, free_mura:false},
   {id:'i_b19', name:'寝袋（夏用）',        price:1000,cat:'cat_rental',stock:10,free_mura:false},
   {id:'i_b20', name:'寝袋（冬用）',        price:1000,cat:'cat_rental',stock:2, free_mura:false},
-  {id:'i_event100', name:'イベント100円',   price:100,  cat:'cat_other',    stock:0, free_mura:false},
-  {id:'i_event500', name:'イベント500円',   price:500,  cat:'cat_other',    stock:0, free_mura:false},
+  {id:'i_event100', name:'イベント100円',   price:100,  cat:'cat_walk',     stock:0, free_mura:false},
+  {id:'i_event500', name:'イベント500円',   price:500,  cat:'cat_walk',     stock:0, free_mura:false},
 ];
 
 // 起動時に常にmain用URLを強制セット（古いURLが残っていても必ず上書き）
@@ -1732,8 +1745,10 @@ function getOrderedCats(){
 }
 
 const PASS_FIRST_IDS=['i_passday','i_passnight','i_1777557786554']; // 年間パス（＋テスト）は常に一番左
+// イベント商品は個別タイルを出さず「イベント▾」モーダル経由で追加するため、商品タイル一覧からは除外する
+const EVENT_ITEM_IDS=['i_event100','i_event500'];
 function getOrderedItems(catId){
-  const filtered=items.filter(i=>i.cat===catId);
+  const filtered=items.filter(i=>i.cat===catId && EVENT_ITEM_IDS.indexOf(i.id)<0);
   const sorted = itemOrder ? [...filtered].sort((a,b)=>{
     const oa=itemOrder.indexOf(a.id),ob=itemOrder.indexOf(b.id);
     if(oa===-1&&ob===-1)return 0;if(oa===-1)return 1;if(ob===-1)return-1;return oa-ob;
@@ -1865,6 +1880,7 @@ function renderPOS(){
       });
       appendCleanupTile(grid, cat);
       appendSouTile(grid, cat);
+      appendEventTile(grid, cat);
       if(editMode){
         const addBtn=document.createElement('button');addBtn.className='add-item-btn';
         addBtn.innerHTML='<span style="font-size:18px">＋</span><span>追加</span>';
@@ -1921,6 +1937,7 @@ function renderPOS(){
       catItems.forEach(item=>{ grid.appendChild(makeItemBtn(item,cat,grid)); });
       appendCleanupTile(grid, cat);
       appendSouTile(grid, cat);
+      appendEventTile(grid, cat);
       section.appendChild(header);section.appendChild(grid);
       if(isGroupLeader(cat.id)){
         const grp=getCatGroup(cat.id);
@@ -1977,6 +1994,8 @@ function makeItemBtn(item, cat, grid){
   btn.style.borderColor=cat.border;
   btn.style.borderWidth='2px';
   if(inCartQty>0) btn.style.boxShadow='inset 0 0 0 2px '+cat.border+',var(--shadow)';
+  // 奈良県職員券は、SOU・イベントと同じ「空中ウォークより目立たない青系」の色に統一
+  if(item.id==='i_nara55'){ btn.style.background=SPECIAL_TILE_BG; btn.style.borderColor=SPECIAL_TILE_BORDER; }
   const isStayItem2 = item.stay_prices && Object.keys(item.stay_prices).length > 0;
   const hasVariants = !!(item.variants && item.variants.length > 0);
   const paidBadge = getPaidBadge(item);
@@ -2014,7 +2033,8 @@ function makeItemBtn(item, cat, grid){
     var _dispName=item.name;
     if(item.id==='i_nara55') _dispName=_dispName.replace('1DAY','<br>1DAY'); // 「奈良県職員券／1DAY」で改行
     if(item.cat==='cat_walk' && item.id!=='i_passday' && /\s/.test(_dispName)) _dispName=_dispName.replace(/\s+/, '<br>');
-    nameHtml='<div class="item-name" style="color:'+(item.nameColor||cat.text)+';'+(item.fontSize||cat.fontSize?'font-size:'+(item.fontSize||cat.fontSize)+';':'')+'">'+dotHtml+_dispName+'</div>';
+    var _nmColor=(item.id==='i_nara55')?SPECIAL_TILE_TEXT:(item.nameColor||cat.text);
+    nameHtml='<div class="item-name" style="color:'+_nmColor+';'+(item.fontSize||cat.fontSize?'font-size:'+(item.fontSize||cat.fontSize)+';':'')+'">'+dotHtml+_dispName+'</div>';
   }
   btn.innerHTML=
     '<div class="item-drag-handle">⠿</div>'+
@@ -2496,14 +2516,43 @@ function addSouFreeRental(item, cat){
   renderPOS(); renderCart(); showToast('✓ '+item.name+'（SOUレンタル無料）');
 }
 function souRentalFreeOff(){ souRentalFree=false; renderCart(); renderPOS(); showToast('SOUレンタル無料モードをOFFにしました'); }
+// 奈良県職員券・SOU・イベントの共通色（空中ウォーク #f0f6ff/#a0c0e8 より目立たない青系）
+const SPECIAL_TILE_BG='#e9edf3', SPECIAL_TILE_BORDER='#aeb9c9', SPECIAL_TILE_TEXT='#4f5f76';
 // SOUトリガータイル（空中ウォークのグリッド末尾に。編集中は出さない）
 function appendSouTile(grid, cat){
   if(editMode || !cat || cat.id!=='cat_walk' || !grid) return;
   var b=document.createElement('button');
   b.type='button'; b.className='item-btn';
-  b.style.cssText='background:#faf5ff;border:2px dashed #b98bd0;';
-  b.innerHTML='<div class="item-name" style="color:#7a3b9a;font-weight:800;">SOU ▾</div><div class="item-price" style="color:#a06fc0;font-size:11px;">4色から選ぶ</div>';
+  b.style.cssText='background:'+SPECIAL_TILE_BG+';border:2px dashed '+SPECIAL_TILE_BORDER+';';
+  b.innerHTML='<div class="item-name" style="color:'+SPECIAL_TILE_TEXT+';font-weight:800;">SOU ▾</div><div class="item-price" style="color:'+SPECIAL_TILE_TEXT+';font-size:11px;">4色から選ぶ</div>';
   b.onclick=function(){ openSouModal(); };
+  grid.appendChild(b);
+}
+
+// ===== イベント会計（空中ウォーク内・タイル1つ→100円/500円を選択） =====
+// イベント100円/500円は通常商品（金額×数量）だが、村民割引等で金額が変わらないよう固定価格(manualPrice)で入れる。
+// 集計は商品名で自動（総売上・商品別に「イベント100円/500円」で載る）＝GAS変更・再デプロイ不要。
+function openEventModal(){ var m=document.getElementById('event-modal'); if(m)m.classList.add('open'); }
+function closeEventModal(){ var m=document.getElementById('event-modal'); if(m)m.classList.remove('open'); }
+function addEventItem(id){
+  var it=items.find(function(x){return x.id===id;});
+  if(!it){ showToast('⚠ イベント商品が見つかりません','#c00'); return; }
+  var cat=(typeof cats!=='undefined'&&cats.find)?cats.find(function(c){return c.id===it.cat;}):null;
+  var ex=cart.find(function(c){return c.id===it.id && c.manualPrice;});
+  if(ex){ ex.qty++; }
+  else cart.push({id:it.id,name:it.name,origPrice:it.price,price:it.price,qty:1,discounted:false,manualPrice:true,cat:it.cat||'',catColor:cat?cat.bg:'#fff'});
+  closeEventModal();
+  renderCart(); renderPOS();
+  showToast('✓ '+it.name+' を追加');
+}
+// イベントトリガータイル（空中ウォークのグリッド末尾に。編集中は出さない）
+function appendEventTile(grid, cat){
+  if(editMode || !cat || cat.id!=='cat_walk' || !grid) return;
+  var b=document.createElement('button');
+  b.type='button'; b.className='item-btn';
+  b.style.cssText='background:'+SPECIAL_TILE_BG+';border:2px dashed '+SPECIAL_TILE_BORDER+';';
+  b.innerHTML='<div class="item-name" style="color:'+SPECIAL_TILE_TEXT+';font-weight:800;">イベント ▾</div><div class="item-price" style="color:'+SPECIAL_TILE_TEXT+';font-size:11px;">100円/500円</div>';
+  b.onclick=function(){ openEventModal(); };
   grid.appendChild(b);
 }
 
@@ -7013,16 +7062,20 @@ restoreFromIDB(true).then(()=>{
     }
     if(_c){ sv(KEYS.items,items); if(itemOrder) sv(KEYS.itemOrder,itemOrder); }
   })();
-  // 【v564】その他に「イベント100円」「イベント500円」を追加（通常商品＝集計は名前で自動）。
+  // 【v564→v565】イベント100円/500円を「空中ウォーク」に追加。タイルは「イベント▾」1つに集約（getOrderedItemsで個別タイル非表示）。
   (function(){
     var toAdd=[];
-    if(!items.some(function(i){return i.id==='i_event100';})) toAdd.push({id:'i_event100',name:'イベント100円',price:100,cat:'cat_other',stock:0,free_mura:false});
-    if(!items.some(function(i){return i.id==='i_event500';})) toAdd.push({id:'i_event500',name:'イベント500円',price:500,cat:'cat_other',stock:0,free_mura:false});
+    if(!items.some(function(i){return i.id==='i_event100';})) toAdd.push({id:'i_event100',name:'イベント100円',price:100,cat:'cat_walk',stock:0,free_mura:false});
+    if(!items.some(function(i){return i.id==='i_event500';})) toAdd.push({id:'i_event500',name:'イベント500円',price:500,cat:'cat_walk',stock:0,free_mura:false});
+    var _c=false;
     if(toAdd.length){
       items.push.apply(items,toAdd);
       if(itemOrder){ toAdd.forEach(function(it){ if(itemOrder.indexOf(it.id)<0) itemOrder.push(it.id); }); }
-      sv(KEYS.items,items); if(itemOrder) sv(KEYS.itemOrder,itemOrder);
+      _c=true;
     }
+    // v564でその他(cat_other)に入れた端末を空中ウォークへ移動
+    ['i_event100','i_event500'].forEach(function(id){ var it=items.find(function(x){return x.id===id;}); if(it && it.cat!=='cat_walk'){ it.cat='cat_walk'; _c=true; } });
+    if(_c){ sv(KEYS.items,items); if(itemOrder) sv(KEYS.itemOrder,itemOrder); }
   })();
   loadDisplaySettings();
   // 売上明細フィルターを今日に初期化
