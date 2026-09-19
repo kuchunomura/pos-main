@@ -943,7 +943,7 @@ details.settings-section[open] > summary{margin-bottom:10px;}
     <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6;">金額を選ぶとカートに入ります。</div>
     <div style="display:flex;flex-direction:column;gap:10px;">
       <button onclick="addEventItem('i_event100')" style="padding:16px;border:2px solid #a9c3e2;background:#eef4fb;border-radius:12px;cursor:pointer;font-family:inherit;color:#3f5c82;font-size:18px;font-weight:800;">イベント（中学生以下）100円</button>
-      <button onclick="addEventItem('i_event500')" style="padding:16px;border:2px solid #a9c3e2;background:#eef4fb;border-radius:12px;cursor:pointer;font-family:inherit;color:#3f5c82;font-size:20px;font-weight:800;">イベント 500円</button>
+      <button onclick="addEventItem('i_event500')" style="padding:16px;border:2px solid #a9c3e2;background:#eef4fb;border-radius:12px;cursor:pointer;font-family:inherit;color:#3f5c82;font-size:18px;font-weight:800;">イベント（高校生以上）500円</button>
     </div>
     <div class="modal-btns"><button onclick="closeEventModal()">閉じる</button></div>
   </div>
@@ -1150,8 +1150,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 570;
-const APP_BUILD_DATE = '2026/09/19 09:30';
+const APP_VERSION = 571;
+const APP_BUILD_DATE = '2026/09/19 09:45';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1359,7 +1359,7 @@ const DEFAULT_ITEMS = [
   {id:'i_b19', name:'寝袋（夏用）',        price:1000,cat:'cat_rental',stock:10,free_mura:false},
   {id:'i_b20', name:'寝袋（冬用）',        price:1000,cat:'cat_rental',stock:2, free_mura:false},
   {id:'i_event100', name:'イベント（中学生以下）100円',   price:100,  cat:'cat_walk',     stock:0, free_mura:false},
-  {id:'i_event500', name:'イベント500円',   price:500,  cat:'cat_walk',     stock:0, free_mura:false},
+  {id:'i_event500', name:'イベント（高校生以上）500円',   price:500,  cat:'cat_walk',     stock:0, free_mura:false},
 ];
 
 // 起動時に常にmain用URLを強制セット（古いURLが残っていても必ず上書き）
@@ -7088,7 +7088,7 @@ restoreFromIDB(true).then(()=>{
   (function(){
     var toAdd=[];
     if(!items.some(function(i){return i.id==='i_event100';})) toAdd.push({id:'i_event100',name:'イベント（中学生以下）100円',price:100,cat:'cat_walk',stock:0,free_mura:false});
-    if(!items.some(function(i){return i.id==='i_event500';})) toAdd.push({id:'i_event500',name:'イベント500円',price:500,cat:'cat_walk',stock:0,free_mura:false});
+    if(!items.some(function(i){return i.id==='i_event500';})) toAdd.push({id:'i_event500',name:'イベント（高校生以上）500円',price:500,cat:'cat_walk',stock:0,free_mura:false});
     var _c=false;
     if(toAdd.length){
       items.push.apply(items,toAdd);
@@ -7099,6 +7099,8 @@ restoreFromIDB(true).then(()=>{
     ['i_event100','i_event500'].forEach(function(id){ var it=items.find(function(x){return x.id===id;}); if(it && it.cat!=='cat_walk'){ it.cat='cat_walk'; _c=true; } });
     // 【v570】イベント100円→「イベント（中学生以下）100円」に改名
     var _e1=items.find(function(x){return x.id==='i_event100';}); if(_e1 && _e1.name!=='イベント（中学生以下）100円'){ _e1.name='イベント（中学生以下）100円'; _c=true; }
+    // 【v571】イベント500円→「イベント（高校生以上）500円」に改名
+    var _e5=items.find(function(x){return x.id==='i_event500';}); if(_e5 && _e5.name!=='イベント（高校生以上）500円'){ _e5.name='イベント（高校生以上）500円'; _c=true; }
     if(_c){ sv(KEYS.items,items); if(itemOrder) sv(KEYS.itemOrder,itemOrder); }
   })();
   loadDisplaySettings();
