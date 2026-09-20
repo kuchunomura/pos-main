@@ -1150,8 +1150,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 575;
-const APP_BUILD_DATE = '2026/09/20 15:45';
+const APP_VERSION = 576;
+const APP_BUILD_DATE = '2026/09/20 16:05';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -4121,6 +4121,7 @@ function renderStatsCards(filtered){
     r.items.forEach(i=>{
       if(i.id==='REFUND_MANUAL'||i._manualRefund){ return; } // 金額のみの手動返金は商品別に出さない（総売上・支払方法別・レジ締めには反映済み）
       if(i.id===POINT_ITEM_ID||i.name==='ポイント利用'){ pointTotal+=Math.abs(i.price*i.qty); return; }
+      if(i.id===NARA_ITEM_ID||i.name==='奈良県職員券'){ return; } // 奈良県職員券マイナス行は商品別に独立表示しない（空中ウォーク1DAYの内訳「内）奈良県職員 N名」に集約＝ややこしさ回避。券枚数の人数はsumNaraBudgetで別途カウント済み）
       var e=itemMap[i.name]||(itemMap[i.name]={count:0,total:0,people:0,cat:i.cat||'',isStay:!!i.isStay,byDisc:null});
       e.count+=i.qty; e.total+=i.price*i.qty;
       var ppl=sumIsPeopleItem(i)?sumPeopleOf(i):0; e.people+=ppl;
@@ -4323,6 +4324,7 @@ function renderSales(){
       r.items.forEach(i=>{
         if(i.id==='REFUND_MANUAL'||i._manualRefund){ return; } // 金額のみの手動返金は商品別に出さない
         if(i.id===POINT_ITEM_ID||i.name==='ポイント利用'){ pointTotalS+=Math.abs(i.price*i.qty); return; }
+        if(i.id===NARA_ITEM_ID||i.name==='奈良県職員券'){ return; } // 奈良県職員券マイナス行は商品別に独立表示しない（1DAY内訳に集約）
         var e=itemMap[i.name]||(itemMap[i.name]={count:0,total:0,people:0,cat:i.cat||'',isStay:!!i.isStay,byDisc:null});
         e.count+=i.qty; e.total+=i.price*i.qty;
         var ppl=sumIsPeopleItem(i)?sumPeopleOf(i):0; e.people+=ppl;
