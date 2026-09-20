@@ -1150,8 +1150,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 576;
-const APP_BUILD_DATE = '2026/09/20 16:05';
+const APP_VERSION = 577;
+const APP_BUILD_DATE = '2026/09/20 16:30';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -3975,10 +3975,11 @@ function sumPeopleOf(i){ var m=(i.name||'').match(/[（(](\d+)人[）)]/); retur
 var SUM_OTA_SHORT={rakuten:'楽天',other1:'楽天体験',jalan:'じゃらん',other2:'アソビュー',sou:'SOU',other3:'外部③'};
 function sumDiscBucket(i,r){ if(i.otaKey)return SUM_OTA_SHORT[i.otaKey]||'OTA'; if(i.passKey)return '年パス'; if(i.groupOn)return '団体'; if(i.muraOn)return '村民半額'; if(i.freeOn)return '無料'; if(r&&r.discount==='stay_guest')return '宿泊者'; return '通常料金'; }
 var SUM_DB_ORDER=['通常料金','宿泊者','村民半額','団体','年パス','無料','奈良県職員券','楽天','楽天体験','じゃらん','アソビュー','SOU','外部③','OTA'];
-// 奈良県職員券の人数＝その売上内の「奈良県職員券」マイナス行の枚数。過去データもこの方式で正しく数える（naraOnフラグに依存しない＝古い売上でも分類できる）。
-function sumNaraBudget(r){ var n=0; ((r&&r.items)||[]).forEach(function(i){ if(i.id===NARA_ITEM_ID||i.name==='奈良県職員券') n+=Math.abs(parseInt(i.qty)||0); }); return n; }
-// 施設系1行の人数(ppl)を割引区分の内訳(byDisc)へ加算。空中ウォーク1DAYは、その売上の奈良県職員券の残枚数(budgetRef.n)ぶんを先に「奈良県職員券」区分へ振り分け、残りを通常の割引区分へ入れる（混在会計＝奈良1名＋通常1名も正しく分かれる）。
-function sumAddByDisc(e,i,r,ppl,budgetRef){ if(!e.byDisc)e.byDisc={}; var lineTot=i.price*i.qty, naraHere=0; if(i.id==='i_walk1day'&&budgetRef&&budgetRef.n>0){ naraHere=Math.min(ppl,budgetRef.n); budgetRef.n-=naraHere; } var naraTot=ppl>0?Math.round(lineTot*naraHere/ppl):0; if(naraHere>0){ var gn=e.byDisc['奈良県職員券']||(e.byDisc['奈良県職員券']={people:0,total:0}); gn.people+=naraHere; gn.total+=naraTot; } var rest=ppl-naraHere; if(rest>0){ var db=sumDiscBucket(i,r); var g=e.byDisc[db]||(e.byDisc[db]={people:0,total:0}); g.people+=rest; g.total+=lineTot-naraTot; } }
+// 奈良県職員券の人数(n)と券のマイナス金額(amt=負値)＝その売上内の「奈良県職員券」マイナス行を集計。過去データもこの方式で正しく数える（naraOnフラグに依存しない）。
+function sumNaraInfo(r){ var n=0,amt=0; ((r&&r.items)||[]).forEach(function(i){ if(i.id===NARA_ITEM_ID||i.name==='奈良県職員券'){ n+=Math.abs(parseInt(i.qty)||0); amt+=(i.price*i.qty)||0; } }); return {n:n,amt:amt}; }
+// 施設系1行の人数(ppl)を割引区分の内訳(byDisc)へ加算。空中ウォーク1DAYは、その売上の奈良県職員券の残枚数(budgetRef.n)ぶんを先に「奈良県職員券」区分へ振り分ける。
+// 奈良区分の金額はその券のマイナス額(budgetRef.amt=−9,000等)を按分して入れる＝内訳行に「内）奈良県職員 N人 −¥N」と表示（独立行は廃止＝ここに集約）。残りの人数は奈良ぶんの定価を除いた分を通常の割引区分へ。
+function sumAddByDisc(e,i,r,ppl,budgetRef){ if(!e.byDisc)e.byDisc={}; var lineTot=i.price*i.qty, naraHere=0, naraAmt=0, naraDefac=0; if(i.id==='i_walk1day'&&budgetRef&&budgetRef.n>0){ naraHere=Math.min(ppl,budgetRef.n); naraAmt=budgetRef.n>0?Math.round(budgetRef.amt*naraHere/budgetRef.n):0; naraDefac=ppl>0?Math.round(lineTot*naraHere/ppl):0; budgetRef.amt-=naraAmt; budgetRef.n-=naraHere; } if(naraHere>0){ var gn=e.byDisc['奈良県職員券']||(e.byDisc['奈良県職員券']={people:0,total:0}); gn.people+=naraHere; gn.total+=naraAmt; } var rest=ppl-naraHere; if(rest>0){ var db=sumDiscBucket(i,r); var g=e.byDisc[db]||(e.byDisc[db]={people:0,total:0}); g.people+=rest; g.total+=lineTot-naraDefac; } }
 function sumTally(n){ n=Math.max(0,Math.round(n||0)); var q=Math.floor(n/5), r=n%5; var s=''; for(var a=0;a<q;a++)s+='正'; for(var b=0;b<r;b++)s+='丨'; return s; } // 正の字＝5ごとに「正」、端数は「丨」
 // 「売上合計にポイントは含む？」タップ開閉の説明（💳支払方法別カードの左下に置く）。nextElementSiblingでnoteを開閉＝id不要・再描画でも安全。
 function pointNoteHtml(){ return '<button type="button" onclick="var d=this.nextElementSibling;var s=d.style.display===\'none\';d.style.display=s?\'\':\'none\';this.textContent=(s?\'▲\':\'▼\')+\' 売上合計にポイントは含む？\';" style="font-size:11px;color:var(--accent2);background:none;border:none;cursor:pointer;padding:2px 0;font-family:inherit;margin-top:8px;display:block;text-align:left;">▼ 売上合計にポイントは含む？</button><div style="display:none;font-size:11px;color:#111;line-height:1.7;background:#f7f7f7;border-radius:8px;padding:8px 10px;margin-top:4px;"><b>ポイント利用分は含みません。</b>受け取った金額だけ（現金・カード・電子）。<br><b>例）¥3,000でポイント¥2,000利用：</b><br>カート＝商品 <b>+3,000</b> ＋ ポイント利用 <b>−2,000</b> → <b>売上合計に入るのは ¥1,000</b>（受け取った現金／カード分）。<br>ポイントの ¥2,000 は入りません。✅</div>'; }
@@ -4117,7 +4118,7 @@ function renderStatsCards(filtered){
   filtered.forEach(r=>{
     const k={cash:'現金',card:'カード',other:'電子決済'}[r.method]||r.method;
     payMap[k]=(payMap[k]||0)+r.total; payCount[k]=(payCount[k]||0)+(r.refund?0:1); // 金額＋件数（レジ締め用・返品は件数に数えない）
-    var _naraRef={n:sumNaraBudget(r)}; // この売上の奈良県職員券の枚数（1DAY内訳の振り分けに使う）
+    var _naraRef=sumNaraInfo(r); // この売上の奈良県職員券の枚数(n)とマイナス金額(amt)＝1DAY内訳の振り分けに使う
     r.items.forEach(i=>{
       if(i.id==='REFUND_MANUAL'||i._manualRefund){ return; } // 金額のみの手動返金は商品別に出さない（総売上・支払方法別・レジ締めには反映済み）
       if(i.id===POINT_ITEM_ID||i.name==='ポイント利用'){ pointTotal+=Math.abs(i.price*i.qty); return; }
@@ -4166,9 +4167,9 @@ function renderStatsCards(filtered){
       var ks=Object.keys(e.byDisc).sort(function(a,b){var ia=SUM_DB_ORDER.indexOf(a),ib=SUM_DB_ORDER.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
       // 割引が実際にある時だけ内訳を出す（「通常料金」1つだけ＝親行と同じなので省略）
       if(ks.length>1||(ks.length===1&&ks[0]!=='通常料金')){
-      ks.forEach(function(db){var g=e.byDisc[db];var _nara=(db==='奈良県職員券');var _lbl=_nara?'内）奈良県職員':('└ '+db);var _cnt=g.people>0?(g.people+(_nara?'名':'人')):'';var _amt=_nara?'':(g.total?'¥'+g.total.toLocaleString():'');h+='<div style="display:grid;grid-template-columns:150px 52px 90px;column-gap:8px;align-items:baseline;font-size:12px;color:#111;padding:1px 0;">'
+      ks.forEach(function(db){var g=e.byDisc[db];var _nara=(db==='奈良県職員券');var _lbl=_nara?'内）奈良県職員':('└ '+db);var _cnt=g.people>0?(g.people+'人'):'';var _amt=g.total?(g.total<0?'−¥'+Math.abs(g.total).toLocaleString():'¥'+g.total.toLocaleString()):'';var _ac=g.total<0?'color:var(--red);':'';h+='<div style="display:grid;grid-template-columns:150px 52px 90px;column-gap:8px;align-items:baseline;font-size:12px;color:#111;padding:1px 0;">'
         +'<span style="padding-left:16px">'+_lbl+'</span><span style="font-weight:600;text-align:right;white-space:nowrap">'+_cnt+'</span>'
-        +'<span style="font-weight:600;text-align:right;white-space:nowrap">'+_amt+'</span></div>';});
+        +'<span style="font-weight:600;text-align:right;white-space:nowrap;'+_ac+'">'+_amt+'</span></div>';});
       }
     }
     return h;
@@ -4320,7 +4321,7 @@ function renderSales(){
     filtered.forEach(r=>{
       const pm={cash:'現金',card:'カード',other:'電子決済'}[r.method]||r.method||'不明';
       payMapS[pm]=(payMapS[pm]||0)+r.total; payCountS[pm]=(payCountS[pm]||0)+(r.refund?0:1); // 金額＋件数（返品は件数に数えない）
-      var _naraRefS={n:sumNaraBudget(r)}; // この売上の奈良県職員券の枚数
+      var _naraRefS=sumNaraInfo(r); // この売上の奈良県職員券の枚数(n)とマイナス金額(amt)
       r.items.forEach(i=>{
         if(i.id==='REFUND_MANUAL'||i._manualRefund){ return; } // 金額のみの手動返金は商品別に出さない
         if(i.id===POINT_ITEM_ID||i.name==='ポイント利用'){ pointTotalS+=Math.abs(i.price*i.qty); return; }
@@ -4369,7 +4370,7 @@ function renderSales(){
       if(e.byDisc){
         var ks=Object.keys(e.byDisc).sort(function(a,b){var ia=SUM_DB_ORDER.indexOf(a),ib=SUM_DB_ORDER.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
         if(ks.length>1||(ks.length===1&&ks[0]!=='通常料金')) // 割引がある時だけ内訳
-        ks.forEach(function(db){var g=e.byDisc[db];var _nara=(db==='奈良県職員券');var _lbl=_nara?'内）奈良県職員':('└ '+db);var _cnt=g.people>0?(g.people+(_nara?'名':'人')):'';var _amt=_nara?'':(g.total?'¥'+g.total.toLocaleString():'');h+='<div style="display:grid;grid-template-columns:150px 52px 90px;column-gap:8px;align-items:baseline;font-size:12px;color:#111;padding:1px 0;"><span style="padding-left:16px">'+_lbl+'</span><span style="font-weight:600;text-align:right;white-space:nowrap;">'+_cnt+'</span><span style="font-weight:600;text-align:right;white-space:nowrap">'+_amt+'</span></div>';});
+        ks.forEach(function(db){var g=e.byDisc[db];var _nara=(db==='奈良県職員券');var _lbl=_nara?'内）奈良県職員':('└ '+db);var _cnt=g.people>0?(g.people+'人'):'';var _amt=g.total?(g.total<0?'−¥'+Math.abs(g.total).toLocaleString():'¥'+g.total.toLocaleString()):'';var _ac=g.total<0?'color:var(--red);':'';h+='<div style="display:grid;grid-template-columns:150px 52px 90px;column-gap:8px;align-items:baseline;font-size:12px;color:#111;padding:1px 0;"><span style="padding-left:16px">'+_lbl+'</span><span style="font-weight:600;text-align:right;white-space:nowrap;">'+_cnt+'</span><span style="font-weight:600;text-align:right;white-space:nowrap;'+_ac+'">'+_amt+'</span></div>';});
       }
       return h;
     };
