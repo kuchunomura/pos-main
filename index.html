@@ -1150,8 +1150,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 573;
-const APP_BUILD_DATE = '2026/09/20 14:10';
+const APP_VERSION = 574;
+const APP_BUILD_DATE = '2026/09/20 15:20';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -3962,8 +3962,12 @@ var SUMMARY_FAC_CATS=['cat_walk','cat_tree_day','cat_bbq','cat_stay_tree','cat_s
 function sumIsPeopleItem(i){ return (SUMMARY_FAC_CATS.indexOf(i.cat||'')!==-1||!!i.isStay)&&(i.name||'').indexOf('延長')===-1&&EVENT_ITEM_IDS.indexOf(i.id)<0; } // イベント商品は施設ではないので人数・内訳から除外
 function sumPeopleOf(i){ var m=(i.name||'').match(/[（(](\d+)人[）)]/); return m?parseInt(m[1])*i.qty:i.qty; } // （N人）表記があればN×数量、なければ数量＝人数
 var SUM_OTA_SHORT={rakuten:'楽天',other1:'楽天体験',jalan:'じゃらん',other2:'アソビュー',sou:'SOU',other3:'外部③'};
-function sumDiscBucket(i,r){ if(i.naraOn)return '奈良県職員券'; if(i.otaKey)return SUM_OTA_SHORT[i.otaKey]||'OTA'; if(i.passKey)return '年パス'; if(i.groupOn)return '団体'; if(i.muraOn)return '村民半額'; if(i.freeOn)return '無料'; if(r&&r.discount==='stay_guest')return '宿泊者'; return '通常料金'; }
+function sumDiscBucket(i,r){ if(i.otaKey)return SUM_OTA_SHORT[i.otaKey]||'OTA'; if(i.passKey)return '年パス'; if(i.groupOn)return '団体'; if(i.muraOn)return '村民半額'; if(i.freeOn)return '無料'; if(r&&r.discount==='stay_guest')return '宿泊者'; return '通常料金'; }
 var SUM_DB_ORDER=['通常料金','宿泊者','村民半額','団体','年パス','無料','奈良県職員券','楽天','楽天体験','じゃらん','アソビュー','SOU','外部③','OTA'];
+// 奈良県職員券の人数＝その売上内の「奈良県職員券」マイナス行の枚数。過去データもこの方式で正しく数える（naraOnフラグに依存しない＝古い売上でも分類できる）。
+function sumNaraBudget(r){ var n=0; ((r&&r.items)||[]).forEach(function(i){ if(i.id===NARA_ITEM_ID||i.name==='奈良県職員券') n+=Math.abs(parseInt(i.qty)||0); }); return n; }
+// 施設系1行の人数(ppl)を割引区分の内訳(byDisc)へ加算。空中ウォーク1DAYは、その売上の奈良県職員券の残枚数(budgetRef.n)ぶんを先に「奈良県職員券」区分へ振り分け、残りを通常の割引区分へ入れる（混在会計＝奈良1名＋通常1名も正しく分かれる）。
+function sumAddByDisc(e,i,r,ppl,budgetRef){ if(!e.byDisc)e.byDisc={}; var lineTot=i.price*i.qty, naraHere=0; if(i.id==='i_walk1day'&&budgetRef&&budgetRef.n>0){ naraHere=Math.min(ppl,budgetRef.n); budgetRef.n-=naraHere; } var naraTot=ppl>0?Math.round(lineTot*naraHere/ppl):0; if(naraHere>0){ var gn=e.byDisc['奈良県職員券']||(e.byDisc['奈良県職員券']={people:0,total:0}); gn.people+=naraHere; gn.total+=naraTot; } var rest=ppl-naraHere; if(rest>0){ var db=sumDiscBucket(i,r); var g=e.byDisc[db]||(e.byDisc[db]={people:0,total:0}); g.people+=rest; g.total+=lineTot-naraTot; } }
 function sumTally(n){ n=Math.max(0,Math.round(n||0)); var q=Math.floor(n/5), r=n%5; var s=''; for(var a=0;a<q;a++)s+='正'; for(var b=0;b<r;b++)s+='丨'; return s; } // 正の字＝5ごとに「正」、端数は「丨」
 // 「売上合計にポイントは含む？」タップ開閉の説明（💳支払方法別カードの左下に置く）。nextElementSiblingでnoteを開閉＝id不要・再描画でも安全。
 function pointNoteHtml(){ return '<button type="button" onclick="var d=this.nextElementSibling;var s=d.style.display===\'none\';d.style.display=s?\'\':\'none\';this.textContent=(s?\'▲\':\'▼\')+\' 売上合計にポイントは含む？\';" style="font-size:11px;color:var(--accent2);background:none;border:none;cursor:pointer;padding:2px 0;font-family:inherit;margin-top:8px;display:block;text-align:left;">▼ 売上合計にポイントは含む？</button><div style="display:none;font-size:11px;color:#111;line-height:1.7;background:#f7f7f7;border-radius:8px;padding:8px 10px;margin-top:4px;"><b>ポイント利用分は含みません。</b>受け取った金額だけ（現金・カード・電子）。<br><b>例）¥3,000でポイント¥2,000利用：</b><br>カート＝商品 <b>+3,000</b> ＋ ポイント利用 <b>−2,000</b> → <b>売上合計に入るのは ¥1,000</b>（受け取った現金／カード分）。<br>ポイントの ¥2,000 は入りません。✅</div>'; }
@@ -4102,13 +4106,14 @@ function renderStatsCards(filtered){
   filtered.forEach(r=>{
     const k={cash:'現金',card:'カード',other:'電子決済'}[r.method]||r.method;
     payMap[k]=(payMap[k]||0)+r.total; payCount[k]=(payCount[k]||0)+(r.refund?0:1); // 金額＋件数（レジ締め用・返品は件数に数えない）
+    var _naraRef={n:sumNaraBudget(r)}; // この売上の奈良県職員券の枚数（1DAY内訳の振り分けに使う）
     r.items.forEach(i=>{
       if(i.id==='REFUND_MANUAL'||i._manualRefund){ return; } // 金額のみの手動返金は商品別に出さない（総売上・支払方法別・レジ締めには反映済み）
       if(i.id===POINT_ITEM_ID||i.name==='ポイント利用'){ pointTotal+=Math.abs(i.price*i.qty); return; }
       var e=itemMap[i.name]||(itemMap[i.name]={count:0,total:0,people:0,cat:i.cat||'',isStay:!!i.isStay,byDisc:null});
       e.count+=i.qty; e.total+=i.price*i.qty;
       var ppl=sumIsPeopleItem(i)?sumPeopleOf(i):0; e.people+=ppl;
-      if(sumIsPeopleItem(i)){ if(!e.byDisc)e.byDisc={}; var db=sumDiscBucket(i,r); var g=e.byDisc[db]||(e.byDisc[db]={people:0,total:0}); g.people+=ppl; g.total+=i.price*i.qty; if((i.cat||'')==='cat_walk')walkPeople+=ppl; } // 施設系（空中ウォーク/ツリーハウス昼/BBQ/宿泊）は割引区分ごとに内訳
+      if(sumIsPeopleItem(i)){ sumAddByDisc(e,i,r,ppl,_naraRef); if((i.cat||'')==='cat_walk')walkPeople+=ppl; } // 施設系（空中ウォーク/ツリーハウス昼/BBQ/宿泊）は割引区分ごとに内訳（1DAYは奈良県職員券ぶんを分離）
     });
     const d=r.discount==='mura'?'村内半額':r.discount==='stay_guest'?'宿泊者':r.discount||'なし';
     discMap[d]=(discMap[d]||0)+1;
@@ -4303,13 +4308,14 @@ function renderSales(){
     filtered.forEach(r=>{
       const pm={cash:'現金',card:'カード',other:'電子決済'}[r.method]||r.method||'不明';
       payMapS[pm]=(payMapS[pm]||0)+r.total; payCountS[pm]=(payCountS[pm]||0)+(r.refund?0:1); // 金額＋件数（返品は件数に数えない）
+      var _naraRefS={n:sumNaraBudget(r)}; // この売上の奈良県職員券の枚数
       r.items.forEach(i=>{
         if(i.id==='REFUND_MANUAL'||i._manualRefund){ return; } // 金額のみの手動返金は商品別に出さない
         if(i.id===POINT_ITEM_ID||i.name==='ポイント利用'){ pointTotalS+=Math.abs(i.price*i.qty); return; }
         var e=itemMap[i.name]||(itemMap[i.name]={count:0,total:0,people:0,cat:i.cat||'',isStay:!!i.isStay,byDisc:null});
         e.count+=i.qty; e.total+=i.price*i.qty;
         var ppl=sumIsPeopleItem(i)?sumPeopleOf(i):0; e.people+=ppl;
-        if(sumIsPeopleItem(i)){ if(!e.byDisc)e.byDisc={}; var db=sumDiscBucket(i,r); var g=e.byDisc[db]||(e.byDisc[db]={people:0,total:0}); g.people+=ppl; g.total+=i.price*i.qty; if((i.cat||'')===WALK_CAT)walkPeople+=ppl; } // 施設系は割引区分(村民/宿泊者/OTA…)ごとに内訳
+        if(sumIsPeopleItem(i)){ sumAddByDisc(e,i,r,ppl,_naraRefS); if((i.cat||'')===WALK_CAT)walkPeople+=ppl; } // 施設系は割引区分(村民/宿泊者/OTA…)ごとに内訳（1DAYは奈良県職員券ぶんを分離）
       });
     });
     const makeStatCard = (title, rows) =>
