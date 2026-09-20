@@ -1150,8 +1150,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 572;
-const APP_BUILD_DATE = '2026/09/20 13:57';
+const APP_VERSION = 573;
+const APP_BUILD_DATE = '2026/09/20 14:10';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -4149,9 +4149,9 @@ function renderStatsCards(filtered){
       var ks=Object.keys(e.byDisc).sort(function(a,b){var ia=SUM_DB_ORDER.indexOf(a),ib=SUM_DB_ORDER.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
       // 割引が実際にある時だけ内訳を出す（「通常料金」1つだけ＝親行と同じなので省略）
       if(ks.length>1||(ks.length===1&&ks[0]!=='通常料金')){
-      ks.forEach(function(db){var g=e.byDisc[db];h+='<div style="display:grid;grid-template-columns:150px 52px 90px;column-gap:8px;align-items:baseline;font-size:12px;color:#111;padding:1px 0;">'
-        +'<span style="padding-left:16px">└ '+db+'</span><span style="font-weight:600;text-align:right;white-space:nowrap">'+(g.people>0?g.people+'人':'')+'</span>'
-        +'<span style="font-weight:600;text-align:right;white-space:nowrap">'+(g.total?'¥'+g.total.toLocaleString():'')+'</span></div>';});
+      ks.forEach(function(db){var g=e.byDisc[db];var _nara=(db==='奈良県職員券');var _lbl=_nara?'内）奈良県職員':('└ '+db);var _cnt=g.people>0?(g.people+(_nara?'名':'人')):'';var _amt=_nara?'':(g.total?'¥'+g.total.toLocaleString():'');h+='<div style="display:grid;grid-template-columns:150px 52px 90px;column-gap:8px;align-items:baseline;font-size:12px;color:#111;padding:1px 0;">'
+        +'<span style="padding-left:16px">'+_lbl+'</span><span style="font-weight:600;text-align:right;white-space:nowrap">'+_cnt+'</span>'
+        +'<span style="font-weight:600;text-align:right;white-space:nowrap">'+_amt+'</span></div>';});
       }
     }
     return h;
@@ -4350,7 +4350,7 @@ function renderSales(){
       if(e.byDisc){
         var ks=Object.keys(e.byDisc).sort(function(a,b){var ia=SUM_DB_ORDER.indexOf(a),ib=SUM_DB_ORDER.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
         if(ks.length>1||(ks.length===1&&ks[0]!=='通常料金')) // 割引がある時だけ内訳
-        ks.forEach(function(db){var g=e.byDisc[db];h+='<div style="display:grid;grid-template-columns:150px 52px 90px;column-gap:8px;align-items:baseline;font-size:12px;color:#111;padding:1px 0;"><span style="padding-left:16px">└ '+db+'</span><span style="font-weight:600;text-align:right;white-space:nowrap;">'+(g.people>0?g.people+'人':'')+'</span><span style="font-weight:600;text-align:right;white-space:nowrap">'+(g.total?'¥'+g.total.toLocaleString():'')+'</span></div>';});
+        ks.forEach(function(db){var g=e.byDisc[db];var _nara=(db==='奈良県職員券');var _lbl=_nara?'内）奈良県職員':('└ '+db);var _cnt=g.people>0?(g.people+(_nara?'名':'人')):'';var _amt=_nara?'':(g.total?'¥'+g.total.toLocaleString():'');h+='<div style="display:grid;grid-template-columns:150px 52px 90px;column-gap:8px;align-items:baseline;font-size:12px;color:#111;padding:1px 0;"><span style="padding-left:16px">'+_lbl+'</span><span style="font-weight:600;text-align:right;white-space:nowrap;">'+_cnt+'</span><span style="font-weight:600;text-align:right;white-space:nowrap">'+_amt+'</span></div>';});
       }
       return h;
     };
