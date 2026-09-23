@@ -314,15 +314,15 @@ details.settings-section[open] > summary{margin-bottom:10px;}
     <!-- 計算フォーム -->
     <div style="background:var(--surface);border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow);">
       <div style="margin-bottom:12px;">
-        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;text-align:center;">施設</label>
+        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;text-align:center;">施設を選択</label>
         <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;" id="timer-fac-btns"></div>
       </div>
       <div style="margin-bottom:12px;">
-        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;text-align:center;">コース</label>
+        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;text-align:center;">コースを選択</label>
         <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;" id="timer-course-btns"></div>
       </div>
       <div style="margin-bottom:12px;">
-        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;text-align:center;">開始時間を設定</label>
+        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;text-align:center;">開始時間を変更する↴</label>
         <div style="display:flex;gap:8px;align-items:center;justify-content:center;">
           <input type="time" id="timer-start" oninput="timerStartManual=true;calcTimer()" onchange="timerStartManual=true;calcTimer()" style="width:140px;text-align:center;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:16px;font-family:inherit;">
         </div>
@@ -355,7 +355,7 @@ details.settings-section[open] > summary{margin-bottom:10px;}
         </div>
       </div>
       <div style="margin-bottom:10px;">
-        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;text-align:center;">開始時間を設定</label>
+        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;text-align:center;">開始時間を変更する↴</label>
         <div style="display:flex;gap:8px;align-items:center;justify-content:center;">
           <input type="time" id="combo-start" oninput="comboStartManual=true;calcCombo()" onchange="comboStartManual=true;calcCombo()" style="width:140px;text-align:center;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:16px;font-family:inherit;">
         </div>
@@ -1148,8 +1148,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 581;
-const APP_BUILD_DATE = '2026/09/23 17:20';
+const APP_VERSION = 582;
+const APP_BUILD_DATE = '2026/09/23 17:40';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -6674,7 +6674,7 @@ function renderTimerFacBtns(){
   const now = new Date();
   TIMER_FACS.forEach(f=>{
     const wrap = document.createElement('div');
-    wrap.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:4px;';
+    wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:4px;margin-bottom:12px;';
 
     // 施設ボタン
     const b = document.createElement('button');
@@ -6686,7 +6686,7 @@ function renderTimerFacBtns(){
 
     // 時間情報
     const info = document.createElement('div');
-    info.style.cssText = 'font-size:13px;line-height:1.8;color:var(--text2);';
+    info.style.cssText = 'font-size:13px;line-height:1.8;color:var(--text2);text-align:center;';
     const lastMins = f.lastOrder ? getMinutesUntil(f.lastOrder, now) : null;
     const closeMins = f.close ? getMinutesUntil(f.close, now) : null;
     const lastColor = lastMins !== null && lastMins <= 0 ? 'var(--red)' : lastMins !== null && lastMins <= 30 ? '#e67700' : 'var(--text2)';
@@ -6879,10 +6879,10 @@ function calcTimer(skipHistory){
   result.endAt = new Date(); result.endAt.setHours(eh,em,0,0);
 
   document.getElementById('timer-result').style.display='';
-  document.getElementById('timer-result-label').textContent = fac.label + '　' + course.label;
+  document.getElementById('timer-result-label').textContent = '今から' + fac.label + '　' + course.label + '　に入ると、';
   // 終了時間が営業終了を超えているか判定
   const endEl = document.getElementById('timer-result-end');
-  endEl.textContent = endStr;
+  endEl.textContent = startVal + '→' + endStr;
   let overClose = false;
   if(fac.close && timerCourse !== 0){
     const [ch,cm] = fac.close.split(':').map(Number);
