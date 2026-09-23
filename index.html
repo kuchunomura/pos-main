@@ -322,9 +322,9 @@ details.settings-section[open] > summary{margin-bottom:10px;}
         <div style="display:flex;gap:6px;flex-wrap:wrap;" id="timer-course-btns"></div>
       </div>
       <div style="margin-bottom:12px;">
-        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;">開始時間</label>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <input type="time" id="timer-start" oninput="calcTimer()" onchange="calcTimer()" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:16px;font-family:inherit;">
+        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;text-align:center;">開始時間を設定</label>
+        <div style="display:flex;gap:8px;align-items:center;justify-content:center;">
+          <input type="time" id="timer-start" oninput="timerStartManual=true;calcTimer()" onchange="timerStartManual=true;calcTimer()" style="width:140px;text-align:center;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:16px;font-family:inherit;">
           <button onclick="setTimerNow()" style="padding:10px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;">今すぐ</button>
         </div>
       </div>
@@ -356,9 +356,9 @@ details.settings-section[open] > summary{margin-bottom:10px;}
         </div>
       </div>
       <div style="margin-bottom:10px;">
-        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;">開始時間</label>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <input type="time" id="combo-start" oninput="calcCombo()" onchange="calcCombo()" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:16px;font-family:inherit;">
+        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;text-align:center;">開始時間を設定</label>
+        <div style="display:flex;gap:8px;align-items:center;justify-content:center;">
+          <input type="time" id="combo-start" oninput="comboStartManual=true;calcCombo()" onchange="comboStartManual=true;calcCombo()" style="width:140px;text-align:center;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:16px;font-family:inherit;">
           <button onclick="setComboNow()" style="padding:10px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;">今すぐ</button>
         </div>
       </div>
@@ -1150,8 +1150,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 579;
-const APP_BUILD_DATE = '2026/09/20 17:05';
+const APP_VERSION = 580;
+const APP_BUILD_DATE = '2026/09/23 17:00';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1576,6 +1576,9 @@ let TIMER_FACS = [
 let timerFacId = 'walk';
 let timerCourse = 55;
 let timerResults = [];
+// 開始時間を現在時刻に連動させる（手動で設定したら連動を止める）フラグ。時間タブ表示中は毎分現在時刻に更新。
+let timerStartManual = false;
+let comboStartManual = false;
 // 保留データ（コンパクトなリスト・最大30件・入れた順に1..N・空欄なし）
 const MAX_HOLDS = 30;
 let holds = (ld('pos_holds')||[]).filter(function(h){return h;}); // 旧nullスロットを詰めて移行
@@ -6643,6 +6646,11 @@ function updateClocks(){
     const fb = document.getElementById('timer-fac-btns');
     if(fb) renderTimerFacBtns();
     updateCatTimeSlots();
+    // 開始時間を現在時刻に連動（手動で設定していなければ・時間タブ表示中のみ再計算）
+    var _tHM = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+    var _timerActive = (function(){var e=document.getElementById('tab-timer');return e&&e.classList.contains('active');})();
+    if(!timerStartManual){ var _ts=document.getElementById('timer-start'); if(_ts){ _ts.value=_tHM; if(_timerActive) calcTimer(true); } }
+    if(!comboStartManual){ var _cs=document.getElementById('combo-start'); if(_cs){ _cs.value=_tHM; if(_timerActive) calcCombo(); } }
     // 日付が変わったら繰越バッジをリセット・再取得
     var todayStr=now.getFullYear()+'-'+('0'+(now.getMonth()+1)).slice(-2)+'-'+('0'+now.getDate()).slice(-2);
     if(carryOverFetchDate && carryOverFetchDate!==todayStr) fetchCarryOverFromGAS();
@@ -6747,6 +6755,7 @@ function renderComboBtns(facKey){
 }
 
 function setComboNow(){
+  comboStartManual = false; // 「今すぐ」＝現在時刻連動に戻す
   const now = new Date();
   const h = String(now.getHours()).padStart(2,'0');
   const m = String(now.getMinutes()).padStart(2,'0');
@@ -6838,6 +6847,7 @@ function renderTimerCourseBtns(){
 }
 
 function setTimerNow(){
+  timerStartManual = false; // 「今すぐ」＝現在時刻連動に戻す
   const now = new Date();
   const h = String(now.getHours()).padStart(2,'0');
   const m = String(now.getMinutes()).padStart(2,'0');
@@ -6845,9 +6855,9 @@ function setTimerNow(){
   calcTimer();
 }
 
-function calcTimer(){
+function calcTimer(skipHistory){
   const startVal = document.getElementById('timer-start').value;
-  if(!startVal){ showToast('⚠ 開始時間を入力してください','#c00'); return; }
+  if(!startVal){ if(!skipHistory) showToast('⚠ 開始時間を入力してください','#c00'); return; }
   const fac = TIMER_FACS.find(f=>f.id===timerFacId);
   const course = fac.courses.find(c=>c.min===timerCourse);
   const [sh,sm] = startVal.split(':').map(Number);
@@ -6884,10 +6894,12 @@ function calcTimer(){
   endEl.style.color = overClose ? 'var(--red)' : 'var(--accent2)';
   document.getElementById('timer-result-detail').textContent = '開始 ' + startVal + '　→　終了 ' + endStr + (overClose ? '　⚠ 営業終了超過' : '') + '　｜　営業終了 ' + fac.close + '　最終受付 ' + (fac.lastOrder||'');
 
-  // 履歴に追加
-  timerResults.unshift(result);
-  if(timerResults.length > 5) timerResults.pop();
-  renderTimerHistory();
+  // 履歴に追加（現在時刻連動の自動再計算では履歴を汚さない）
+  if(!skipHistory){
+    timerResults.unshift(result);
+    if(timerResults.length > 5) timerResults.pop();
+    renderTimerHistory();
+  }
   updateTimerCountdown();
 }
 
