@@ -315,16 +315,18 @@ details.settings-section[open] > summary{margin-bottom:10px;}
     <div style="background:var(--surface);border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow);">
       <div style="margin-bottom:12px;">
         <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;text-align:center;">施設を選択</label>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;" id="timer-fac-btns"></div>
+        <div style="display:flex;gap:32px;flex-wrap:wrap;justify-content:center;" id="timer-fac-btns"></div>
       </div>
-      <div style="margin-bottom:12px;">
-        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;text-align:center;">コースを選択</label>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;" id="timer-course-btns"></div>
-      </div>
-      <div style="margin-bottom:12px;">
-        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;text-align:center;">開始時間を変更する↴</label>
-        <div style="display:flex;gap:8px;align-items:center;justify-content:center;">
-          <input type="time" id="timer-start" oninput="timerStartManual=true;calcTimer()" onchange="timerStartManual=true;calcTimer()" style="width:140px;text-align:center;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:16px;font-family:inherit;">
+      <div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;align-items:flex-start;margin-bottom:12px;">
+        <div>
+          <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;text-align:center;">コースを選択</label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;" id="timer-course-btns"></div>
+        </div>
+        <div>
+          <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;text-align:center;">開始時間を変更する場合↴</label>
+          <div style="display:flex;gap:8px;align-items:center;justify-content:center;">
+            <input type="time" id="timer-start" oninput="timerStartManual=true;calcTimer()" onchange="timerStartManual=true;calcTimer()" style="width:140px;text-align:center;color:var(--text);padding:10px;border:1px solid var(--border);border-radius:8px;font-size:16px;font-family:inherit;">
+          </div>
         </div>
       </div>
       <!-- 単体結果 -->
@@ -355,9 +357,9 @@ details.settings-section[open] > summary{margin-bottom:10px;}
         </div>
       </div>
       <div style="margin-bottom:10px;">
-        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;text-align:center;">開始時間を変更する↴</label>
+        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;text-align:center;">開始時間を変更する場合↴</label>
         <div style="display:flex;gap:8px;align-items:center;justify-content:center;">
-          <input type="time" id="combo-start" oninput="comboStartManual=true;calcCombo()" onchange="comboStartManual=true;calcCombo()" style="width:140px;text-align:center;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:16px;font-family:inherit;">
+          <input type="time" id="combo-start" oninput="comboStartManual=true;calcCombo()" onchange="comboStartManual=true;calcCombo()" style="width:140px;text-align:center;color:var(--text);padding:10px;border:1px solid var(--border);border-radius:8px;font-size:16px;font-family:inherit;">
         </div>
       </div>
       <div id="combo-result" style="display:none;"></div>
@@ -1148,8 +1150,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 582;
-const APP_BUILD_DATE = '2026/09/23 17:40';
+const APP_VERSION = 583;
+const APP_BUILD_DATE = '2026/09/23 18:00';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
