@@ -1150,8 +1150,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 585;
-const APP_BUILD_DATE = '2026/09/24 16:42';
+const APP_VERSION = 586;
+const APP_BUILD_DATE = '2026/09/24 17:10';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2013,8 +2013,12 @@ function makeItemBtn(item, cat, grid){
     priceHtml='<div class="item-price"><span style="font-size:10px;color:#aaa;text-decoration:line-through;">¥'+item.price.toLocaleString()+'</span><br><span style="color:var(--red);font-weight:800;font-size:12px;">SOU無料</span></div>';
   } else if(isStayItem2 || hasVariants){
     const varLabel = hasVariants ? 'サイズで変動' : '人数で変動';
+    const stayDiscLabel = getStayDiscLabel(item);
     if(paidBadge){
       priceHtml='<div class="item-price"><span style="font-size:10px;color:#aaa;text-decoration:line-through;">'+varLabel+'</span><br><span style="color:'+paidDisplaySettings.color+';font-weight:700;font-size:12px;">'+paidBadge+'</span></div>';
+    } else if(stayDiscLabel){
+      // 宿泊も日帰りタイルと同じく、割引・無料をボタンの時点で赤字表示（金額は人数で変動）
+      priceHtml='<div class="item-price"><span style="font-size:10px;color:#aaa;text-decoration:line-through;">'+varLabel+'</span><br><span style="color:var(--red);font-weight:700;font-size:13px;">'+stayDiscLabel+'</span></div>';
     } else {
       priceHtml='<div class="item-price" style="color:'+cat.price+'">'+varLabel+'</div>';
     }
@@ -2140,6 +2144,19 @@ function getPaidBadge(item){
   const d = discountItems.find(d=>d.key===activeDiscount);
   if(!d || d.type!=='paid') return null;
   if(isOtaActive() && isOtaFreeItem(item)) return paidDisplaySettings.label;
+  return null;
+}
+
+// 宿泊（人数で変動）タイル用の割引ラベル。日帰りタイルのように割引・無料をボタンの時点で示す。
+// 金額は人数で変わるためラベルのみ（定価表示は「人数で変動」の取消線）。判定順はgetDiscountedPriceの宿泊系分岐に合わせる。
+function getStayDiscLabel(item){
+  if(!isStayItem(item)) return null;
+  if(item.id==='i_passday'||item.id==='i_passnight') return null; // パス商品自体は定価
+  if(activeDiscount==='pass_night') return '無料';                 // 年間パス夜＝宿泊無料
+  if(isOtaActive() && isOtaFreeItem(item)) return null;            // OTA支払済はgetPaidBadgeで表示
+  if(activeMura && STAY_CAT_IDS.includes(item.cat)) return '村民半額';
+  if(activeFree) return '無料';
+  if(activeRateKey && item.cat!=='cat_rental') return getDiscLabel(activeRateKey);
   return null;
 }
 
