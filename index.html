@@ -1150,8 +1150,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 584;
-const APP_BUILD_DATE = '2026/09/23 18:20';
+const APP_VERSION = 585;
+const APP_BUILD_DATE = '2026/09/24 16:42';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2348,6 +2348,11 @@ function recalcCartPrices(){
       cartItem.discounted=true;cartItem.paidLabel='';applied=true;
     }
     if(!applied&&cartItem.freeOn){
+      cartItem.price=0;cartItem.discounted=true;cartItem.paidLabel='';applied=true;
+    }
+    // 「無料」トグルON中は、カートに残っている商品（宿泊・予約読込ぶんを含む）も0円にする＝タイル表示(getDiscountedPrice)と一致。
+    // freeOnフラグは書き換えない＝トグルOFFで下のelseが定価に戻す（可逆）。
+    if(!applied&&activeFree){
       cartItem.price=0;cartItem.discounted=true;cartItem.paidLabel='';applied=true;
     }
     if(!applied){
