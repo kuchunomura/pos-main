@@ -1148,8 +1148,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 588;
-const APP_BUILD_DATE = '2026/09/28 12:35';
+const APP_VERSION = 589;
+const APP_BUILD_DATE = '2026/09/28 14:05';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -6834,10 +6834,10 @@ function calcCombo(){
   result.style.display = '';
   result.innerHTML =
     '<div style="background:#f9f9f9;border-radius:8px;padding:12px;">'+
-      '<div style="font-size:13px;color:var(--text2);margin-bottom:8px;">'+
+      '<div style="font-size:13px;color:var(--text2);margin-bottom:8px;text-align:center;">'+
         (comboOrder==='walk_tree'?'空中ウォーク → ツリーハウス昼':'ツリーハウス昼 → 空中ウォーク')+
       '</div>'+
-      '<div style="display:flex;flex-direction:column;gap:6px;font-size:14px;margin-bottom:10px;">'+
+      '<div style="display:flex;flex-direction:column;gap:6px;font-size:14px;margin-bottom:10px;text-align:center;">'+
         '<div>'+firstFac?.label+'　<span style="font-weight:700">'+startVal+' → '+firstEnd+'</span>　<span style="color:var(--text2);font-size:12px;">('+firstCr?.label+')</span></div>'+
         '<div>'+secondFac?.label+'　<span style="font-weight:700">'+firstEnd+' → '+secondEnd+'</span>　<span style="color:var(--text2);font-size:12px;">('+secondCr?.label+')</span></div>'+
       '</div>'+
