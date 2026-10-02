@@ -200,11 +200,23 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 .spin-ico{display:inline-block;}
 .btn-spinning{opacity:0.75;pointer-events:none;}
 .btn-spinning .spin-ico{animation:posSpin 0.7s linear infinite;}
-/* 開始時間入力（時間タブ）：PCのtime入力風の控えめな「HH:MM」。時・分をタップ→数字キーで入力 */
-.tsp{display:inline-flex;align-items:center;justify-content:center;width:140px;box-sizing:border-box;padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:16px;}
+/* 開始時間入力（時間タブ）：PC版Chromeのtime入力風。時・分をタップ→下に選択肢リスト＋数字で直接入力も可 */
+.tsp{position:relative;display:inline-flex;align-items:center;justify-content:center;width:140px;box-sizing:border-box;padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:16px;cursor:text;}
+.tsp.open{border-color:var(--accent);}
 .tsp-seg{width:2.2em;border:none;background:transparent;text-align:center;font-size:16px;font-family:inherit;color:var(--text);padding:4px 0;border-radius:4px;outline:none;-webkit-appearance:none;appearance:none;}
 .tsp-seg:focus{background:#cfe3ff;}
 .tsp-colon{color:var(--text);padding:0 1px;}
+.tsp-drop{display:none;position:absolute;top:calc(100% + 4px);left:50%;transform:translateX(-50%);z-index:50;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);padding:4px;gap:4px;}
+.tsp.open .tsp-drop{display:flex;}
+.tsp-col{position:relative;width:58px;height:216px;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.tsp-col::-webkit-scrollbar{display:none;}
+.tsp-it{height:36px;line-height:36px;text-align:center;font-size:16px;border-radius:6px;cursor:pointer;color:var(--text);-webkit-tap-highlight-color:transparent;}
+.tsp-it:active{background:#e6eefb;}
+.tsp-it.sel{background:var(--accent);color:#fff;font-weight:700;}
+/* 現在時刻（タップで開始時間を現在時刻に戻す）：押せると分かる見た目 */
+.clock-reset{text-align:center;cursor:pointer;padding:6px 14px;border:1px solid var(--border);border-radius:10px;background:#fff;-webkit-tap-highlight-color:transparent;}
+.clock-reset:active{background:#eef4fb;}
+.clock-reset-hint{font-size:11px;color:var(--accent);margin-top:2px;}
 
 
 
@@ -312,9 +324,10 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 
     <!-- 現在時刻 ＋ 開始時間を変更する場合（右側・間隔をあけて横並び） -->
     <div style="display:flex;gap:28px;flex-wrap:wrap;justify-content:center;align-items:center;margin-bottom:16px;">
-      <div style="text-align:center;">
+      <div class="clock-reset" onclick="resetStartToNow()" title="タップで開始時間を現在時刻に戻す">
         <div style="font-size:12px;color:var(--text2);margin-bottom:4px;">現在時刻</div>
-        <div style="font-size:26px;font-weight:700;font-family:monospace;color:var(--accent);letter-spacing:2px;cursor:pointer;" id="timer-clock" onclick="resetStartToNow()" title="タップで開始時間を現在時刻に戻す">00:00:00</div>
+        <div style="font-size:26px;font-weight:700;font-family:monospace;color:var(--accent);letter-spacing:2px;" id="timer-clock">00:00:00</div>
+        <div class="clock-reset-hint">↺ タップで現在時刻に戻す</div>
       </div>
       <div style="text-align:center;">
         <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;text-align:center;">開始時間を変更する場合↴</label>
@@ -1153,8 +1166,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 591;
-const APP_BUILD_DATE = '2026/10/02 15:12';
+const APP_VERSION = 592;
+const APP_BUILD_DATE = '2026/10/02 15:19';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -6687,27 +6700,35 @@ updateClocks();
 // ===== 時間計算タブ =====
 let timerFacId_dummy; // 上部で宣言済み
 
-// ===== 開始時間入力（タブレットでもPC風「HH:MM」：時・分をタップして数字キーで入力） =====
+// ===== 開始時間入力（PC版Chrome風：時・分をタップ→下に時・分の選択肢リストが開く＋数字キーで直接入力も可） =====
 // 値は従来どおり hidden の #timer-start / #combo-start（"HH:MM"）に入る。計算側は無変更。
+// 確定（計算・履歴記録）はリストを閉じた時に1回だけ：分を選ぶ／分を打ち終える／Enter／枠の外をタップ。
 function _tspPad(n){ return String(n).padStart(2,'0'); }
+function _tspBox(id){ return document.querySelector('.tsp[data-for="'+id+'"]'); }
+function _tspBusy(box){ return !!box && (box.classList.contains('open') || box.contains(document.activeElement)); }
 function setTimeInput(id, v){
   var el = document.getElementById(id); if(!el) return;
-  // 入力中（時・分にフォーカス）は毎分の現在時刻連動などで値を書き換えない
-  var box = document.querySelector('.tsp[data-for="'+id+'"]');
-  if(box && box.contains(document.activeElement)) return;
+  if(_tspBusy(_tspBox(id))) return; // 入力中・リスト表示中は毎分の現在時刻連動などで書き換えない
   el.value = v; renderTimeSpin(id);
 }
-// 現在時刻（時計表示）タップ → 開始時間を現在時刻に戻す（現在時刻連動も再開）
-function resetStartToNow(){ setTimerNow(); setComboNow(); }
+// 現在時刻（時計表示）タップ → 開始時間を現在時刻に戻す（単体・両方利用とも。現在時刻連動も再開）
+function resetStartToNow(){
+  var ae = document.activeElement;
+  if(ae && ae.classList && ae.classList.contains('tsp-seg')) ae.blur();
+  Array.prototype.forEach.call(document.querySelectorAll('.tsp.open'), function(b){ b.classList.remove('open'); });
+  setTimerNow(); setComboNow();
+  showToast('↺ 開始時間を現在時刻に戻しました');
+}
 function _tspApply(id, v){
   var el = document.getElementById(id); if(!el) return;
-  if(el.value===v){ renderTimeSpin(id, true); return; }
+  var changed = el.value !== v;
   el.value = v; renderTimeSpin(id, true);
+  if(!changed) return;
   if(id==='timer-start'){ timerStartManual = true; calcTimer(); }
   else { comboStartManual = true; calcCombo(); }
 }
 function _tspCommit(id){
-  var box = document.querySelector('.tsp[data-for="'+id+'"]'); if(!box) return;
+  var box = _tspBox(id); if(!box) return;
   var old = ((document.getElementById(id)||{}).value || '00:00').split(':');
   var h = parseInt(box.querySelector('[data-v="h"]').value, 10);
   var m = parseInt(box.querySelector('[data-v="m"]').value, 10);
@@ -6716,39 +6737,79 @@ function _tspCommit(id){
   h = Math.min(23, Math.max(0, h)); m = Math.min(59, Math.max(0, m));
   _tspApply(id, _tspPad(h)+':'+_tspPad(m));
 }
-function _tspStep(id, part, d){
-  var p = ((document.getElementById(id)||{}).value || '00:00').split(':').map(Number);
-  if(part==='h') p[0] = (p[0]+d+24)%24; else p[1] = (p[1]+d+60)%60;
-  _tspApply(id, _tspPad(p[0])+':'+_tspPad(p[1]));
+// リストの選択中ハイライト（scroll=trueで選択中の項目が真ん中に来るようスクロール）
+function _tspMark(id, scroll){
+  var box = _tspBox(id); if(!box) return;
+  ['h','m'].forEach(function(part){
+    var val = box.querySelector('[data-v="'+part+'"]').value;
+    var col = box.querySelector('.tsp-col[data-c="'+part+'"]');
+    Array.prototype.forEach.call(col.children, function(it){
+      var on = it.getAttribute('data-n') === val;
+      if(on) it.classList.add('sel'); else it.classList.remove('sel');
+      if(on && scroll) col.scrollTop = it.offsetTop - (col.clientHeight - it.offsetHeight)/2;
+    });
+  });
+}
+function _tspOpen(id){
+  var box = _tspBox(id); if(!box || box.classList.contains('open')) return;
+  Array.prototype.forEach.call(document.querySelectorAll('.tsp.open'), function(b){ if(b!==box) _tspClose(b.getAttribute('data-for')); });
+  box.classList.add('open'); _tspMark(id, true);
+}
+function _tspClose(id){
+  var box = _tspBox(id); if(!box || !box.classList.contains('open')) return;
+  box.classList.remove('open'); _tspCommit(id);
 }
 function renderTimeSpin(id, force){
-  var box = document.querySelector('.tsp[data-for="'+id+'"]'); if(!box) return;
+  var box = _tspBox(id); if(!box) return;
   if(!box.firstChild){
     var seg = function(part){ return '<input type="tel" inputmode="numeric" maxlength="2" autocomplete="off" class="tsp-seg" data-v="'+part+'">'; };
-    box.innerHTML = seg('h')+'<span class="tsp-colon">:</span>'+seg('m');
+    var list = function(part, n){ var s = '<div class="tsp-col" data-c="'+part+'">'; for(var i=0;i<n;i++){ s += '<div class="tsp-it" data-n="'+_tspPad(i)+'">'+_tspPad(i)+'</div>'; } return s+'</div>'; };
+    box.innerHTML = seg('h')+'<span class="tsp-colon">:</span>'+seg('m')+'<div class="tsp-drop">'+list('h',24)+list('m',60)+'</div>';
     var hEl = box.querySelector('[data-v="h"]'), mEl = box.querySelector('[data-v="m"]');
+    // 枠の余白・「:」をタップしても時から入力開始
+    box.addEventListener('click', function(e){ if(e.target===box || e.target.className==='tsp-colon') hEl.focus(); });
     [hEl, mEl].forEach(function(s){
       var part = s.getAttribute('data-v');
-      s.addEventListener('focus', function(){ setTimeout(function(){ try{ s.select(); }catch(e){} }, 0); });
-      // 時→分へ自動で移る時は確定しない（分の入力後にまとめて1回だけ計算・履歴記録）
-      s.addEventListener('blur', function(){ if(box._tspAdv){ box._tspAdv = false; return; } _tspCommit(id); });
+      s.addEventListener('focus', function(){ _tspOpen(id); setTimeout(function(){ try{ s.select(); }catch(e){} }, 0); });
+      s.addEventListener('blur', function(){ if(!box.classList.contains('open')) _tspCommit(id); });
       s.addEventListener('keydown', function(e){
-        if(e.key==='Enter'){ e.preventDefault(); s.blur(); }
-        else if(e.key==='ArrowUp' || e.key==='ArrowDown'){ e.preventDefault(); _tspStep(id, part, e.key==='ArrowUp'?1:-1); s.select(); }
+        if(e.key==='Enter'){ e.preventDefault(); _tspClose(id); s.blur(); }
+        else if(e.key==='Escape'){ s.blur(); _tspClose(id); }
+        else if(e.key==='ArrowUp' || e.key==='ArrowDown'){
+          e.preventDefault();
+          var n = (parseInt(s.value,10)||0) + (e.key==='ArrowUp'?1:-1), mx = part==='h'?24:60;
+          s.value = _tspPad((n+mx)%mx); _tspMark(id, true); s.select();
+        }
       });
       s.addEventListener('input', function(){
         var dg = s.value.replace(/\D/g,'').slice(0,2);
         s.value = dg; if(!dg) return;
-        // PCと同じ：2桁入力、または1桁目で次の桁が入りえない数字（時3-9・分6-9）なら確定して次へ
+        // PCと同じ：2桁入力、または1桁目で次の桁が入りえない数字（時3-9・分6-9）なら次へ／確定
         if(dg.length===2 || Number(dg) > (part==='h'?2:5)){
-          s.value = _tspPad(Number(dg));
-          if(part==='h'){ box._tspAdv = true; mEl.focus(); } else { _tspCommit(id); s.blur(); }
-        }
+          s.value = _tspPad(Math.min(Number(dg), part==='h'?23:59));
+          if(part==='h'){ mEl.focus(); _tspMark(id, true); }
+          else { _tspClose(id); s.blur(); }
+        } else _tspMark(id, false);
       });
     });
+    // リストから選ぶ：時は選んでもリストを開いたまま、分を選んだら閉じて確定
+    box.querySelector('.tsp-drop').addEventListener('click', function(e){
+      var it = e.target; if(!it.classList || !it.classList.contains('tsp-it')) return;
+      var part = it.parentNode.getAttribute('data-c');
+      box.querySelector('[data-v="'+part+'"]').value = it.getAttribute('data-n');
+      _tspMark(id, false);
+      if(part==='m'){ var ae = document.activeElement; if(ae && box.contains(ae)) ae.blur(); _tspClose(id); }
+    });
+    // 枠の外をタップしたら閉じて確定
+    if(!window._tspDocBound){
+      window._tspDocBound = true;
+      document.addEventListener('pointerdown', function(e){
+        Array.prototype.forEach.call(document.querySelectorAll('.tsp.open'), function(b){ if(!b.contains(e.target)) _tspClose(b.getAttribute('data-for')); });
+      }, true);
+    }
   }
-  // 入力中（時・分どちらかにフォーカス）は毎分の現在時刻連動で書き換えない（force＝自分の確定・▲▼キーの時だけ）
-  if(!force && box.contains(document.activeElement)) return;
+  // 入力中・リスト表示中は毎分の現在時刻連動で書き換えない（force＝自分の確定の時だけ）
+  if(!force && _tspBusy(box)) return;
   var p = ((document.getElementById(id)||{}).value || '').split(':');
   ['h','m'].forEach(function(part, i){
     var s = box.querySelector('[data-v="'+part+'"]');
