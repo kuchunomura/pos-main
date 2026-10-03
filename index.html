@@ -1166,8 +1166,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 592;
-const APP_BUILD_DATE = '2026/10/02 15:19';
+const APP_VERSION = 593;
+const APP_BUILD_DATE = '2026/10/03 12:57';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -6448,6 +6448,7 @@ function openManualRefund(){
 }
 function setManualRefundMode(m){
   _manualRefund.mode=m;
+  if(m==='cart') _manualRefund.sel=cart.map(function(i){ return Math.abs(i.qty); }); // 既定は全部選択（返金する数量）
   var ba=document.getElementById('mrf-mode-amount'), bc=document.getElementById('mrf-mode-cart');
   if(ba) ba.classList.toggle('sel',m==='amount'); if(bc) bc.classList.toggle('sel',m==='cart');
   var ab=document.getElementById('mrf-amount-box'), cb=document.getElementById('mrf-cart-box');
@@ -6458,11 +6459,33 @@ function setManualRefundMode(m){
 function renderManualRefundCart(){
   var el=document.getElementById('mrf-cart-list'); if(!el) return;
   if(!cart.length){ el.innerHTML='<div style="color:var(--red);padding:8px 0;">カートが空です。返金したい商品をカートに入れてから選んでください。</div>'; return; }
-  el.innerHTML=cart.map(function(i){ return '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0f0;"><span>'+esc(i.name)+(i.qty>1?' ×'+i.qty:'')+'</span><span style="color:var(--red);">−¥'+(i.price*i.qty).toLocaleString()+'</span></div>'; }).join('')
-    +'<div style="font-size:10px;color:var(--text2);margin-top:4px;">※いまのカートの内容をそのまま返金（マイナス計上）。商品別販売数もこの分だけ減ります。</div>';
+  var sel=_manualRefund.sel||[];
+  // 各商品をタップで選択/解除。数量2以上は −/＋ で返金する数を選べる（選んだ分だけ返金）
+  el.innerHTML=cart.map(function(i,idx){
+    var max=Math.abs(i.qty), n=Math.min(sel[idx]||0,max), on=n>0;
+    var step=(max>1&&on)?'<span style="display:inline-flex;align-items:center;gap:4px;margin-left:6px;" onclick="event.stopPropagation()">'
+      +'<button type="button" onclick="mrfStep('+idx+',-1)" style="width:30px;height:30px;border:1px solid var(--border);border-radius:6px;background:#fff;font-size:16px;">−</button>'
+      +'<b style="min-width:22px;text-align:center;">'+n+'</b>'
+      +'<button type="button" onclick="mrfStep('+idx+',1)" style="width:30px;height:30px;border:1px solid var(--border);border-radius:6px;background:#fff;font-size:16px;">＋</button>'
+      +'<span style="font-size:10px;color:var(--text2);">/'+max+'</span></span>':'';
+    return '<div onclick="mrfToggle('+idx+')" style="display:flex;justify-content:space-between;align-items:center;gap:6px;padding:6px 4px;border-bottom:1px solid #f0f0f0;cursor:pointer;'+(on?'':'opacity:.45;')+'">'
+      +'<span style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;"><span style="font-size:18px;">'+(on?'☑':'☐')+'</span><span>'+esc(i.name)+(max>1&&!on?' ×'+max:'')+'</span>'+step+'</span>'
+      +'<span style="color:var(--red);white-space:nowrap;">'+(on?'−¥'+(i.price*n).toLocaleString():'—')+'</span></div>';
+  }).join('')
+    +'<div style="font-size:10px;color:var(--text2);margin-top:4px;">※タップで選んだ商品だけ返金（マイナス計上）。商品別販売数もこの分だけ減ります。返金した分はカートから外れ、残りはカートに残ります。</div>';
+}
+function mrfToggle(idx){
+  var sel=_manualRefund.sel||[]; var max=Math.abs((cart[idx]||{}).qty||0);
+  sel[idx]=(sel[idx]>0)?0:max; _manualRefund.sel=sel;
+  renderManualRefundCart(); updateManualRefundTotal();
+}
+function mrfStep(idx,d){
+  var sel=_manualRefund.sel||[]; var max=Math.abs((cart[idx]||{}).qty||0);
+  sel[idx]=Math.max(0,Math.min(max,(sel[idx]||0)+d)); _manualRefund.sel=sel;
+  renderManualRefundCart(); updateManualRefundTotal();
 }
 function manualRefundAmount(){
-  if(_manualRefund.mode==='cart') return cart.reduce(function(s,i){return s+i.price*i.qty;},0);
+  if(_manualRefund.mode==='cart'){ var sel=_manualRefund.sel||[]; return cart.reduce(function(s,i,idx){return s+i.price*Math.min(sel[idx]||0,Math.abs(i.qty));},0); }
   var v=parseInt((document.getElementById('mrf-amount')||{}).value,10); return isNaN(v)?0:Math.max(0,v);
 }
 function updateManualRefundTotal(){
@@ -6476,15 +6499,17 @@ function setManualRefundMethod(m){
 }
 function confirmManualRefund(){
   var total=manualRefundAmount();
-  if(total<=0){ showToast(_manualRefund.mode==='cart'?'カートに商品がありません':'返金する金額を入力してください','#c00'); return; }
+  if(total<=0){ showToast(_manualRefund.mode==='cart'?'返金する商品を選んでください':'返金する金額を入力してください','#c00'); return; }
   var mLabel={cash:'現金',card:'カード',other:'電子決済'}[_manualRefund.method]||_manualRefund.method;
   var items;
   if(_manualRefund.mode==='cart'){
-    items=cart.map(function(i){ var it=Object.assign({},i); it.qty=-Math.abs(i.qty); delete it._resId; delete it._resTag; delete it._souTag; return it; });
+    var _sel=_manualRefund.sel||[];
+    items=[];
+    cart.forEach(function(i,idx){ var n=Math.min(_sel[idx]||0,Math.abs(i.qty)); if(n<=0)return; var it=Object.assign({},i); it.qty=-n; delete it._resId; delete it._resTag; delete it._souTag; items.push(it); });
   } else {
     items=[{id:'REFUND_MANUAL', name:'返金（手動）', price:-total, qty:1, cat:'', _manualRefund:true}];
   }
-  if(!confirm('返金内容を確認してください。\n\n'+(_manualRefund.mode==='cart'?'カートの商品を返金':'金額のみ返金')+'\n返金合計 −¥'+total.toLocaleString()+'（'+mLabel+'で返金）\n\n元売上なしの返金として記録します。')) return;
+  if(!confirm('返金内容を確認してください。\n\n'+(_manualRefund.mode==='cart'?'選んだ商品を返金'+String.fromCharCode(10)+items.map(function(i){return '・'+i.name+' ×'+Math.abs(i.qty);}).join(String.fromCharCode(10)):'金額のみ返金')+'\n返金合計 −¥'+total.toLocaleString()+'（'+mLabel+'で返金）\n\n元売上なしの返金として記録します。')) return;
   var rec={
     id:'s_'+Date.now(), datetime:new Date().toISOString(),
     items:items, total:-total, method:_manualRefund.method,
@@ -6498,7 +6523,13 @@ function confirmManualRefund(){
   sales.push(rec); sv(KEYS.sales,sales); saveSnapshotToIDB();
   autoSyncSale(rec).then(function(ok){ var s=sales.find(function(x){return x.id===rec.id;}); if(s){ s.syncStatus=ok?'ok':'fail'; sv(KEYS.sales,sales); saveSnapshotToIDB(); renderSales(); } });
   document.getElementById('refund-manual-modal').classList.remove('open');
-  if(_manualRefund.mode==='cart'){ clearCart(); }
+  if(_manualRefund.mode==='cart'){
+    // 返金した分だけカートから外す（全部返金ならクリア＝従来どおり）
+    var _s2=_manualRefund.sel||[];
+    cart.forEach(function(i,idx){ var n=Math.min(_s2[idx]||0,Math.abs(i.qty)); if(n>0) i.qty=(i.qty<0?-1:1)*(Math.abs(i.qty)-n); });
+    cart=cart.filter(function(i){ return i.qty!==0; });
+    if(!cart.length) clearCart(); else renderCart();
+  }
   renderSales();
   showToast('↩ 返金を記録しました（−¥'+total.toLocaleString()+'・'+mLabel+'）','#1a7a3a');
 }
