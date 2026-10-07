@@ -46,6 +46,72 @@
 </head>
 <body>
 
+<style>
+#docsearch-bar{position:sticky;top:0;z-index:99999;background:#fffdf6;border-bottom:2px solid #d9b676;padding:8px 10px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;box-shadow:0 2px 8px rgba(0,0,0,.10)}
+#docsearch-bar .ds-ttl{font-size:13px;font-weight:800;color:#6b4f20;white-space:nowrap}
+#docsearch-input{flex:1;min-width:130px;font-size:16px;padding:9px 11px;border:1px solid #c7a765;border-radius:8px;box-sizing:border-box;font-family:inherit}
+#docsearch-bar button{font-size:14px;font-weight:700;color:#6b4f20;background:#fff;border:1px solid #c7a765;border-radius:8px;padding:8px 10px;cursor:pointer;font-family:inherit}
+#docsearch-bar button:active{transform:translateY(1px)}
+#docsearch-count{font-size:12px;color:#777;white-space:nowrap;min-width:46px;text-align:right}
+mark.ds-hl{background:#ffe58a;color:#000;border-radius:2px}
+mark.ds-hl.ds-cur{background:#ff9800;color:#000}
+@media print{#docsearch-bar{display:none!important}}
+</style>
+<div id="docsearch-bar">
+  <span class="ds-ttl">🔍 ページ内をさがす</span>
+  <input id="docsearch-input" type="search" placeholder="例：村民、ポイント、返金、奈良県職員" autocomplete="off">
+  <button id="docsearch-prev" title="前へ">↑ 前</button>
+  <button id="docsearch-next" title="次へ">↓ 次</button>
+  <span id="docsearch-count"></span>
+</div>
+<script>
+(function(){
+  var input=document.getElementById('docsearch-input');
+  var countEl=document.getElementById('docsearch-count');
+  var marks=[], cur=-1, timer=null;
+  function esc(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+  function clear(){
+    for(var i=0;i<marks.length;i++){var m=marks[i];var p=m.parentNode;if(p){p.replaceChild(document.createTextNode(m.textContent),m);p.normalize();}}
+    marks=[];cur=-1;
+  }
+  function paint(){
+    for(var i=0;i<marks.length;i++){marks[i].className='ds-hl'+(i===cur?' ds-cur':'');}
+    if(cur>=0&&marks[cur]){marks[cur].scrollIntoView({block:'center',behavior:'smooth'});countEl.textContent=(cur+1)+' / '+marks.length;}
+  }
+  function run(q){
+    clear();
+    if(!q){countEl.textContent='';return;}
+    var rx;try{rx=new RegExp(esc(q),'gi');}catch(e){return;}
+    var walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{acceptNode:function(n){
+      if(!n.nodeValue||!n.nodeValue.replace(/\s/g,''))return NodeFilter.FILTER_REJECT;
+      var p=n.parentNode;
+      while(p){if(p.id==='docsearch-bar')return NodeFilter.FILTER_REJECT;var t=p.nodeName;if(t==='SCRIPT'||t==='STYLE')return NodeFilter.FILTER_REJECT;p=p.parentNode;}
+      rx.lastIndex=0;return rx.test(n.nodeValue)?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT;
+    }});
+    var nodes=[],n;while((n=walker.nextNode()))nodes.push(n);
+    for(var k=0;k<nodes.length;k++){
+      var node=nodes[k],text=node.nodeValue;rx.lastIndex=0;
+      var m,last=0,frag=document.createDocumentFragment(),any=false;
+      while((m=rx.exec(text))){
+        any=true;
+        if(m.index>last)frag.appendChild(document.createTextNode(text.slice(last,m.index)));
+        var mk=document.createElement('mark');mk.className='ds-hl';mk.textContent=m[0];frag.appendChild(mk);marks.push(mk);
+        last=m.index+m[0].length;
+        if(m[0].length===0)rx.lastIndex++;
+      }
+      if(any){if(last<text.length)frag.appendChild(document.createTextNode(text.slice(last)));if(node.parentNode)node.parentNode.replaceChild(frag,node);}
+    }
+    if(marks.length){cur=0;paint();}else{countEl.textContent='0 件';}
+  }
+  function step(d){if(!marks.length)return;cur=(cur+d+marks.length)%marks.length;paint();}
+  input.addEventListener('input',function(){clearTimeout(timer);var v=input.value;timer=setTimeout(function(){run(v);},200);});
+  input.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();if(marks.length)step(e.shiftKey?-1:1);else run(input.value);}});
+  document.getElementById('docsearch-next').addEventListener('click',function(){step(1);});
+  document.getElementById('docsearch-prev').addEventListener('click',function(){step(-1);});
+})();
+</script>
+
+
 <h1 id="posレジ-引き継ぎ説明書">POSレジ 引き継ぎ説明書</h1>
 
 <h2 id="～-システムを引き継ぎ改修するための完全ガイド-～">～ システムを引き継ぎ・改修するための完全ガイド ～</h2>
