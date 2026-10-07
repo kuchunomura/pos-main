@@ -1,0 +1,259 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>集計リファレンス</title>
+<style>
+  body { font-family: 'Hiragino Sans', 'Noto Sans JP', sans-serif; font-size: 14px; color: #1a1a1a; max-width: 860px; margin: 0 auto; padding: 24px 16px 60px; line-height: 1.8; background: #fff; }
+  h1 { font-size: 22px; font-weight: 700; border-bottom: 3px solid #2d5016; padding-bottom: 8px; margin-bottom: 6px; color: #2d5016; }
+  h2 { font-size: 17px; font-weight: 700; border-left: 5px solid #2d5016; padding-left: 10px; margin-top: 40px; margin-bottom: 10px; color: #2d5016; }
+  h3 { font-size: 15px; font-weight: 700; margin-top: 24px; margin-bottom: 8px; color: #8b4513; }
+  h4 { font-size: 13px; font-weight: 700; margin-top: 18px; margin-bottom: 6px; color: #333; border-bottom: 1px dashed #ccc; padding-bottom: 3px; }
+  h5 { font-size: 13px; font-weight: 700; margin-top: 14px; margin-bottom: 4px; color: #555; }
+  p { margin: 6px 0 10px; }
+  ul, ol { margin: 6px 0 10px; padding-left: 24px; }
+  li { margin-bottom: 3px; }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0 16px; font-size: 13px; }
+  th { background: #2d5016; color: #fff; padding: 7px 10px; text-align: left; font-weight: 600; }
+  td { padding: 6px 10px; border: 1px solid #ddd; }
+  tr:nth-child(even) td { background: #f9f9f9; }
+  code { background: #f0f0f0; border-radius: 4px; padding: 1px 5px; font-family: monospace; font-size: 12px; color: #c0392b; }
+  pre { background: #f4f4f4; border: 1px solid #ddd; border-radius: 6px; padding: 12px; font-family: monospace; font-size: 12px; overflow-x: auto; line-height: 1.6; }
+  pre code { background: none; padding: 0; color: #333; }
+  blockquote { background: #fffbe6; border-left: 4px solid #f0ad00; margin: 10px 0; padding: 8px 14px; border-radius: 0 6px 6px 0; font-size: 13px; }
+  blockquote p { margin: 0; }
+  hr { border: none; border-top: 1px solid #ddd; margin: 28px 0; }
+  strong { font-weight: 700; }
+  .meta { color: #666; font-size: 13px; margin-bottom: 16px; }
+  .toc { background: #f0f4e8; border: 1px solid #c8dca8; border-radius: 8px; padding: 14px 20px; margin: 16px 0 28px; }
+  .toc p { font-weight: 700; margin: 0 0 8px; color: #2d5016; }
+  .toc ol { margin: 0; }
+  .toc li { margin-bottom: 2px; font-size: 13px; }
+  .warn { background: #fde8e8; border-left: 4px solid #c0392b; margin: 10px 0; padding: 8px 14px; border-radius: 0 6px 6px 0; font-size: 13px; }
+  .section-divider { border-top: 2px solid #e0d8d0; margin: 16px 0 10px; }
+  @media print {
+    body { max-width: 100%; padding: 10px; font-size: 12px; }
+    h2 { page-break-before: auto; }
+    table { font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+
+<h1 id="集計リファレンス何をどこでどう集計しているか">集計リファレンス（何を・どこで・どう集計しているか）</h1>
+
+<p><strong>対象</strong>: 胡空の村 POS／レジGAS／手動集計<br><strong>使い方</strong>: 気になった言葉を <strong>Ctrl+F（スマホは「ページ内を検索」）</strong> で探してください。例：「村民」「奈良県職員」「ポイント」「宿泊者」「返金」「連泊」。</p>
+
+<blockquote><p>この資料は「<strong>その数字はどこで・どう作られているか</strong>」を引くための辞書です。操作方法は取扱説明書、改修方法は引き継ぎ説明書を見てください。</p></blockquote>
+
+<hr>
+
+<h2 id="目次">目次</h2>
+
+<ol><li><a href="#0-3つの集計レイヤーまず全体像">3つの集計レイヤー（まず全体像）</a></li><li><a href="#1-金額の3つの数え方最重要">金額の3つの数え方（最重要）</a></li><li><a href="#2-人数件数客単価の数え方">人数・件数・客単価の数え方</a></li><li><a href="#3-割引の優先順位レジの価格計算">割引の優先順位（レジの価格計算）</a></li><li><a href="#4-用語別リファレンス検索用">用語別リファレンス（検索用）</a></li><li><a href="#5-日別シートの構造列と集計行">日別シートの構造（列と集計行）</a></li><li><a href="#6-otaごとの0円対象範囲">OTAごとの0円対象範囲</a></li><li><a href="#7-手動集計の報告書">手動集計の報告書</a></li><li><a href="#8-よくある疑問数字が合わない時">よくある疑問（数字が合わない時）</a></li></ol>
+
+<hr>
+
+<h2 id="0-3つの集計レイヤーまず全体像">0. 3つの集計レイヤー（まず全体像）</h2>
+
+<p>同じ「集計」でも、<strong>3つの場所</strong>で別々に計算されています。どこの数字の話かを最初に区別してください。</p>
+
+<table>
+<thead><tr><th>レイヤー</th><th>置き場所（ファイル）</th><th>何を集計する</th></tr></thead>
+<tbody><tr><td>① レジ本体</td><td><code>pos main/index.html</code>（売上タブ）</td><td>端末内データをその場で集計（集計ビューのグラフ・割引区分・レジ締め）</td></tr>
+<tr><td>② レジGAS</td><td><code>pos main/gas_script.js</code></td><td><strong>日別シートの1〜2行目の集計式</strong>・商品別/属性別の表・月別集計を<strong>自動で</strong>書く</td></tr>
+<tr><td>③ 手動集計</td><td><code>manual_ss_gas_script.js</code>（手動集計SS側）</td><td>月別集計・<strong>各種報告書</strong>（収入実績／簡潔／村民）を作る</td></tr></tbody>
+</table>
+
+<ul><li>①と②は<strong>同じ売上データ</strong>を見ています（②はスプレッドシート上の式）。</li><li>③は<strong>別のスプレッドシート</strong>で、①のデータを1日ごとに手でコピーして使います（トラブル時にデータを守るため、あえて自動同期していない）。</li></ul>
+
+<hr>
+
+<h2 id="1-金額の3つの数え方最重要">1. 金額の3つの数え方（最重要）</h2>
+
+<p>売上金額には<strong>3通りの意味</strong>があり、混同すると「合わない」と感じます。日別シートの1行目に全部出ています。</p>
+
+<table>
+<thead><tr><th>名前</th><th>意味</th><th>計算（日別シート1行目）</th></tr></thead>
+<tbody><tr><td><strong>本来の総売上</strong></td><td>ポイント・奈良県職員券を<strong>足し戻した</strong>、本来の売上</td><td><code>=SUM(B4:B) − SUMIF("ポイント利用",G) − SUMIF("奈良県職員券",G)</code>（G列はマイナスなので実質プラス）</td></tr>
+<tr><td><strong>🎫ポイント+奈良職員券</strong></td><td>後日振り込まれる分（手元には入らない）</td><td>ポイント利用＋奈良県職員券のマイナス額を正に直した合計</td></tr>
+<tr><td><strong>総売上(P差引後)</strong></td><td><strong>実際に受け取った</strong>現金＋カード＋電子（レジ締め・ドロワー照合用）</td><td><code>=SUM(B4:B)</code></td></tr></tbody>
+</table>
+
+<ul><li><strong>レジ締め（ドロワーと合わせる）で使うのは「総売上(P差引後)＝実受取」</strong>です。</li><li><strong>報告書・収入実績で使うのは「本来の総売上＝満額」</strong>です（ポイントや職員券も売上として満額計上。→ <a href="#7-手動集計の報告書">7章</a>）。</li><li>レジ本体（①）の売上タブの「売上合計」は <strong>実受取（ポイントを含まない）</strong> です。カートで「ポイント利用」を<strong>マイナス行</strong>として入れるので、その分は合計から引かれます。</li></ul>
+
+<blockquote><p>例）¥3,000の会計でポイント¥2,000利用 → カートは「商品 +3,000」＋「ポイント利用 −2,000」。<br><strong>売上合計（実受取）＝¥1,000</strong>（受け取った現金／カード分）。本来の総売上＝¥3,000。</p></blockquote>
+
+<hr>
+
+<h2 id="2-人数件数客単価の数え方">2. 人数・件数・客単価の数え方</h2>
+
+<table>
+<thead><tr><th>項目</th><th>ルール</th><th>どこで</th></tr></thead>
+<tbody><tr><td><strong>人数</strong></td><td><strong>施設カテゴリーのみ</strong>数える（空中ウォーク／ツリーハウス昼／BBQ／宿泊：ツリーハウス・ドーム・テント・ハンモック）。商品名に「（N人）」があれば <strong>N×数量</strong>、なければ数量。<strong>「延長」を含む商品は人数に数えない</strong></td><td>①<code>calcPersonCount</code> ②日別1行目 <code>総人数 =SUM(H4:H)−SUMIF("*延長*",H4:H)</code></td></tr>
+<tr><td><strong>件数</strong></td><td><strong>返品（売上合計がマイナスの行）は件数に数えない</strong>（金額・人数はマイナスのまま反映）</td><td>①<code>renderSummary</code>（<code>!r.refund</code>） ②<code>総件数 =COUNTIF(B4:B,"&gt;=0")</code></td></tr>
+<tr><td><strong>客単価</strong></td><td>総売上 ÷ 件数</td><td>①<code>renderSummary</code></td></tr>
+<tr><td><strong>正の字</strong></td><td>5ごとに「正」、端数は「丨」</td><td>①<code>sumTally</code></td></tr></tbody>
+</table>
+
+<ul><li>物販（人数で数えない商品）は、集計で金額の右に <strong>（単価×数量）</strong> の内訳が出ます（例：（800円×3＋600円×2）、高い順）。施設系は代わりに<strong>割引区分の内訳</strong>が出ます。</li></ul>
+
+<hr>
+
+<h2 id="3-割引の優先順位レジの価格計算">3. 割引の優先順位（レジの価格計算）</h2>
+
+<p>1件の商品の値段は <code>getDiscountedPrice()</code>（①）が<strong>上から順に</strong>判定します。先に当たったものが優先です。</p>
+
+<ol><li><strong>年間パス商品そのもの</strong>（年間パス昼／夜）→ 常に<strong>定価</strong>（割引対象外）</li><li><strong>年間パス昼</strong>使用中 → レンタル・空中ウォーク・ツリーハウス昼が <strong>¥0</strong></li><li><strong>年間パス夜</strong>使用中 → レンタル・宿泊が <strong>¥0</strong></li><li><strong>OTA（支払済）</strong>で対象商品 → <strong>¥0</strong>（→ <a href="#6-otaごとの0円対象範囲">6章</a>）</li><li><strong>宿泊者割引</strong>（村民・パスが無い時だけ）→ 対象の空中ウォーク（55分／1DAY）が <strong>1人500円引き</strong></li><li>宿泊がカートにある時の無料対象 → <strong>¥0</strong></li><li><strong>村民（村内半額）</strong> → 空中ウォーク・ツリーハウス昼・宿泊が<strong>半額</strong>、BBQ等は<strong>無料</strong>（<strong>レンタルは対象外＝有料</strong>）</li><li><strong>無料割引</strong> → <strong>¥0</strong></li><li><strong>団体（率割引）</strong> → レンタル以外が <code>定価×(100−割引率)/100</code></li><li>どれにも当たらなければ <strong>定価</strong></li></ol>
+
+<blockquote><p>村民と宿泊者は<strong>併用しません</strong>（半額の方が安いので村民優先）。予約アプリ(yoyaku)も同じ順番です。</p></blockquote>
+
+<hr>
+
+<h2 id="4-用語別リファレンス検索用">4. 用語別リファレンス（検索用）</h2>
+
+<p>各項目は <strong>何（定義）／どこ（処理場所）／どう（計上のされ方）</strong> の順。</p>
+
+<h3 id="村民村内半額">村民（村内半額）</h3>
+
+<ul><li><strong>何</strong>：村内のお客さん向けの割引ボタン。</li><li><strong>どこ</strong>：①<code>getDiscountedPrice</code>（<code>activeMura</code>）／②日別シートの割引列（<code>mura</code>）。</li><li><strong>どう</strong>：空中ウォーク・ツリーハウス昼・宿泊が<strong>半額</strong>、BBQや<code>free_mura</code>商品は<strong>無料</strong>。<strong>レンタルは対象外（有料）</strong>。集計の割引区分では「村民半額」。</li></ul>
+
+<h3 id="宿泊者宿泊者割引">宿泊者（宿泊者割引）</h3>
+
+<ul><li><strong>何</strong>：宿泊のお客さんが日帰りも利用する時の割引。</li><li><strong>どこ</strong>：①<code>getDiscountedPrice</code>（<code>stay_guest</code>／カートに宿泊がある時）・<code>posStayGuestDisc</code>。</li><li><strong>どう</strong>：対象の<strong>空中ウォーク（55分／1DAY）が1人500円引き</strong>。<strong>村民・年間パスが有効な時は対象外</strong>（村民優先）。割引区分では「宿泊者」。</li></ul>
+
+<h3 id="奈良県職員券">奈良県職員券</h3>
+
+<ul><li><strong>何</strong>：空中ウォークを無料にする券（後日精算）。</li><li><strong>どこ</strong>：①レジでは「奈良県職員券」という<strong>マイナス行</strong>で処理（<code>sumNaraInfo</code>／<code>sumAddByDisc</code>）／②日別1行目の式／③報告書は満額計上。</li><li><strong>どう</strong>：<strong>レジの実受取は¥0</strong>だが、<strong>集計・報告書では本来料金で満額計上</strong>（ポイントと同じ「後日振込＝売上」扱い）。日別シートでは「奈良県職員券」のマイナス額を<strong>本来の総売上に足し戻す</strong>。空中ウォーク1DAYの人数のうち券の枚数ぶんを「奈良県職員券」区分へ振り分け、金額は券のマイナス額を按分。</li></ul>
+
+<h3 id="ポイントポイント決済">ポイント（ポイント決済）</h3>
+
+<ul><li><strong>何</strong>：ポイントで一部／全部を支払う決済。</li><li><strong>どこ</strong>：①<code>applyPoint</code>（カートに「ポイント利用」マイナス行を追加）／②日別1行目の式／③報告書は満額計上。</li><li><strong>どう</strong>：<strong>合計からポイント分を引き、残りを現金・カード・電子で受取</strong>。<strong>売上合計（実受取）にはポイント分を含まない</strong>。<strong>本来の総売上・報告書には満額</strong>で入る。</li></ul>
+
+<h3 id="無料無料割引">無料（無料割引）</h3>
+
+<ul><li><strong>何</strong>：対象を無料（¥0）にする割引ボタン。</li><li><strong>どこ</strong>：①<code>getDiscountedPrice</code>（<code>activeFree</code>）。</li><li><strong>どう</strong>：対象商品が <strong>¥0</strong>。割引区分では「無料」。</li></ul>
+
+<h3 id="団体団体割引率割引">団体（団体割引・率割引）</h3>
+
+<ul><li><strong>何</strong>：団体向けの％割引（割引率は設定で変更）。</li><li><strong>どこ</strong>：①<code>getDiscountedPrice</code>（<code>activeRateKey</code>・<code>getDiscRate</code>）。</li><li><strong>どう</strong>：<strong>レンタル以外</strong>が <code>定価×(100−率)/100</code>。割引区分では「団体」。</li></ul>
+
+<h3 id="支払済ota予約サイト">支払済（OTA／予約サイト）</h3>
+
+<ul><li><strong>何</strong>：楽天・じゃらん・SOU・アソビュー・楽天体験などの前払い予約。</li><li><strong>どこ</strong>：①<code>isOtaFreeItem</code>／<code>otaCoversItem</code>／②割引列にOTA名。</li><li><strong>どう</strong>：対象商品が <strong>¥0（支払済バッジ）</strong>。実受取には入らない（前払いのため）。OTAごとに<strong>0円になる商品の範囲が違う</strong>（→ <a href="#6-otaごとの0円対象範囲">6章</a>）。割引区分では「楽天／楽天体験／じゃらん／アソビュー／SOU／外部③」。</li></ul>
+
+<h3 id="年間パス昼夜">年間パス（昼／夜）</h3>
+
+<ul><li><strong>何</strong>：年パス保持者の利用。昼＝日帰り系、夜＝宿泊系。</li><li><strong>どこ</strong>：①<code>getDiscountedPrice</code>（<code>pass_day</code>／<code>pass_night</code>）。</li><li><strong>どう</strong>：<strong>昼</strong>＝レンタル・空中ウォーク・ツリーハウス昼が<strong>¥0</strong>。<strong>夜</strong>＝レンタル・宿泊が<strong>¥0</strong>。<strong>年間パス商品そのもの（購入）は常に定価</strong>。割引区分では「年パス」。</li></ul>
+
+<h3 id="返金返品">返金・返品</h3>
+
+<ul><li><strong>何</strong>：売上を戻す（マイナス）処理。</li><li><strong>どこ</strong>：①<code>renderSummary</code>（<code>r.refund</code>）・レジ締め<code>updateCashDiff</code>／②<code>総件数</code>の式。</li><li><strong>どう</strong>：<strong>件数には数えない</strong>。金額・人数はマイナスで反映。レジ締めは「全レジ現金 − 現金売上」で判定するので、<strong>現金返金があっても正しく数えれば過不足0</strong>になる。</li></ul>
+
+<h3 id="連泊">連泊</h3>
+
+<ul><li><strong>何</strong>：2泊以上の宿泊。</li><li><strong>どこ</strong>：①宿泊の人数計算／③報告書。</li><li><strong>どう</strong>：人数は<strong>泊数で二重に増やさない</strong>（1泊分の人数で数える）。2泊目以降は各日に表示されるが<strong>件数は二重計上しない</strong>。</li></ul>
+
+<h3 id="属性年齢層国籍">属性（年齢層・国籍）</h3>
+
+<ul><li><strong>何</strong>：会計時に👤で選ぶお客さんの年齢層・国籍。</li><li><strong>どこ</strong>：①集計ビュー「属性別」（<code>r.attrs</code>）／②属性別の表。</li><li><strong>どう</strong>：<strong>件数</strong>として集計（1会計で複数選択可、それぞれ1件ずつ加算）。</li></ul>
+
+<h3 id="天気">天気</h3>
+
+<ul><li><strong>何</strong>：カート右上の🌤で選ぶその日の天気。</li><li><strong>どこ</strong>：①売上データの天気列（M列）。</li><li><strong>どう</strong>：売上1件ごとに記録（集計は参考情報）。</li></ul>
+
+<h3 id="翌日翌々日計上">翌日・翌々日計上</h3>
+
+<ul><li><strong>何</strong>：会計を翌日／翌々日の日付で記録するモード。</li><li><strong>どこ</strong>：①翌日計上モード。</li><li><strong>どう</strong>：売上の<strong>日付がずれて</strong>記録される（🌙マーク）。集計は日付でしぼるので、翌日分は翌日の集計に入る。</li></ul>
+
+<h3 id="前日繰越">前日繰越</h3>
+
+<ul><li><strong>何</strong>：前日から繰り越した売上。</li><li><strong>どこ</strong>：②日別2行目 <code>前日繰越合計 =SUMIF(N4:N,"*繰越*",B4:B)</code>。</li><li><strong>どう</strong>：メモ(N列)に「繰越」を含む行の合計。レジ締めの参考に表示。</li></ul>
+
+<h3 id="延長55分延長-など">延長（55分延長 など）</h3>
+
+<ul><li><strong>何</strong>：コースの延長など、人数を伴わない追加課金。</li><li><strong>どこ</strong>：①<code>calcPersonCount</code>（「延長」を除外）／②<code>総人数</code>の式（<code>SUMIF("*延長*")</code>を減算）。</li><li><strong>どう</strong>：<strong>人数には数えない</strong>（金額は売上に入る）。</li></ul>
+
+<h3 id="要確認">要確認（🔴）</h3>
+
+<ul><li><strong>何</strong>：「あとで確認が必要」な売上に付ける赤い印。</li><li><strong>どこ</strong>：①明細の🔴／⚪。</li><li><strong>どう</strong>：集計の数字には影響しない（印だけ）。</li></ul>
+
+<hr>
+
+<h2 id="5-日別シートの構造列と集計行">5. 日別シートの構造（列と集計行）</h2>
+
+<p>売上は「M/D売上」（例：6/11売上）のシートに日付ごとに記録されます（②レジGASが書く）。</p>
+
+<p><strong>4行目以降＝1件ごとの明細</strong></p>
+
+<table>
+<thead><tr><th>列</th><th>内容</th><th>列</th><th>内容</th></tr></thead>
+<tbody><tr><td>A</td><td>日時</td><td>I</td><td>割引</td></tr>
+<tr><td>B</td><td>売上合計</td><td>J</td><td>支払方法</td></tr>
+<tr><td>C</td><td>商品名</td><td>K</td><td>年齢層</td></tr>
+<tr><td>D</td><td>カテゴリー</td><td>L</td><td>国籍</td></tr>
+<tr><td>E</td><td>数量</td><td>M</td><td>天気</td></tr>
+<tr><td>F</td><td>単価</td><td>N</td><td>メモ</td></tr>
+<tr><td>G</td><td>小計</td><td>O</td><td>売上ID</td></tr>
+<tr><td>H</td><td>人数</td><td>P</td><td>端末名</td></tr></tbody>
+</table>
+
+<blockquote><p>⚠ <strong>売上IDが空（O列）だと、月別集計・報告書でその日が丸ごと0件0円</strong>になることがある（手入力・復旧シートで起きる）。②<code>fillBlankTxIds</code>で仮IDを補う。</p></blockquote>
+
+<p><strong>1行目＝集計</strong>（→ <a href="#1-金額の3つの数え方最重要">1章</a>）：本来の総売上／🎫ポイント+奈良職員券／総売上(P差引後)／総件数／総人数／クレジット／電子決済。<br><strong>2行目＝レジ現金入力</strong>：全レジ現金−現金売上＝差額／現金過不足(0で一致／釣銭10万を控除)／現金／クレ+電子／前日繰越合計。<br>右側には<strong>商品別・年齢層別・国籍別</strong>の集計表が自動で作られます（②<code>updateSummary</code>）。</p>
+
+<hr>
+
+<h2 id="6-otaごとの0円対象範囲">6. OTAごとの0円対象範囲</h2>
+
+<p>OTAボタンで0円（支払済）になる商品は、<strong>実際にそのサイトで売っている商品だけ</strong>に絞っています（①<code>otaCoversItem</code>）。</p>
+
+<table>
+<thead><tr><th>OTA</th><th>0円になる商品</th></tr></thead>
+<tbody><tr><td>楽天</td><td>ツリーハウス以外の宿泊（ドーム／空中テント／ハンモック）</td></tr>
+<tr><td>じゃらん・アソビュー・楽天体験</td><td>空中ウォーク <strong>1DAY のみ</strong></td></tr>
+<tr><td>SOU</td><td>専用タイルで直接0円（4パターン）</td></tr>
+<tr><td>外部③（予備）</td><td>従来どおり広め（日帰り＋宿泊）</td></tr></tbody>
+</table>
+
+<ul><li><strong>年間パス商品は常に定価</strong>（OTAでも0円にしない）。</li><li>楽天は区分分割で村外／OTAを正しく振り分け（村民だけ未対応＝この方式の応用が今後の候補）。</li></ul>
+
+<hr>
+
+<h2 id="7-手動集計の報告書">7. 手動集計の報告書</h2>
+
+<p>③手動集計SSでは、①のデータを元に報告書を作ります（<code>manual_ss_gas_script.js</code>）。</p>
+
+<table>
+<thead><tr><th>報告書</th><th>関数</th><th>中身</th></tr></thead>
+<tbody><tr><td>月別集計</td><td><code>createMonthlySummary</code></td><td>月全体のクロス集計（商品×日、人数・金額）</td></tr>
+<tr><td>収入実績報告書</td><td><code>computeIncomeSummary</code></td><td>コース別の人数・収入。<strong>ポイント・職員券は満額計上</strong></td></tr>
+<tr><td>簡潔報告書</td><td><code>createSimpleReport</code></td><td>月ごと・コース別の人数／金額（内 村民・宿泊者）</td></tr>
+<tr><td>村民報告書</td><td><code>createVillageReport</code></td><td>村民割引の日別・カテゴリ別と、割引差額</td></tr></tbody>
+</table>
+
+<ul><li><strong>満額計上のルール</strong>：③の報告書・収入実績では、<strong>ポイント利用・奈良県職員券も本来料金（満額）で売上に数えます</strong>（後日振込＝売上のため）。</li><li>村民割引表の右側に、<strong>定価と実受取の差（割引額）</strong>や<strong>ポイント／職員券の満額補正</strong>が出ます。</li><li>OTA分は報告書で色分け・再掲されます（<code>buildOtaGapDaily</code>／<code>otaLabel</code>）。</li></ul>
+
+<hr>
+
+<h2 id="8-よくある疑問数字が合わない時">8. よくある疑問（数字が合わない時）</h2>
+
+<p><strong>Q. レジ締めでドロワーと合わない</strong><br>A. 使う数字は「<strong>総売上(P差引後)＝実受取</strong>」。現金過不足は「全レジ現金 − 現金売上 − 釣銭10万」。<strong>現金返金</strong>があった日は、返金もマイナスで正しく入っていれば0になります。</p>
+
+<p><strong>Q. 報告書の売上がレジ締めより多い</strong><br>A. 正常です。報告書は「<strong>本来の総売上（満額）</strong>」＝実受取＋<strong>ポイント＋奈良県職員券</strong>。レジ締めは実受取だけ。</p>
+
+<p><strong>Q. ポイントで払った分が売上合計に入っていない</strong><br>A. レジ本体の売上合計は<strong>実受取</strong>なので正しい挙動です。満額は「本来の総売上」や報告書で見てください。</p>
+
+<p><strong>Q. 特定の日だけ0件0円になる</strong><br>A. その日のシートの<strong>O列（売上ID）が空</strong>の可能性。②<code>fillBlankTxIds</code>で仮IDを補うと直ります。</p>
+
+<p><strong>Q. 人数が多い／少ない</strong><br>A. 人数は<strong>施設カテゴリーのみ</strong>・「（N人）×数量」・<strong>延長は除外</strong>。物販や延長は人数に入りません。連泊は泊数ぶん二重に数えません。</p>
+
+<p><strong>Q. OTAで0円にならない商品がある</strong><br>A. OTAごとに0円対象の範囲が違います（→ <a href="#6-otaごとの0円対象範囲">6章</a>）。そのサイトで売っていない商品は0円になりません。</p>
+
+<hr>
+
+<p>*最終更新: 2026/10/07（新規作成・アプリ v594／レジGAS・手動集計の現行コードに基づく）*</p>
+
+</body>
+</html>
