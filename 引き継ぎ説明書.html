@@ -48,15 +48,15 @@
 
 <h1 id="posレジ-引き継ぎ説明書">POSレジ 引き継ぎ説明書</h1>
 
-<h2 id="～-claude-code-で改修するための完全ガイド-～">～ Claude Code で改修するための完全ガイド ～</h2>
+<h2 id="～-システムを引き継ぎ改修するための完全ガイド-～">～ システムを引き継ぎ・改修するための完全ガイド ～</h2>
 
-<p><strong>対象読者</strong>: このシステムを初めて引き継ぐ人  <br><strong>前提知識</strong>: 不要（専門知識がなくても読めるように書いています）</p>
+<p><strong>対象読者</strong>: このシステムを引き継ぐ人<br><strong>前提知識</strong>: 不要</p>
 
 <hr>
 
 <h2 id="目次">目次</h2>
 
-<ol><li><a href="#1-このシステムの全体像">このシステムの全体像</a></li><li><a href="#2-使う道具の説明">使う「道具」の説明</a></li><li><a href="#3-道具どうしの関係性">道具どうしの関係性</a></li><li><a href="#4-ファイルの場所と役割">ファイルの場所と役割</a></li><li><a href="#5-アプリのデータの流れ">アプリのデータの流れ</a></li><li><a href="#6-改修の基本手順">改修の基本手順</a></li><li><a href="#7-test版とmain版の使い分け">「test版」と「main版」の使い分け</a></li><li><a href="#8-デプロイとは何か">デプロイとは何か</a></li><li><a href="#9-gasgoogle-apps-scriptの改修">GAS（Google Apps Script）の改修</a></li><li><a href="#10-よくある改修パターンと頼み方の例">よくある改修パターンと頼み方の例</a></li><li><a href="#11-困ったときのチェックリスト">困ったときのチェックリスト</a></li><li><a href="#12-重要な用語集">重要な用語集</a></li></ol>
+<ol><li><a href="#1-このシステムの全体像">このシステムの全体像</a></li><li><a href="#2-使う道具の説明">使う「道具」の説明</a></li><li><a href="#3-道具どうしの関係性">道具どうしの関係性</a></li><li><a href="#4-ファイルの場所と役割">ファイルの場所と役割</a></li><li><a href="#5-アプリのデータの流れ">アプリのデータの流れ</a></li><li><a href="#6-改修の基本手順">改修の基本手順</a></li><li><a href="#7-mainとtest予備の関係">「main」と「test（予備）」の関係</a></li><li><a href="#8-デプロイとは何か">デプロイとは何か</a></li><li><a href="#9-gasgoogle-apps-scriptの改修">GAS（Google Apps Script）の改修</a></li><li><a href="#10-毎月やること定期メンテナンス">毎月やること（定期メンテナンス）</a></li><li><a href="#11-アカウントと引き継ぎ">アカウントと引き継ぎ</a></li><li><a href="#12-別のpcで作業する環境を作り直す">別のPCで作業する・環境を作り直す</a></li><li><a href="#13-予約アプリyoyakuの構造改修トラブル">予約アプリ（yoyaku）の構造・改修・トラブル</a></li><li><a href="#14-よくある改修パターンと頼み方の例">よくある改修パターンと頼み方の例</a></li><li><a href="#15-困ったときのチェックリスト">困ったときのチェックリスト</a></li><li><a href="#16-重要な用語集">重要な用語集</a></li></ol>
 
 <hr>
 
@@ -64,93 +64,66 @@
 
 <h3 id="一言で言うと">一言で言うと</h3>
 
-<blockquote><p><strong>タブレット（iPad・PCでも）で動くレジアプリ。売上データはGoogleスプレッドシートに自動で記録される。</strong></p></blockquote>
+<blockquote><p><strong>タブレットやPCのブラウザで動くレジアプリ。売上データはGoogleスプレッドシートに自動で記録される。</strong></p></blockquote>
 
-<h3 id="システムを構成する3つのパーツ">システムを構成する3つのパーツ</h3>
+<h3 id="3つのアプリ">3つのアプリ</h3>
+
+<table>
+<thead><tr><th>アプリ</th><th>役割</th><th>URL</th></tr></thead>
+<tbody><tr><td><strong>POS main</strong></td><td>本番のレジ（実際に使う）</td><td><code>https://kuchunomura.github.io/pos-main</code></td></tr>
+<tr><td><strong>POS test</strong></td><td>予備・確認用のレジ（mainが不具合の時に使う）</td><td><code>https://kuchunomura.github.io/pos-app-test</code></td></tr>
+<tr><td><strong>yoyaku</strong></td><td>予約管理（別アプリ・別管理）</td><td><code>https://kuchunomura.github.io/yoyaku</code></td></tr></tbody>
+</table>
+
+<h3 id="データの保存先スプレッドシート">データの保存先（スプレッドシート）</h3>
+
+<p>アプリが記録するデータは、3つのGoogleスプレッドシートに入っています（すべて職場のGoogleアカウント内）。</p>
+
+<table>
+<thead><tr><th>データ</th><th>スプレッドシート</th><th>備考</th></tr></thead>
+<tbody><tr><td>売上（POSレジ）</td><td>売上スプレッドシート</td><td><strong>毎月新しいSSに切り替える</strong>（第10章）。今の同期先はレジの「設定」タブで確認できる</td></tr>
+<tr><td>集計・報告書</td><td>手動集計スプレッドシート</td><td>報告書・月別集計を作る用。<strong>毎月コピーで新規作成</strong>（第10章）</td></tr>
+<tr><td>予約</td><td>予約スプレッドシート</td><td>予約アプリ(yoyaku)の同期先</td></tr></tbody>
+</table>
+
+<p>※ 具体的なURL（アドレス）は毎月変わるものがあるため、ここには載せていません。今のURLは各アプリの「設定」や、各GASの中で確認します。</p>
+
+<h3 id="レジを構成する3つのパーツ">レジを構成する3つのパーツ</h3>
 
 <pre><code>┌─────────────────────────────────────────────────────────┐
-│                                                           │
 │  ① POSレジ画面（index.html）                              │
-│     ブラウザ（Safari/Chrome）で開くウェブアプリ            │
-│     インターネット上（GitHub Pages）に置いてある           │
-│                                                           │
+│     ブラウザで開くウェブアプリ。GitHub Pages に置いてある   │
 │          ↓ 決済すると自動で送信                           │
-│                                                           │
 │  ② GAS（gas_script.js）                                   │
-│     Googleのサーバー上で動くプログラム                     │
-│     レジからデータを受け取って整形する中継役               │
-│                                                           │
+│     Googleのサーバー上で動く中継プログラム                 │
 │          ↓ 整形したデータを書き込む                       │
-│                                                           │
 │  ③ Googleスプレッドシート                                  │
-│     売上データの最終保存場所                               │
-│     日付ごとにシートが自動作成される                       │
-│                                                           │
+│     売上データの最終保存場所（日付ごとにシート自動作成）    │
 └─────────────────────────────────────────────────────────┘</code></pre>
 
 <hr>
 
 <h2 id="2-使う道具の説明">2. 使う「道具」の説明</h2>
 
-<p>改修作業で使う道具は4つあります。それぞれ全然別のものです。</p>
+<p>改修作業で使う道具は4つ。それぞれ別のものです。①の中に②③がある。</p>
 
-<hr>
+<h3 id="道具①-vs-code青い三角アイコンのアプリ">道具① VS Code（青い三角アイコンのアプリ）</h3>
 
-<h3 id="道具①-vs-code青いアプリ">道具① VS Code（青いアプリ）</h3>
+<p><strong>ファイルを開いて編集するためのソフト。</strong> HTMLやJavaScriptのファイルを開く「作業台」。VS Code自体に改修能力はなく、「開く・見る・編集する」だけ。</p>
 
-<p><strong>役割：ファイルを開いて編集するためのソフト</strong></p>
+<h3 id="道具②-claude-codevs-codeの中にあるオレンジ枠のチャット拡張機能で①に入れている">道具② Claude Code（VS Codeの中にあるオレンジ枠のチャット）拡張機能で①に入れている</h3>
 
-<p>Wordで文書を編集するのと同じように、VS CodeはHTMLやJavaScriptのファイルを編集するためのソフトです。プログラマー向けの高機能なテキストエディタです。</p>
+<p><strong>AIにファイルの改修を依頼するチャット。</strong> 日本語で「○○を追加して」と頼むと、AIがファイルを自動で書き換える。<strong>Claude Code が「頭脳」、VS Code が「作業台」。</strong></p>
 
-<pre><code>アイコン: 青い「&lt; &gt;」のマーク
-正式名称: Visual Studio Code（マイクロソフト製）
-用途: index.html や gas_script.js を開いて中身を確認・編集する</code></pre>
+<h3 id="道具③-ターミナルチャット下にある白い画面-通常は非表示">道具③ ターミナル（チャット下にある白い画面　通常は非表示）</h3>
 
-<p>VS Code自体に改修の能力はありません。ファイルを「開く・見る・編集する」だけのソフトです。</p>
-
-<hr>
-
-<h3 id="道具②-claude-codevs-codeの中にある青いチャット">道具② Claude Code（VS Codeの中にある青いチャット）</h3>
-
-<p><strong>役割：AIにファイルの改修を依頼するチャット画面</strong></p>
-
-<p>VS Codeの中に組み込まれているAIアシスタントです。チャットで日本語で指示すると、AIがファイルを自動で書き換えてくれます。</p>
-
-<pre><code>どこにある: VS Codeの左側のバーにあるアイコン、またはパネル内
-見た目: チャット画面（メッセージを入力して送信する）
-用途: 「○○を追加してください」と日本語で頼むと、
-       AIが index.html などのファイルを自動で編集してくれる</code></pre>
-
-<p><strong>重要</strong>: Claude Code は「頭脳」であり、VS Code は「作業台」です。<br>Claude Code が VS Code のファイルを直接書き換えます。</p>
-
-<hr>
-
-<h3 id="道具③-ターミナル黒い画面">道具③ ターミナル（黒い画面）</h3>
-
-<p><strong>役割：コンピューターに命令を文字で入力する画面</strong></p>
-
-<p>ターミナルとは「黒い画面に文字でコマンド（命令）を入力する場所」です。マウスで操作する代わりに、キーボードだけでコンピューターに指示を出します。</p>
-
-<pre><code>見た目: 黒または暗い背景に白い文字
-VS Codeの中にある: 上メニュー「Terminal」→「New Terminal」で開く
-用途: GitHub へのアップロード（git コマンド）など</code></pre>
-
-<p>普段は<strong>Claude Code が代わりにターミナルを操作</strong>してくれるので、自分で文字を入力することはほぼありません。</p>
-
-<hr>
+<p><strong>文字でコンピューターに命令する画面。</strong> GitHubへのアップロード（gitコマンド）などに使う。普段は<strong>Claude Code が代わりに操作</strong>するので自分で打つことはほぼない。</p>
 
 <h3 id="道具④-githubインターネット上のファイル置き場">道具④ GitHub（インターネット上のファイル置き場）</h3>
 
-<p><strong>役割：ファイルを保存・公開するクラウドサービス</strong></p>
+<p><strong>ファイルを保存・公開するクラウドサービス。</strong> このプロジェクトでは、ファイルの保存場所であり、タブレットがアクセスするURL（GitHub Pages）でもある。</p>
 
-<p>GitHubはプログラムのファイルを保存・共有するためのサービスです。Googleドライブと似ていますが、プログラマー向けの特別な機能（変更履歴の管理など）があります。</p>
-
-<pre><code>種類1: GitHub（ウェブサイト） → github.com にある
-種類2: GitHub Pages → GitHub上のファイルをウェブサイトとして公開する機能</code></pre>
-
-<p>このプロジェクトでは：</p>
-
-<ul><li><strong>ファイル置き場として</strong> → index.html などを保存</li><li><strong>ウェブサイト公開として</strong> → タブレットがアクセスするURLになる</li></ul>
+<blockquote><p>このプロジェクトのファイルは <strong>GitHub が本物（原本）</strong>。手元のPCはただの作業コピー。PCが壊れても GitHub から作り直せる（→第12章）。</p></blockquote>
 
 <hr>
 
@@ -158,414 +131,432 @@ VS Codeの中にある: 上メニュー「Terminal」→「New Terminal」で開
 
 <pre><code>┌──────────────────────────────────────────────────────────────┐
 │                     あなたのパソコン                           │
-│                                                               │
 │  ┌─────────────────────────────────────────────┐             │
 │  │              VS Code（青いアプリ）              │             │
-│  │                                               │             │
 │  │  ┌──────────────┐    ┌───────────────────┐  │             │
 │  │  │  Claude Code  │    │   ターミナル        │  │             │
-│  │  │  （チャット）  │    │   （黒い画面）      │  │             │
-│  │  │               │    │                   │  │             │
-│  │  │ あなたが日本語 │    │ gitコマンドが       │  │             │
-│  │  │ で指示を入力  │    │ ここで実行される    │  │             │
+│  │  │ 日本語で指示   │    │ gitコマンドを実行    │  │             │
 │  │  └──────┬───────┘    └─────────┬─────────┘  │             │
-│  │          │                      │             │             │
-│  │          ▼                      ▼             │             │
+│  │         ▼                       ▼             │             │
 │  │  ┌─────────────────────────────────────┐    │             │
-│  │  │         パソコン内のファイル           │    │             │
-│  │  │  pos reji/pos main/index.html        │    │             │
-│  │  │  pos reji/pos test/index.html        │    │             │
-│  │  │  pos reji/pos main/gas_script.js     │    │             │
+│  │  │   パソコン内のファイル                 │    │             │
+│  │  │   C:\dev\pos-yoyaku\...               │    │             │
 │  │  └─────────────────────────────────────┘    │             │
 │  └─────────────────────────────────────────────┘             │
-│                                                               │
 └──────────────────────────┬────────────────────────────────────┘
-                            │ git push（アップロード）
-                            ▼
+                           │ git push（アップロード）
+                           ▼
 ┌──────────────────────────────────────────────────────────────┐
 │                   GitHub（インターネット）                      │
-│                                                               │
-│  ファイルが保存される場所 ＋ ウェブサイトとして公開される         │
-│                                                               │
-│  URL（test版）: https://kuchunomura.github.io/pos-app-test│
-│                                                               │
+│  ファイル保存 ＋ ウェブサイト公開（GitHub Pages）               │
 └──────────────────────────┬────────────────────────────────────┘
-                            │ ブラウザでURLを開く
-                            ▼
-              タブレット（iPad）のブラウザ
-              → レジアプリとして動く</code></pre>
-
-<h3 id="一言まとめ">一言まとめ</h3>
+                           │ ブラウザでURLを開く
+                           ▼
+              タブレット／PCのブラウザ → レジアプリとして動く</code></pre>
 
 <table>
 <thead><tr><th>道具</th><th>役割のひとこと</th></tr></thead>
 <tbody><tr><td>VS Code</td><td>ファイルを開く作業台</td></tr>
-<tr><td>Claude Code</td><td>改修してくれるAI（チャットで依頼する）</td></tr>
-<tr><td>ターミナル</td><td>GitHubへ送るコマンドを実行する場所（主にClaudeが使う）</td></tr>
-<tr><td>GitHub</td><td>ファイルを保存・公開する場所</td></tr></tbody>
+<tr><td>Claude Code</td><td>改修してくれるAI（チャットで依頼）</td></tr>
+<tr><td>ターミナル</td><td>GitHubへ送るコマンドの実行場所（主にClaudeが使う）</td></tr>
+<tr><td>GitHub</td><td>ファイルを保存・公開する場所（＝原本）</td></tr></tbody>
 </table>
 
 <hr>
 
 <h2 id="4-ファイルの場所と役割">4. ファイルの場所と役割</h2>
 
+<h3 id="置き場所重要">置き場所（重要）</h3>
+
+<p>このシステムのファイル一式は、<strong>作業する各パソコンの中（それぞれのCドライブ）の <code>C:\dev\pos-yoyaku</code> というフォルダー</strong>にあります。<br>インターネット上でも Google ドライブでもなく、<strong>パソコンに置いた普通のフォルダー</strong>です。<br>1台だけにある物ではなく、<strong>GitHub経由で各PCに同じものを同期</strong>しています（現在は<strong>自宅PC</strong>と、<strong>空中の村の大PC・小PC</strong>に入れてあります）。</p>
+
+<p><strong>開き方</strong></p>
+
+<ul><li>VS Code：メニュー「ファイル → フォルダーを開く」で <code>C:\dev\pos-yoyaku</code> を選ぶ。</li><li>Windowsのエクスプローラー（フォルダーの窓）：上のアドレス欄に <code>C:\dev\pos-yoyaku</code> を貼って Enter。</li><li>どのパソコンでも同じパス <code>C:\dev\pos-yoyaku</code> で開きます（中身はGitHubでそろえているため／→第12章）。</li></ul>
+
+<blockquote><p>### ⚠ 絶対に守ること：Google ドライブに入れない<br>このフォルダを <strong>Google ドライブ / OneDrive の同期フォルダの中に置かない</strong>こと。<br>2026/09 に Google ドライブ デスクトップが<strong>全リポジトリの履歴（.git）とメモリを破壊</strong>した事故があり、<code>C:\dev</code>（＝同期対象外の場所）へ移しました。<br>- Google ドライブ デスクトップは<strong>基本オフ</strong>のまま。起動したまま <code>C:\dev</code> を触らない。<br>- 2台のPCで共有したいときも <strong>Google ドライブは使わず、GitHub 経由</strong>にする（→第12章）。</p></blockquote>
+
 <h3 id="フォルダ構成">フォルダ構成</h3>
 
-<pre><code>pos yoyaku projects/
+<pre><code>C:\dev\pos-yoyaku\
+├── CLAUDE.md               ← プロジェクト全体のルール＋バージョン履歴
+├── SETUP_2PC.md            ← 別PC/2台運用のセットアップ手順
+├── _claude_memory\         ← Claudeのメモリ（過去の経緯・注意点の記録）
 │
-├── CLAUDE.md               ← プロジェクト全体のルール（バージョン管理ルール等）
-│
-├── pos reji/
-│   ├── pos main/           ← 【本番版】実際に使っているアプリ
+├── pos reji\
+│   ├── pos main\           ← 【本番版】実際に使っているレジ（説明書もこちらが原本）
 │   │   ├── index.html      ← レジアプリ本体（これ1つで全部入り）
 │   │   ├── gas_script.js   ← GASに貼り付けるプログラム
-│   │   ├── version.json    ← バージョン確認用（更新通知に使う）
-│   │   ├── POSレジ 取扱説明書.html / manual.md     ← 取扱説明書（スタッフ用 / 編集用）
-│   │   └── 引き継ぎ説明書.html / 引き継ぎ説明書.md  ← この説明書
-│   │
-│   ├── pos test/           ← 【テスト版】改修の練習・確認用（説明書の編集はこちらが正本）
-│   │   ├── index.html      ← テスト用レジアプリ
-│   │   ├── gas_script.js   ← テスト用GASプログラム
 │   │   ├── version.json    ← バージョン確認用
-│   │   ├── CLAUDE.md       ← Claudeへの技術仕様書（このアプリ用）
-│   │   ├── POSレジ 取扱説明書.html / manual.md     ← 取扱説明書（スタッフ用 / 編集用）
-│   │   └── 引き継ぎ説明書.html / 引き継ぎ説明書.md  ← この説明書
-│   │
-│   └── manual_ss_gas_script.js  ← 手動集計スプレッドシート用のGAS
+│   │   └── 各種説明書（.html / .md）
+│   ├── pos test\           ← 【予備版】本番不調時の代替（mainと同じSSに同期）
+│   │   └── （mainと同じ構成）
+│   └── manual_ss_gas_script.js  ← 手動集計スプレッドシート用のGAS（※GitHubには入れていない）
 │
-└── yoyaku/                 ← 予約システム（別アプリ・別管理）</code></pre>
+└── yoyaku\                 ← 予約システム（別アプリ・別管理）</code></pre>
 
-<blockquote><p>説明書（取扱説明書・引き継ぎ説明書）は <strong>pos test と pos main の両方</strong>に置いてあり、どちらのアプリURLからでも見られます。編集は <strong>pos test を正本</strong>とし、直したら pos main にもコピーします。</p></blockquote>
+<blockquote><p>説明書（取扱説明書・引き継ぎ説明書）は <strong>pos main と pos test の両方</strong>に置いてあり、どちらのアプリURLからでも見られます。編集は <strong>pos main を原本</strong>とし、直したら pos test にもコピーして両方を同じに保ちます。</p></blockquote>
 
 <h3 id="各ファイルの役割">各ファイルの役割</h3>
 
 <table>
-<thead><tr><th>ファイル</th><th>役割</th><th>編集頻度</th></tr></thead>
-<tbody><tr><td><code>index.html</code></td><td>レジアプリの画面・機能すべて</td><td>機能追加・デザイン変更のたびに</td></tr>
-<tr><td><code>gas_script.js</code></td><td>スプレッドシート書き込みロジック</td><td>列構成変更・集計変更のときのみ</td></tr>
-<tr><td><code>CLAUDE.md</code></td><td>Claudeへの技術的な説明書</td><td>仕様が変わったときに更新</td></tr></tbody>
+<thead><tr><th>ファイル</th><th>役割</th><th>GitHub管理</th></tr></thead>
+<tbody><tr><td><code>index.html</code></td><td>レジアプリの画面・機能すべて（HTML+CSS+JavaScript が1つに）</td><td>✅ あり</td></tr>
+<tr><td><code>gas_script.js</code></td><td>スプレッドシート書き込みロジック</td><td>✅ あり</td></tr>
+<tr><td><code>version.json</code></td><td>バージョン確認用（更新通知に使う）</td><td>✅ あり</td></tr>
+<tr><td><code>CLAUDE.md</code></td><td>Claudeへの技術仕様書＋バージョン履歴</td><td>❌ なし（第12章で別途同期）</td></tr>
+<tr><td><code>manual_ss_gas_script.js</code></td><td>手動集計SS用のGAS</td><td>❌ なし（本番はGoogle側にある）</td></tr>
+<tr><td><code>_claude_memory\</code></td><td>Claudeのメモリ</td><td>❌ なし（第12章で別途同期）</td></tr></tbody>
 </table>
-
-<h3 id="重要`indexhtml`-の中身について">重要：<code>index.html</code> の中身について</h3>
-
-<p>このファイル1つに <strong>HTML（画面の骨組み）・CSS（デザイン）・JavaScript（動作）</strong> の3種類がすべて入っています。</p>
-
-<pre><code>index.html の中身
-├── &lt;style&gt; ～ &lt;/style&gt;     デザイン（色・サイズ・レイアウト）
-├── &lt;body&gt; ～ &lt;/body&gt;       画面の骨組み（ボタン・タブなど）
-└── &lt;script&gt; ～ &lt;/script&gt;   動作（計算・データ保存・通信）</code></pre>
-
-<p>「ひとつの料理にすべての食材と調理法が書いてある大きなレシピ帳」のようなイメージです。</p>
 
 <hr>
 
 <h2 id="5-アプリのデータの流れ">5. アプリのデータの流れ</h2>
 
-<h3 id="データの保存場所は2か所ある">データの保存場所は2か所ある</h3>
+<h3 id="データの保存場所は2か所">データの保存場所は2か所</h3>
 
-<pre><code>【端末内】 localStorage（ローカルストレージ）
-  ↓ 端末のブラウザ内に保存される
-  ・商品リスト
-  ・カテゴリー設定
-  ・売上履歴
-  ・保留データ
-  ・GAS URL等の各種設定
-  ※ インターネット不要で動く
-  ※ ブラウザのデータを消すと消える！
+<pre><code>【端末内】 localStorage … そのブラウザの中に保存
+  ・商品リスト／カテゴリー設定／売上履歴／保留／各種設定
+  ※ インターネット不要で動く／ブラウザのデータを消すと消える！
 
-【Google】 Googleスプレッドシート
-  ↓ GASを通じてインターネット経由で保存
+【Google】 スプレッドシート … GAS経由でインターネットに保存
   ・売上データ（日付別シート）
-  ※ インターネット必要
   ※ ブラウザのデータを消しても残る</code></pre>
 
-<h3 id="決済したときのデータの流れ">決済したときのデータの流れ</h3>
+<h3 id="決済したときの流れ">決済したときの流れ</h3>
 
-<pre><code>1. お客様の商品をタップ → カートに追加（端末内）
-
-2. 「現金」「カード」「電子」ボタンをタップ
-
-3. 売上データが端末内のlocalStorageに保存される
-
-4. 同時に、インターネット経由でGASにデータを送信
-
-5. GASがスプレッドシートに新しい行を書き込む
-
-6. スプレッドシートの集計が自動更新される</code></pre>
+<pre><code>商品タップ → カート（端末内） → 支払ボタン
+  → localStorage に保存 ＋ 同時にGASへ送信 → スプレッドシートに1行追加</code></pre>
 
 <h3 id="複数台で使うとき">複数台で使うとき</h3>
 
-<pre><code>iPad（レジ1）  →  端末内データ A  →┐
-                                    ├→ GAS → スプレッドシート（全台合算）
-iPad（レジ2）  →  端末内データ B  →┘
-
-※ 端末どうしは直接つながっていない
-※ スプレッドシートが全員の集計場所</code></pre>
+<pre><code>レジ1 →┐
+        ├→ GAS → スプレッドシート（全台合算）
+レジ2 →┘
+※ 端末どうしは直接つながらない。スプレッドシートが全員の集計場所。</code></pre>
 
 <hr>
 
 <h2 id="6-改修の基本手順">6. 改修の基本手順</h2>
 
-<h3 id="全体の流れ必ずこの順番で">全体の流れ（必ずこの順番で）</h3>
+<pre><code>Step 1: Claude Code に依頼「レジに○○を追加して」（どのアプリか＝レジ／予約を伝える）
+Step 2: Claude がファイルを書き換える（レジは main と test の両方に同じ変更／まだPC内だけ）
+Step 3: 「GitHubにアップロードして」と頼む（デプロイ＝main・test両方）
+Step 4: 数分待って本番URLを再読み込みし、反映を確認</code></pre>
 
-<pre><code>Step 1: Claude Code にチャットで依頼する
-         「test版のindex.htmlに○○を追加してください」
+<blockquote><p><strong>2台のPCで作業する場合</strong>は、作業を始める前に「最新を取り込んで（git pull）」と頼むこと。もう片方のPCでの変更を取り込んでから作業する（→第12章）。</p></blockquote>
 
-         ↓
+<h3 id="claude-code-への良い頼み方">Claude Code への良い頼み方</h3>
 
-Step 2: Claude Code がファイルを自動で書き換える
-         （パソコン内のファイルが変わるだけ。まだネットには反映されない）
+<ul><li><strong>どのアプリか</strong>（レジ／予約）</li><li><strong>何を</strong>（追加・削除・変更・デザイン）</li><li><strong>具体的に</strong>（商品名・金額・色など）</li></ul>
 
-         ↓
-
-Step 3: ブラウザでtest版URLを開いて確認する
-         https://kuchunomura.github.io/pos-app-test
-         ※ この時点ではまだ古いバージョンが表示される可能性あり
-         ※ まずGitHubにアップロードしてから確認する
-
-         ↓
-
-Step 4: GitHubにアップロード（デプロイ）する
-         Claude Codeに「GitHubにアップロードしてください」と頼む
-
-         ↓
-
-Step 5: 数分待ってURLを再読み込みして確認
-         変更が反映されているか確認する
-
-         ↓
-
-Step 6: 問題なければmain版にも同じ変更を適用
-         「main版のindex.htmlにも同じ変更をしてください」
-         → 再度GitHubにアップロード</code></pre>
-
-<h3 id="claude-code-への頼み方コツ">Claude Code への頼み方（コツ）</h3>
-
-<h4 id="良い頼み方の例">良い頼み方の例</h4>
-
-<pre><code>「test版のindex.htmlに以下の変更をしてください。
- カテゴリーに『テイクアウト』を追加して、
- 商品は『コーヒー（400円）』『紅茶（350円）』
- の2つを登録してください。
- カテゴリーの色は背景が薄い青、枠が青、文字が紺にしてください。」</code></pre>
-
-<h4 id="悪い頼み方の例">悪い頼み方の例</h4>
-
-<pre><code>「コーヒーを追加して」
-  → どのファイル？何円？どのカテゴリー？情報が足りない
-
-「全部直して」
-  → 何を直すのか分からない</code></pre>
-
-<h4 id="必ず伝えるべき情報">必ず伝えるべき情報</h4>
-
-<ul><li><strong>どのファイルを変更するか</strong>（test版 or main版）</li><li><strong>何を変えたいか</strong>（追加・削除・変更・デザイン変更）</li><li><strong>具体的な内容</strong>（商品名・金額・色など）</li></ul>
+<p>悪い例：「コーヒー追加して」（ファイル？金額？カテゴリ？不足）／「全部直して」（内容不明）</p>
 
 <hr>
 
-<h2 id="7-test版とmain版の使い分け">7. 「test版」と「main版」の使い分け</h2>
+<h2 id="7-mainとtest予備の関係">7. 「main」と「test（予備）」の関係</h2>
 
-<h3 id="なぜ2つあるのか">なぜ2つあるのか</h3>
+<p>レジには <strong>main（本番）</strong> と <strong>test（予備）</strong> の2つがあります。</p>
 
-<p>改修は必ず「失敗するリスク」があります。もし本番（main版）で直接作業して壊れたら、営業中にレジが使えなくなります。それを防ぐために「まずtest版で試す」という手順があります。</p>
-
-<pre><code>test版 = 練習場・実験場
-main版 = 本番・実際に使う場所</code></pre>
-
-<h3 id="test版pos-testindexhtml">test版（pos test/index.html）</h3>
-
-<ul><li><strong>URL</strong>: <code>https://kuchunomura.github.io/pos-app-test</code></li><li>改修のお試し・動作確認用</li><li>ここで壊れても本番には影響しない</li><li><strong>改修はまずtest版で行う</strong></li></ul>
-
-<h3 id="main版pos-mainindexhtml">main版（pos main/index.html）</h3>
-
-<ul><li><strong>URL</strong>: <code>https://kuchunomura.github.io/pos-main</code></li><li>実際のレジとして使用中</li><li>ここを壊すと営業に影響が出る</li><li><strong>test版で確認後にmain版に反映する</strong></li></ul>
-
-<h3 id="test版-main版への反映手順">test版 → main版への反映手順</h3>
-
-<p>test版で確認できたら、Claude Codeにこう頼む：</p>
-
-<pre><code>「test版のindex.htmlに加えた○○の変更を、
- main版のindex.htmlにも同じように適用してください。」</code></pre>
+<ul><li><strong>main</strong> <code>…/pos-main</code> … 実際に使う<strong>本番レジ</strong>。<strong>改修はこちらが基準</strong>。</li><li><strong>test</strong> <code>…/pos-app-test</code> … <strong>普段は使わない予備レジ</strong>（本番が不調なときの代わりに使える）。</li><li>データは <strong>main と同じスプレッドシート</strong>に同期する＝test で会計しても売上は本番と同じ場所にたまる。</li><li>そのため <strong>main を改修したら test にも同じ変更を入れて、中身（バージョン）を揃えておく</strong>（Claude が両方へ同時に適用します）。</li><li>※以前は「まず test で試してから main へ」という使い方でしたが、<strong>今は test ＝予備</strong>という位置づけに変わりました。</li></ul>
 
 <hr>
 
 <h2 id="8-デプロイとは何か">8. デプロイとは何か</h2>
 
-<h3 id="デプロイをかんたんに説明すると">「デプロイ」をかんたんに説明すると</h3>
+<blockquote><p><strong>PC内で編集したファイルを、インターネット（GitHub）に公開すること。</strong></p></blockquote>
 
-<blockquote><p><strong>パソコン内で編集したファイルを、インターネット上に公開すること</strong></p></blockquote>
+<p>編集しただけではPCの中にしかなく、タブレットには反映されません。GitHubにアップロードして初めて反映されます。</p>
 
-<pre><code>【パソコンの中】                    【インターネット上】
-  pos main/                          GitHub Pages
-    index.html   ─── デプロイ ───→    URL（タブレットがアクセスする場所）</code></pre>
-
-<h3 id="なぜデプロイが必要か">なぜデプロイが必要か</h3>
-
-<p>ファイルを編集しただけでは、それはパソコンの中にしかありません。タブレットからURLを開いてもまだ古いバージョンが表示されます。GitHubにアップロード（＝デプロイ）して初めてタブレットに反映されます。</p>
-
-<pre><code>ファイルを編集 → パソコンの中だけ変わる
-デプロイする  → インターネット上が更新される → タブレットに反映</code></pre>
-
-<h3 id="デプロイの仕組みgit">デプロイの仕組み（Git）</h3>
-
-<p>GitHubへのアップロードには「Git（ギット）」というシステムを使います。難しく考える必要はありません。Claude Codeが全部やってくれます。</p>
-
-<pre><code>Git の主な操作:
-  git add     → 「このファイルをアップロード対象にする」
-  git commit  → 「変更内容に名前をつけて記録する」
-  git push    → 「GitHubにアップロードする」
-
-※ この3つをまとめて「デプロイ」と呼んでいる
-※ Claude Code に頼めばすべて自動でやってくれる</code></pre>
+<pre><code>git add    … このファイルをアップロード対象にする
+git commit … 変更に名前をつけて記録する
+git push   … GitHubにアップロードする
+※ この3つをまとめて「デプロイ」。Claude Code が全部やってくれる。</code></pre>
 
 <h3 id="バージョン番号のルール重要">バージョン番号のルール（重要）</h3>
 
-<p><code>index.html</code> を変更したら、画面に出る<strong>バージョン番号を必ず1つ増やす</strong>決まりになっています（どんなに小さな修正でも）。これは「今タブレットに表示されているのが最新版かどうか」を見分けるための番号です。</p>
+<p><code>index.html</code> を変更したら、<strong>バージョン番号を必ず1つ増やす</strong>決まり（どんな小さな修正でも）。これで「今タブレットに出ているのが最新か」を見分けられる。</p>
 
-<pre><code>変更のたびに、セットで更新する3つ:
-  ・APP_VERSION      → バージョン番号を +1（例: 329 → 330）
-  ・APP_BUILD_DATE   → 更新した日時に書き換える
-  ・CLAUDE.md の「現在のバージョン」 → 同じ番号・日付に揃える</code></pre>
+<pre><code>変更のたびにセットで更新する3つ（Claudeが自動でやる）:
+  ・APP_VERSION     → +1
+  ・APP_BUILD_DATE  → 更新日時に
+  ・CLAUDE.md の「現在のバージョン」 → 同じ番号・日付に</code></pre>
 
-<p><strong>これらは Claude Code に頼めば自動でやってくれます</strong>（「バージョンを上げてデプロイして」と頼むだけ）。番号を上げ忘れると、タブレット側が「新しい版が出た」と気づけず、古い画面のままになってしまいます。</p>
+<p>番号を上げ忘れると、タブレットが「新版が出た」と気づけず古いままになる。</p>
 
-<h3 id="デプロイの頼み方">デプロイの頼み方</h3>
-
-<pre><code>Claude Codeへ:
-「test版をGitHubにアップロードしてください。
- コメント（コミットメッセージ）は『テイクアウトカテゴリーを追加』にしてください。」</code></pre>
-
-<p>Claude Codeがターミナルで以下を自動実行します（確認のポップアップが出たらOKを押す）：</p>
-
-<pre><code>git add "pos reji/pos test/index.html"
-git commit -m "テイクアウトカテゴリーを追加"
-git push origin main</code></pre>
-
-<h3 id="デプロイ後の確認">デプロイ後の確認</h3>
-
-<ol><li>数分待つ（GitHub Pagesの更新に時間がかかる）</li><li>ブラウザでURLを開く</li><li>設定タブのバージョン番号が新しくなっているか確認</li></ol>
-
-<p><strong>古いバージョンが表示される場合</strong> → キャッシュが残っている可能性がある。取扱説明書の「アプリ更新・キャッシュ問題」参照。</p>
+<blockquote><p><strong>デプロイ後に反映が遅くても、追加のアップロードを連打しないこと。</strong> 進行中の公開処理を失敗させる。1回push したら数分待つ。</p></blockquote>
 
 <hr>
 
-<h2 id="9-gasgoogle-apps-scriptの改修">9. GAS（Google Apps Script）の改修</h2>
+<h2 id="9-gasgoogle-apps-scriptの改修-スプレッドシートの内容を改修する時にコードを張り替えることが多い">9. GAS（Google Apps Script）の改修　スプレッドシートの内容を改修する時にコードを張り替えることが多い。</h2>
+
+<p>この改修が慣れるまでは一番ややこしい。Claudeに聞きながらやれば、たいていの場合は出来る。</p>
 
 <h3 id="gasとは">GASとは</h3>
 
-<pre><code>GAS = Google Apps Script
+<p>Googleのサーバーで動く拡張機能のプログラム。レジから送られた売上をスプレッドシートに書き込む「翻訳係」。</p>
 
-Googleのサーバーで動くプログラム。
-レジから送られてきた売上データをスプレッドシートに書き込む「翻訳係」。</code></pre>
+<h3 id="変更が必要なケース">変更が必要なケース</h3>
 
-<h3 id="gasを変更する必要があるケース">GASを変更する必要があるケース</h3>
+<ul><li>スプレッドシートの列を追加・変更／集計の計算を変える／新しいデータ項目を記録する</li></ul>
 
-<ul><li>スプレッドシートの列を追加・変更したい</li><li>集計の計算方法を変えたい</li><li>新しいデータ項目を記録したい</li></ul>
+<h3 id="改修手順">改修手順</h3>
 
-<h3 id="gasの改修手順">GASの改修手順</h3>
+<ol><li><code>gas_script.js</code> を Claude Code で編集（PC内のファイル）</li><li>ブラウザで <strong>script.google.com</strong>（Apps Script）を開く</li><li>対象プロジェクトのコードを全選択して削除 → 編集した内容を貼り付け → 保存（Ctrl+S）</li><li><strong>「デプロイ」→「デプロイを管理」→ 鉛筆 → 「新しいバージョン」→ デプロイ</strong></li></ol>
 
-<ol><li><strong><code>gas_script.js</code></strong> を Claude Code で編集する（パソコン内のファイル）</li><li><strong>Google Apps Script のサイト</strong>（script.google.com）をブラウザで開く</li><li>対象プロジェクトのコードをすべて選択して削除</li><li>編集した <code>gas_script.js</code> の内容をコピーして貼り付ける</li><li>保存する（Ctrl+S）</li><li>「デプロイ」→「デプロイを管理」→「新しいデプロイ」</li></ol>
+<blockquote><p><strong>保存だけでは反映されません。</strong> ウェブアプリ（レジが通信する側）のGASは、必ず<strong>「新しいバージョン」で再デプロイ</strong>して初めて反映される。どの <code>gas_script.js</code> を貼るかは Claude がフルパスで示すので、その通りに。</p></blockquote>
 
-<p><strong>注意</strong>: GASを変更すると <strong>スプレッドシートへの書き込みが止まる</strong> ことがあります。<br>改修時は必ず設定タブの「接続テスト」で確認してください。</p>
+<blockquote><p><strong>GASのURL（住所）は再デプロイしても変わりません。</strong> だからレジ側の設定を変える必要はない（月初のSS切替も、URLは不変＝第10章）。</p></blockquote>
 
-<h3 id="gasとindexhtmlの連携">GASとindex.htmlの連携</h3>
+<h3 id="初回だけ出る警告安全進めてok">初回だけ出る警告（安全・進めてOK）</h3>
 
-<pre><code>index.html（レジ）  →  GAS WebアプリURL  →  gas_script.js  →  スプレッドシート
+<p>GAS（onOpen・集計・月切替など）を<strong>初めて実行</strong>して認可を求められると、こう出ます：</p>
 
-GAS WebアプリURL = GASの「住所」
-設定タブ → スプレッドシート連携 → GAS WebアプリURL に入力されている</code></pre>
+<blockquote><p><strong>このアプリは Google で確認されていません</strong><br>アプリが、Googleアカウントのプライベートな情報へのアクセスを求めています。デベロッパー（staff.kuchunomura@gmail.com）と Google によって確認されるまで…</p></blockquote>
 
-<hr>
+<p><strong>進め方</strong>：</p>
 
-<h2 id="10-よくある改修パターンと頼み方の例">10. よくある改修パターンと頼み方の例</h2>
+<ol><li>左下の <strong>「詳細」</strong>（または「詳細設定」）をクリック</li><li>一番下の <strong>「（プロジェクト名）（安全ではないページ）に移動」</strong> をクリック</li><li>内容を確認して <strong>「許可」</strong> をクリック</li></ol>
 
-<h3 id="パターン1新しい商品を追加したい">パターン1：新しい商品を追加したい</h3>
+<p>→ これは<strong>自分たち（staff.kuchunomura@gmail.com）が作ったスクリプトを自分で使う</strong>ときの通常表示。外部アプリではないので許可して問題なし。以降そのスクリプトでは出ない（別の新しいSS＝別スクリプトでは再度出る）。</p>
 
-<pre><code>「test版のindex.htmlに新しい商品を追加してください。
- カテゴリー：受付飲食
- 商品名：オレンジジュース
- 金額：300円
- 在庫表示：なし」</code></pre>
+<h3 id="indexhtml-と-gas-の連携">index.html と GAS の連携</h3>
 
-<h3 id="パターン2新しいカテゴリーを追加したい">パターン2：新しいカテゴリーを追加したい</h3>
-
-<pre><code>「test版のindex.htmlに新しいカテゴリーを追加してください。
- カテゴリー名：テイクアウト
- 背景色：薄い黄色
- 枠色：オレンジ
- 文字色：濃い茶色
- そのカテゴリーに商品『焼き菓子（500円）』を登録してください。」</code></pre>
-
-<h3 id="パターン3商品の金額を変更したい">パターン3：商品の金額を変更したい</h3>
-
-<pre><code>「main版のindex.htmlで、
- カテゴリー『受付飲食』の商品『コーヒー』の金額を
- 400円から450円に変更してください。」</code></pre>
-
-<h3 id="パターン4画面のデザインを変えたい">パターン4：画面のデザインを変えたい</h3>
-
-<pre><code>「test版のindex.htmlで、
- 支払いボタン（現金・カード・電子）をもう少し大きくしてください。
- 見た目でわかりやすくなれば方法はお任せします。」</code></pre>
-
-<h3 id="パターン5デプロイを頼む">パターン5：デプロイを頼む</h3>
-
-<pre><code>「test版の変更をGitHubにアップロードしてください。
- コメントは『オレンジジュースを追加』にしてください。」</code></pre>
-
-<h3 id="パターン6main版への反映">パターン6：main版への反映</h3>
-
-<pre><code>「test版のindex.htmlに加えた変更を、
- main版のindex.htmlにも同じように適用してから、
- GitHubにアップロードしてください。」</code></pre>
+<pre><code>index.html（レジ） → GAS WebアプリURL → gas_script.js → スプレッドシート
+GAS WebアプリURL は、設定タブ →スプレッドシート連携 に入っている。</code></pre>
 
 <hr>
 
-<h2 id="11-困ったときのチェックリスト">11. 困ったときのチェックリスト</h2>
+<h2 id="10-毎月やること定期メンテナンス">10. 毎月やること（定期メンテナンス）</h2>
 
-<h3 id="アプリが動かないエラーが出る">アプリが動かない・エラーが出る</h3>
+<p>毎月はじめに、売上の記録先を「その月のスプレッドシート」に切り替えます。<strong>POS（本番売上）</strong>と<strong>手動集計（報告書用）</strong>の2つがあります。</p>
 
-<ul><li>[ ] Claude Codeに「エラーが出ています」と伝える（何のエラーか教えれば解決してくれる）</li><li>[ ] Gitの履歴から戻せる → 「1つ前のバージョンに戻してください」と頼む</li></ul>
+<h3 id="a-pos-main-を新しい月のssに切り替える">A. POS main を新しい月のSSに切り替える</h3>
 
-<h3 id="スプレッドシートに売上が書き込まれない">スプレッドシートに売上が書き込まれない</h3>
+<p><strong>その月の最初の売上を打つ前に</strong>行う（前月分が前月SSに残るように）。</p>
 
-<ul><li>[ ] 設定タブ → スプレッドシート連携 → 「接続テスト」でOKが出るか確認</li><li>[ ] GAS WebアプリURLが正しく設定されているか確認</li><li>[ ] 売上タブ → 「同期」→「今日分」で手動送信を試みる</li></ul>
+<ol><li>新しい月の空スプレッドシートを用意する</li></ol>
 
-<h3 id="改修後にアプリが古いままに見える">改修後にアプリが古いままに見える</h3>
+<ul><li>Claude に「来月のPOS mainのSSを作って」と頼むとGASの <code>createNextMonthSS()</code> を実行して作れる（空でOK＝売上受信時に日別シートが自動生成される）。会社アカウントで作ること。</li><li>タイトルの慣習は <strong>「○月POS main」</strong>（test系は「○月POS test」）。</li></ul>
 
-<ul><li>[ ] GitHubにアップロード（デプロイ）したか確認</li><li>[ ] ブラウザのキャッシュをクリアしたか確認（取扱説明書 12章参照）</li><li>[ ] 設定タブのバージョン番号が新しくなったか確認</li></ul>
+<ol><li><strong>pos main のレジアプリ</strong>を開く → <strong>「📂 月初シート切替」</strong> を押す</li><li>「📊 同期先シート（GAS）」欄に新SSのURL（IDだけでも可）を貼る → <strong>「切り替える」</strong> → 「同期先 ✅」で完了</li><li>「📋 手動集計シート」欄は空欄でOK</li></ol>
 
-<h3 id="誤った改修でデータが消えた壊れた">誤った改修でデータが消えた・壊れた</h3>
+<p>ポイント：</p>
 
-<ul><li>[ ] Gitの履歴から古いファイルを復元できる（「1つ前に戻してください」と頼む）</li><li>[ ] localStorage内のデータが消えた場合 → エクスポートしたJSONファイルからインポートで復元</li><li>[ ] スプレッドシートのデータは消えない（GASでのみ変更される）</li></ul>
+<ul><li><strong>pos test は何もしなくてよい</strong>（同じSSへ受け身で同期する予備レジ）。</li><li><strong>GASのURL・再デプロイは不要</strong>。切り替わるのは書き込み先SSだけ。</li><li>切替は必ず<strong>その月最初の売上の前</strong>に。</li></ul>
+
+<h3 id="b-手動集計ss報告書用の新しい月を作る">B. 手動集計SS（報告書用）の新しい月を作る</h3>
+
+<p>このスプレッドシートはトラブル時に売上データを守るため、あえてレジから同期せず手動で1日ごとにmainからコピペしている。<br>面倒ならmainに集計機能をつけて完結させるようにClaudeCodeに行って改修可能。<br>手動集計はPOS同期SSとは<strong>別物</strong>で、<strong>毎月まるごと別ファイル</strong>にします。コピーの自動化はGoogle仕様でできない（ボタンではコードが複製されない）ので、<strong>手動コピーが必須</strong>。</p>
+
+<ol><li>今使っている手動集計SS（前月分）をブラウザで開く</li><li><strong>「ファイル」→「コピーを作成」</strong>（←コード付きで複製できる唯一の方法）</li><li>できたコピーを開く</li><li>メニュー <strong>「📅 集計」→「🔄 新しい月に切り替え」</strong> → 新しい月を選択</li></ol>
+
+<ul><li>→ 日別タブが新月に作り替わり、ファイル名も変わる（最新日付が左）</li></ul>
+
+<ol><li>元ファイルは<strong>そのまま残す</strong>＝その月のアーカイブ（後からでも再集計できる）</li></ol>
+
+<ul><li>初回の「🔄切り替え」実行で第9章の「確認されていません」警告が出る → 同じ手順で許可。</li><li>迷ったらSS内の <strong>「📖 使い方・月替わり手順」シート</strong>に手順が常設されている。</li><li>日別タブが古い順になったら「↔️ 日別タブを最新順に並べ替え」。</li></ul>
 
 <hr>
 
-<h2 id="12-重要な用語集">12. 重要な用語集</h2>
+<h2 id="11-アカウントと引き継ぎ">11. アカウントと引き継ぎ</h2>
+
+<p>このシステムは<strong>会社アカウントで動いています</strong>。別のスタッフへ引き継ぐときは、会社アカウントのログイン情報を渡せば全部できます。</p>
+
+<h3 id="使っているアカウント">使っているアカウント</h3>
+
+<table>
+<thead><tr><th>用途</th><th>アカウント</th><th>ログイン</th><th>持ち主</th></tr></thead>
+<tbody><tr><td>スプレッドシート・GAS・ドライブ（Google）</td><td>—</td><td><strong>staff.kuchunomura@gmail.com</strong></td><td>職場</td></tr>
+<tr><td>ファイル保存・公開（GitHub）</td><td><strong>kuchunomura</strong></td><td><strong>staff.kuchunomura@gmail.com</strong></td><td>職場</td></tr>
+<tr><td>AIでの改修（Claude Code）</td><td><strong>Claude</strong></td><td><strong>info@kuuchuu-no-mura.com</strong></td><td>職場</td></tr></tbody>
+</table>
+
+<blockquote><p>※Claude（AI改修）だけはログインが別のメール（<code>info@kuuchuu-no-mura.com</code>）です。Google・GitHub は <code>staff.kuchunomura@gmail.com</code>。<br>※<strong>パスワードはこの説明書には載せません</strong>（この説明書はWebに公開されるため）。各アカウントのパスワードと2段階認証の予備コードは、会社のパスワード管理／金庫に保管します（→<code>バックアップとアカウント保全.md</code>）。</p></blockquote>
+
+<blockquote><p>スプレッドシート・GAS・ドライブはすべて<strong>職場のGoogle（staff.kuchunomura@gmail.com）</strong>の中にあります。GitHubのリポジトリ（pos-main / pos-app-test / yoyaku）もすべて<strong>職場のGitHub（kuchunomura）所有</strong>で、<strong>そのログインも <code>staff.kuchunomura@gmail.com</code>（職場アカウント）</strong>です。つまり <strong>Google も GitHub も同じ職場アカウント1つ</strong>で入れます。</p></blockquote>
+
+<h3 id="github-への書き込みpushについて">GitHub への書き込み（push）について</h3>
+
+<ul><li><strong>スタッフが引き継ぐ場合は、次のどちらかでOK</strong>（どちらでも push できます）：</li></ul>
+
+<ol><li><strong>会社アカウント kuchunomura でログインして push する</strong>（推奨。会社ログイン1つで完結）</li><li>後任の個人GitHubアカウントを各リポジトリの <strong>コラボレーター（Write）に追加 → 本人が招待を承認</strong> する</li></ol>
+
+<ul><li>※会社 kuchunomura 所有リポに新しくコラボレーターを足すと、承認するまで push が <code>Permission denied</code>(403) になる。招待メール/通知から<strong>本人が承認</strong>すれば通る。</li></ul>
+
+<h3 id="引き継ぐ人に渡すものチェックリスト">引き継ぐ人に渡すもの（チェックリスト）</h3>
+
+<ul><li>[ ] 会社 Google（staff.kuchunomura@gmail.com）のログイン</li><li>[ ] 会社 GitHub（kuchunomura／ログインは staff.kuchunomura@gmail.com）のログイン</li><li>[ ] Claude（AI改修／ログインは info@kuuchuu-no-mura.com）のログイン</li><li>[ ] この説明書（引き継ぎ説明書）と、取扱説明書</li><li>[ ] <code>C:\dev\pos-yoyaku</code>（第12章の手順でGitHubから作り直せる）</li><li>[ ] 3つのアプリURL（第1章の表）と、各GASのWebアプリURL（レジの設定タブに入っている）</li><li>[ ] <strong>バックアップとアカウント保全の手順</strong>（<code>バックアップとアカウント保全.md</code>／<code>SETUP_2PC.md</code>。アカウントの鍵の保管・月次データスナップショット・PC復旧手順）</li></ul>
+
+<hr>
+
+<h2 id="12-別のpcで作業する環境を作り直す">12. 別のPCで作業する・環境を作り直す</h2>
+
+<p>別のPC（職場PCなど）で作業したいとき、またはPCが壊れて作り直すときの手順。<strong>Google ドライブは使わず、GitHub から取り寄せます。</strong></p>
+
+<p>詳しい手順は <strong><code>C:\dev\pos-yoyaku\SETUP_2PC.md</code></strong> にあります。要点だけ：</p>
+
+<h3 id="仕組みgithubを“真ん中”にして同期する">仕組み：GitHubを“真ん中”にして同期する</h3>
+
+<p>ファイルの<strong>原本は GitHub</strong>。各PCはその作業コピーを持ち、<strong>GitHub経由で中身をそろえます</strong>。<br>自動では揃いません。<strong>上げる(push)／降ろす(pull)</strong> で行き来させます。</p>
+
+<pre><code>           どれかのPCで編集
+               │  push（上げる）
+               ▼
+       ┌───────────────────┐
+       │      GitHub        │  ← 真ん中・原本
+       └───────────────────┘
+               │  pull（降ろす）
+               ▼
+     ほかのPC（自宅／空中の村 大・小）で最新になる</code></pre>
+
+<ul><li><strong>push しただけでは、他のPCには自動で届きません。</strong> 他のPCが <strong>pull</strong> して初めて最新になります。</li><li>鉄則：<strong>作業の前に pull、作業の後に push</strong>。これを守れば、どのPCで編集しても全PCが同じ状態に揃います。</li><li><strong>この pull / push は Claude Code がやります。</strong>「最新にして」（pull）／「上げといて」（push）と頼むだけ。改修を頼めば最後の push まで自動でやります。コマンドを覚える必要はありません。</li></ul>
+
+<h3 id="初回だけ新しいpcでブラウザでclaudeに聞きながらやればok">初回だけ（新しいPCで）ブラウザでClaudeに聞きながらやればOK</h3>
+
+<ol><li>Git・Node.js・VS Code・Claude Code 拡張 を入れる</li><li>GitHubにログイン（会社 kuchunomura、または承認済みの個人アカウント）</li><li>3つのアプリを <strong>GitHub から clone</strong>（フォルダ名を厳密に合わせる）：</li></ol>
+
+<p>   ```<br>   C:\dev\pos-yoyaku\pos reji\pos main   ← kuchunomura/pos-main<br>   C:\dev\pos-yoyaku\pos reji\pos test   ← kuchunomura/pos-app-test<br>   C:\dev\pos-yoyaku\yoyaku              ← kuchunomura/yoyaku<br>   ```<br>   → これだけで、そのPCでも編集・push・自動デプロイができる。</p>
+
+<ol><li>CLAUDE.md・手動集計GAS・メモリも揃えたい場合は、SETUP_2PC.md の「第4のリポ（meta）」手順に従う。</li></ol>
+
+<h3 id="毎回両pc共通-これはclaudecodeの仕事">毎回（両Pc共通） ←これはClaudeCodeの仕事。</h3>
+
+<ul><li><strong>作業前に「git pull」で最新を取り込む</strong>／<strong>作業後に push して帰る</strong>（押し忘れると、もう片方のPCに最新が来ない）。</li><li><strong>どちらのPCも同じパス <code>C:\dev\pos-yoyaku</code> で開く</strong>。</li></ul>
+
+<blockquote><p>困ったら GitHub が原本。ローカルがおかしくなったら、壊れたフォルダを消して clone し直すのが最速。</p></blockquote>
+
+<hr>
+
+<h2 id="13-予約アプリyoyakuの構造改修トラブル">13. 予約アプリ（yoyaku）の構造・改修・トラブル</h2>
+
+<p>POSレジとは別アプリの<strong>予約管理アプリ</strong>です。<br>考え方（Claude Codeで改修→GitHubにデプロイ→URLで使う）はレジと同じですが、いくつか違いがあります。</p>
+
+<h3 id="13-1-予約アプリとは全体像">13-1. 予約アプリとは（全体像）</h3>
+
+<ul><li><strong>URL</strong>：<code>https://kuchunomura.github.io/yoyaku</code>（本番1本。<strong>レジのような test版/main版の分割はありません</strong>）</li><li><strong>画面のタブ</strong>：<strong>一覧</strong>（予約リスト）／<strong>カレンダー</strong>（予約メモ付き月表示）／<strong>追加</strong>（手入力で予約を足す）／<strong>設定</strong></li><li>データの出どころは<strong>WordPressの予約フォーム。</strong>そこからCSVを書き出してアプリに取り込みます。</li></ul>
+
+<h3 id="13-2-データの流れレジと違う所">13-2. データの流れ（レジと違う所）</h3>
+
+<pre><code>① お客様がホームページの予約フォーム（WordPress）で予約
+② 管理画面から予約一覧の CSV をダウンロード
+③ 予約アプリで「📥 取込orドラッグ」→ CSVを読み込む（端末内に反映）
+④ 端末内の予約は GAS 経由で「予約スプレッドシート（yoyaku SS）」に同期
+⑤ 複数端末は、スプレッドシートを介してお互いの変更を同期（3方向マージ）
+→ここはトラブりやすいので常に同期内容が正しいかを確認しておく。かなり直したが完璧ではない。</code></pre>
+
+<ul><li><strong>CSV取込のクセ</strong>：WordPressのCSVの日時は世界時刻(UTC)で出るので、日帰りの開始時刻はアプリ側で+9時間して日本時間に直しています。</li><li><strong>複数端末の同期</strong>：2台以上で同時に使っても、片方の編集がもう片方に消されないよう「<strong>3方向マージ</strong>（元の状態・自分の変更・相手の変更をつき合わせる）」で安全に合流します。表示中は10秒ごと＋画面復帰/タッチで即同期。</li></ul>
+
+<h3 id="13-3-ファイルの場所">13-3. ファイルの場所</h3>
+
+<pre><code>C:\dev\pos-yoyaku\yoyaku\
+├── index.html        ← 予約アプリ本体（これ1つで全部入り）
+├── gas_script.js     ← 予約SS側のGAS（同期の受け口）
+└── CLAUDE.md         ← 予約アプリ用の技術メモ</code></pre>
+
+<ul><li>GitHub リポジトリ：<strong>kuchunomura/yoyaku</strong>。</li><li>バージョン番号は <code>APP_VERSION</code>（index.html内）<strong>直読み</strong>で、レジのような <code>version.json</code> はありません（番号を上げれば各端末が自動更新に気づく）。</li></ul>
+
+<h3 id="13-4-改修の注意レジとの違い">13-4. 改修の注意（レジとの違い）</h3>
+
+<ul><li><strong>test版が無い＝1本勝負</strong>。壊すと本番に直で響くので、<strong>変更は小さく・確認しながら</strong>。心配なら「まず一部だけ」「動作確認してから次」とClaudeに頼む。</li><li>改修の頼み方・デプロイ（GitHubにアップロード）・バージョン番号を上げる決まりは<strong>レジと同じ</strong>。</li><li><strong>予約SS側のGAS（<code>yoyaku\gas_script.js</code>）を変えたら、レジと同様に「新しいバージョンで再デプロイ」が必要</strong>（保存だけでは反映されない）。同期の挙動を変えた時は特に注意。</li></ul>
+
+<h3 id="13-5-予約アプリでよくあるトラブル">13-5. 予約アプリでよくあるトラブル</h3>
+
+<ul><li><strong>他の端末に反映が遅い／変更が元に戻る</strong>：同期の仕組み上まれに起きる既知の課題。表示している端末は同期し続ける作りだが、裏に回した端末は止まる。画面を表に出す（タッチする）と即同期する。繰り返す時はClaudeに「同期が戻る」と伝える。</li><li><strong>取り込んだ予約が消えた／取りこぼす</strong>：取込直後に別端末の同期が割り込むと起きることがあった（対策済み）。取込直後は少し待って、一覧に出そろったか確認。</li><li><strong>チェックアウト等のチェックが消える</strong>：複数端末で別々の項目を編集するとぶつかることがあった（項目単位のマージで対策済み）。消えたらClaudeに状況を伝える。</li><li><strong>キャンセルした予約が復活する</strong>：CSVに無い予約の扱い・同期の合流で起きうる。取込の取り消しで戻せる。</li><li>いずれも<strong>データの最終保管は予約スプレッドシート</strong>。おかしくなったらまずSSの中身と版履歴を確認。</li></ul>
+
+<p>→基本Claudecodeに聞く。</p>
+
+<h3 id="13-6-もっと詳しい技術メモ">13-6. もっと詳しい技術メモ</h3>
+
+<p>予約アプリの細かい仕様・過去の不具合と対策は、**メモリ（<code>_claude_memory</code>）の <code>yoyaku-*</code> 各ファイル**に記録してあります（同期・CSV取込・レンタルメモ・年間パス等）。改修時はClaudeがそこを見て判断します。</p>
+
+<hr>
+
+<h2 id="14-よくある改修パターンと頼み方の例">14. よくある改修パターンと頼み方の例</h2>
+
+<blockquote><p>レジは main と test（予備）があるので、「レジに〜」と頼めば Claude が<strong>両方へ同じ変更</strong>を入れます（＝改修すれば予備側にも反映）。</p></blockquote>
+
+<p><strong>商品を追加</strong></p>
+
+<pre><code>「レジに商品を追加して。
+ カテゴリー：受付飲食／商品名：オレンジジュース／金額：300円／在庫表示：なし」</code></pre>
+
+<p><strong>カテゴリーを追加</strong></p>
+
+<pre><code>「レジにカテゴリー『テイクアウト』を追加して。
+ 背景：薄い黄色／枠：オレンジ／文字：濃い茶色。商品『焼き菓子（500円）』も登録して」</code></pre>
+
+<p><strong>金額を変更</strong></p>
+
+<pre><code>「レジで、受付飲食の『コーヒー』を400円→450円に変更して」</code></pre>
+
+<p><strong>デザインを変える</strong></p>
+
+<pre><code>「レジで支払いボタン（現金・カード・電子）をもう少し大きくして。方法はお任せ」</code></pre>
+
+<p><strong>デプロイ（GitHubにアップロード）</strong></p>
+
+<pre><code>「いまの変更をGitHubにアップロードして。コメントは『オレンジジュースを追加』で」</code></pre>
+
+<hr>
+
+<h2 id="15-困ったときのチェックリスト">15. 困ったときのチェックリスト</h2>
+
+<p><strong>アプリが動かない・エラーが出る</strong></p>
+
+<ul><li>[ ] Claude Code に「エラーが出ています」＋画面の文言を伝える</li><li>[ ] 「1つ前のバージョンに戻して」と頼む（Gitの履歴から戻せる）</li></ul>
+
+<p><strong>スプレッドシートに売上が書き込まれない</strong></p>
+
+<ul><li>[ ] 設定タブ →スプレッドシート連携 →「接続テスト」でOKが出るか</li><li>[ ] GAS WebアプリURLが正しく入っているか</li><li>[ ] 売上タブ →「同期」→「今日分」で手動送信を試す</li></ul>
+
+<p><strong>改修後にアプリが古いままに見える</strong></p>
+
+<ul><li>[ ] GitHubにアップロード（デプロイ）したか</li><li>[ ] バージョン番号が新しくなったか／ブラウザのキャッシュをクリアしたか</li><li>[ ] デプロイ直後なら数分待つ（反映待ち。連打しない）</li></ul>
+
+<p><strong>誤った改修でデータが消えた・壊れた</strong></p>
+
+<ul><li>[ ] 「1つ前に戻して」でGitから復元</li><li>[ ] 端末内（localStorage）が消えた → エクスポートしたJSONからインポートで復元</li><li>[ ] スプレッドシートのデータは消えない</li></ul>
+
+<p><strong>2台のPCで食い違う / PCが壊れた</strong></p>
+
+<ul><li>[ ] 作業前の「git pull」を忘れていないか</li><li>[ ] どうしても直らない → フォルダを消して GitHub から clone し直す（第12章）</li></ul>
+
+<p><strong>⚠ Google ドライブ デスクトップが起動していないか（最重要）</strong></p>
+
+<ul><li>[ ] <code>C:\dev\pos-yoyaku</code> が Google ドライブ/OneDrive の同期対象に入っていないか。入れない・起動しない（第4章）</li></ul>
+
+<hr>
+
+<h2 id="16-重要な用語集">16. 重要な用語集</h2>
 
 <table>
 <thead><tr><th>用語</th><th>意味</th></tr></thead>
 <tbody><tr><td><strong>VS Code</strong></td><td>ファイルを編集するソフト（青いアイコン）。Wordのプログラマー版</td></tr>
-<tr><td><strong>Claude Code</strong></td><td>VS Codeの中にあるAIチャット。日本語で頼むとファイルを自動編集してくれる</td></tr>
-<tr><td><strong>ターミナル</strong></td><td>黒い画面。文字でコンピューターに命令する場所。Claude Codeが自動で使う</td></tr>
-<tr><td><strong>GitHub</strong></td><td>プログラムのファイルをインターネット上に保存・公開するサービス</td></tr>
+<tr><td><strong>Claude Code</strong></td><td>VS Codeの中のAIチャット。日本語で頼むとファイルを自動編集してくれる</td></tr>
+<tr><td><strong>ターミナル</strong></td><td>黒い画面。文字で命令する場所。主にClaudeが使う</td></tr>
+<tr><td><strong>GitHub</strong></td><td>ファイルをインターネット上に保存・公開するサービス。<strong>これが原本</strong></td></tr>
 <tr><td><strong>GitHub Pages</strong></td><td>GitHubのファイルをウェブサイトとして公開する機能。URLでアクセスできる</td></tr>
-<tr><td><strong>デプロイ</strong></td><td>パソコン内のファイルをGitHubにアップロードして、URLに反映させること</td></tr>
-<tr><td><strong>Git</strong></td><td>ファイルの変更履歴を管理するシステム。<code>git push</code> でGitHubに送る</td></tr>
-<tr><td><strong>git push</strong></td><td>GitHubにアップロードするコマンド。ターミナルで実行する</td></tr>
-<tr><td><strong>localStorage</strong></td><td>ブラウザ内のデータ保存場所。端末ごとに独立。ブラウザのデータを消すと消える</td></tr>
-<tr><td><strong>GAS</strong></td><td>Google Apps Script。Googleのサーバーで動くプログラム。スプレッドシートへの書き込み担当</td></tr>
-<tr><td><strong>キャッシュ</strong></td><td>ブラウザが保存している古いページデータ。クリアすると最新版が表示される</td></tr>
-<tr><td><strong>JSON</strong></td><td>データをやり取りするときのフォーマット。エクスポート/インポートで使う</td></tr>
-<tr><td><strong>index.html</strong></td><td>レジアプリ本体。HTML・CSS・JavaScriptがすべて入った1ファイル</td></tr>
-<tr><td><strong>CLAUDE.md</strong></td><td>Claude Codeがプロジェクトを理解するための技術仕様書。触らなくてよい</td></tr>
-<tr><td><strong>コミット</strong></td><td>Gitでファイルの変更を記録する操作。変更に名前をつけること</td></tr>
-<tr><td><strong>SS_ID</strong></td><td>スプレッドシートの固有ID。gas_script.jsの先頭に書かれている。変更しない</td></tr></tbody>
+<tr><td><strong>リポジトリ</strong></td><td>GitHub上のプロジェクト1つ分の保管場所（pos-main など）</td></tr>
+<tr><td><strong>コラボレーター</strong></td><td>リポジトリに書き込み（push）を許された参加者</td></tr>
+<tr><td><strong>デプロイ</strong></td><td>PC内のファイルをGitHubにアップロードしてURLに反映させること</td></tr>
+<tr><td><strong>Git</strong></td><td>ファイルの変更履歴を管理するしくみ</td></tr>
+<tr><td><strong>git pull</strong></td><td>GitHubから最新を取り込むこと（作業前にやる）</td></tr>
+<tr><td><strong>git push</strong></td><td>GitHubにアップロードすること（作業後にやる）</td></tr>
+<tr><td><strong>コミット</strong></td><td>Gitで変更に名前をつけて記録する操作</td></tr>
+<tr><td><strong>localStorage</strong></td><td>ブラウザ内のデータ保存場所。端末ごとに独立。消すと消える</td></tr>
+<tr><td><strong>GAS</strong></td><td>Google Apps Script。Googleのサーバーで動く、スプレッドシート書き込み担当のプログラム</td></tr>
+<tr><td><strong>再デプロイ</strong></td><td>GASを変えたとき「新しいバージョン」で公開し直すこと（保存だけでは反映されない）</td></tr>
+<tr><td><strong>キャッシュ</strong></td><td>ブラウザが保存している古いページデータ。クリアで最新が出る</td></tr>
+<tr><td><strong>JSON</strong></td><td>データをやり取りするフォーマット。エクスポート/インポートで使う</td></tr>
+<tr><td><strong>SS_ID</strong></td><td>スプレッドシートの固有ID。URLの <code>/d/</code> と <code>/edit</code> の間の文字列</td></tr>
+<tr><td><strong>ジャンクション</strong></td><td>フォルダの「分身」を別の場所に作るWindowsの仕組み（メモリ共有に使用）</td></tr>
+<tr><td><strong>CLAUDE.md</strong></td><td>Claudeがプロジェクトを理解するための技術仕様書＋バージョン履歴</td></tr></tbody>
 </table>
 
 <hr>
 
-<p>*最終更新: 2026/06/11（アプリ v329 時点）*</p>
+<p>*最終更新: 2026/10/07（説明書の原本を pos main に変更。置き場所を各PC版に修正・第12章にGitHub中心のpull→作業→push図を追加。データの保存先=スプレッドシートの節・Claudeアカウント行を追加。手入力編集を反映）*</p>
 
 </body>
 </html>
