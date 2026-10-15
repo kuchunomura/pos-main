@@ -1166,8 +1166,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 596;
-const APP_BUILD_DATE = '2026/10/15 10:40';
+const APP_VERSION = 597;
+const APP_BUILD_DATE = '2026/10/15 12:02';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -3299,6 +3299,8 @@ function applyYoyakuDiscountContext(o,isStay){
   if(!isStay && (o.mura || _muraTxt)) activeMura=true;
   if(OTA_KEYS.indexOf(src)>=0) activeDiscount=src;
   else if(src==='pass_day'||src==='pass_night') activeDiscount=src;
+  // 後日請求書払い：手入力予約のメモに「請求書(払い)」と書かれていれば当日0円（OTAと同じ後日振込扱い）
+  else if(/請求書/.test(memo+' '+(o.note||''))) activeDiscount='invoice';
   else if(/年間パス/.test(memo)) activeDiscount=/夜/.test(memo)?'pass_night':(/昼/.test(memo)?'pass_day':(isStay?'pass_night':'pass_day'));
   // 宿泊者割引：宿泊(OTA含む)に紐づく空中ウォーク115分/1DAYは1人500円引き（村内・パスが無い時のみ）
   else if(!isStay && !activeMura && posStayGuestDisc(o,(_yoyakuCache||{}).stays)) activeDiscount='stay_guest';
