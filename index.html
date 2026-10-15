@@ -1166,8 +1166,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 594;
-const APP_BUILD_DATE = '2026/10/03 15:39';
+const APP_VERSION = 595;
+const APP_BUILD_DATE = '2026/10/15 10:05';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1503,6 +1503,7 @@ const DEFAULT_DISCOUNTS = [
   {key:'sou',       label:'SOU',           type:'paid',     fixed:false},
   {key:'pass_day',  label:'年間パス（昼）',type:'paid',     fixed:false},
   {key:'pass_night',label:'年間パス（夜）',type:'paid',     fixed:false},
+  {key:'invoice',   label:'後日請求書払い',type:'paid',     fixed:false},
   {key:'group',     label:'団体',          type:'discount', fixed:false, rate:10},
   {key:'half',      label:'50%引き',       type:'discount', fixed:false, rate:50},
   {key:'free',      label:'無料',          type:'discount', fixed:false},
@@ -1542,6 +1543,13 @@ let discountItems = ld(KEYS.discounts) || DEFAULT_DISCOUNTS;
     var raku2={key:'other1',label:'楽天体験',type:'paid',fixed:false};
     var ri=discountItems.findIndex(function(d){return d.key==='rakuten';});
     if(ri>=0) discountItems.splice(ri+1,0,raku2); else discountItems.push(raku2);
+    changed=true;
+  }
+  // 後日請求書払い（invoice）を年間パス（夜）の隣に追加（当日0円・後日振込・定価満額＝OTAと同じ仕組み）
+  if(!discountItems.find(function(d){return d.key==='invoice';})){
+    var inv={key:'invoice',label:'後日請求書払い',type:'paid',fixed:false};
+    var pnI=discountItems.findIndex(function(d){return d.key==='pass_night';});
+    if(pnI>=0) discountItems.splice(pnI+1,0,inv); else discountItems.push(inv);
     changed=true;
   }
   if(changed) sv(KEYS.discounts,discountItems);
@@ -2086,7 +2094,7 @@ const SOU_FREE_IDS = ['i_tree115','i_walk115'];
 // 楽天・じゃらん・SOU：支払済み表示設定（設定で変更可能）
 let paidDisplaySettings = ld('pos_paid_display') || {label:'支払済', color:'#c0392b'};
 // OTA（楽天・じゃらん・SOU）：押すと日帰り＋宿泊を一律0円（支払済）にする
-const OTA_KEYS = ['rakuten','jalan','sou','other1','other2','other3']; // 外部サイト①=楽天体験/②=アソビュー/③(予備)も前払い＝0円扱い
+const OTA_KEYS = ['rakuten','jalan','sou','other1','other2','other3','invoice']; // 外部サイト①=楽天体験/②=アソビュー/③(予備)も前払い＝0円扱い。invoice=後日請求書払い（当日0円・後日振込・定価満額）
 const SRC_LABELS = {rakuten:'楽天トラベル',jalan:'じゃらん',sou:'SOUエクスペリエンス',other1:'楽天体験',other2:'アソビュー',other3:'外部サイト③',pass_day:'年間パス（昼）',pass_night:'年間パス（夜）'};
 const OTA_FREE_CATS = ['cat_walk','cat_tree_day','cat_bbq']; // レンタル(cat_rental)はOTAでも支払済にせず通常課金
 function isOtaActive(){ return OTA_KEYS.includes(activeDiscount); }
@@ -2101,6 +2109,7 @@ function otaCoversItem(otaKey,item){
   if(!item) return false;
   var cat=item.cat||'', id=item.id||'';
   if(id==='i_passday'||id==='i_passnight') return false; // 年間パスは常に定価
+  if(otaKey==='invoice') return true; // 後日請求書払い＝会計まるごと当日0円（レンタル含む全品対象）
   if(otaKey==='rakuten') return (cat==='cat_stay_dome'||cat==='cat_stay_tent'||cat==='cat_stay_hm');
   if(otaKey==='jalan'||otaKey==='other2'||otaKey==='other1') return (id==='i_walk1day'); // じゃらん/アソビュー/楽天体験＝空中ウォーク1DAY
   return isOtaFreeCat(cat,id);
@@ -2336,6 +2345,12 @@ function recalcCartPrices(){
     if(c.isStay) return true;
     const item=items.find(i=>i.id===c.id);
     return item && STAY_CAT_IDS.includes(item.cat);
+  });
+  // 後日請求書払い：会計まるごと当日0円（定価は単価に記録＝OTAと同じ）。activeなら全品にotaKey='invoice'を付与、offなら解除。
+  cart.forEach(function(ci){
+    if(ci.manualPrice||ci.id==='i_passday'||ci.id==='i_passnight') return;
+    if(activeDiscount==='invoice') ci.otaKey='invoice';
+    else if(ci.otaKey==='invoice') delete ci.otaKey;
   });
   cart.forEach(cartItem => {
     const masterItem = items.find(i=>i.id===cartItem.id);
@@ -4015,7 +4030,7 @@ function sumIsPeopleItem(i){ return (SUMMARY_FAC_CATS.indexOf(i.cat||'')!==-1||!
 function sumPeopleOf(i){ var m=(i.name||'').match(/[（(](\d+)人[）)]/); return m?parseInt(m[1])*i.qty:i.qty; } // （N人）表記があればN×数量、なければ数量＝人数
 // 物販（人数で数えない商品）の金額の右に「（単価×数量）」を出す。単価が混在する時は「（800円×2＋600円×1）」と単価別に並べる（高い順）。施設系(isPpl)は割引区分の内訳があるので出さない。
 function sumPriceBreak(isPpl,e){ if(isPpl||!e||!e.byPrice) return ''; var ps=Object.keys(e.byPrice).map(Number).sort(function(a,b){return b-a;}); if(!ps.length) return ''; return '<span style="font-size:11px;color:var(--text2);white-space:nowrap;padding-left:6px;">（'+ps.map(function(p){return p.toLocaleString()+'円×'+e.byPrice[p];}).join('＋')+'）</span>'; }
-var SUM_OTA_SHORT={rakuten:'楽天',other1:'楽天体験',jalan:'じゃらん',other2:'アソビュー',sou:'SOU',other3:'外部③'};
+var SUM_OTA_SHORT={rakuten:'楽天',other1:'楽天体験',jalan:'じゃらん',other2:'アソビュー',sou:'SOU',other3:'外部③',invoice:'後日請求書払い'};
 function sumDiscBucket(i,r){ if(i.otaKey)return SUM_OTA_SHORT[i.otaKey]||'OTA'; if(i.passKey)return '年パス'; if(i.groupOn)return '団体'; if(i.muraOn)return '村民半額'; if(i.freeOn)return '無料'; if(r&&r.discount==='stay_guest')return '宿泊者'; return '通常料金'; }
 var SUM_DB_ORDER=['通常料金','宿泊者','村民半額','団体','年パス','無料','奈良県職員券','楽天','楽天体験','じゃらん','アソビュー','SOU','外部③','OTA'];
 // 奈良県職員券の人数(n)と券のマイナス金額(amt=負値)＝その売上内の「奈良県職員券」マイナス行を集計。過去データもこの方式で正しく数える（naraOnフラグに依存しない）。
