@@ -1166,8 +1166,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 597;
-const APP_BUILD_DATE = '2026/10/15 12:02';
+const APP_VERSION = 598;
+const APP_BUILD_DATE = '2026/10/18 10:49';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2095,7 +2095,7 @@ const SOU_FREE_IDS = ['i_tree115','i_walk115'];
 let paidDisplaySettings = ld('pos_paid_display') || {label:'支払済', color:'#c0392b'};
 // OTA（楽天・じゃらん・SOU）：押すと日帰り＋宿泊を一律0円（支払済）にする
 const OTA_KEYS = ['rakuten','jalan','sou','other1','other2','other3','invoice']; // 外部サイト①=楽天体験/②=アソビュー/③(予備)も前払い＝0円扱い。invoice=後日請求書払い（当日0円・後日振込・定価満額）
-const SRC_LABELS = {rakuten:'楽天トラベル',jalan:'じゃらん',sou:'SOUエクスペリエンス',other1:'楽天体験',other2:'アソビュー',other3:'外部サイト③',pass_day:'年間パス（昼）',pass_night:'年間パス（夜）'};
+const SRC_LABELS = {rakuten:'楽天トラベル',jalan:'じゃらん',sou:'SOUエクスペリエンス',other1:'楽天体験',other2:'アソビュー',other3:'外部サイト③',pass_day:'年間パス（昼）',pass_night:'年間パス（夜）',invoice:'後日請求書払い',free:'0円（無料）'};
 const OTA_FREE_CATS = ['cat_walk','cat_tree_day','cat_bbq']; // レンタル(cat_rental)はOTAでも支払済にせず通常課金
 function isOtaActive(){ return OTA_KEYS.includes(activeDiscount); }
 function isOtaFreeCat(cat,id){
@@ -3297,9 +3297,10 @@ function applyYoyakuDiscountContext(o,isStay){
   // 村民：保存フラグ o.mura だけでなく、名前・備考の「村民/村内」文字でも判定（yoyakuの表示と揃える）
   var _muraTxt=/村民|村内/.test((o.name||'')+' '+memo+' '+(o.note||''));
   if(!isStay && (o.mura || _muraTxt)) activeMura=true;
-  if(OTA_KEYS.indexOf(src)>=0) activeDiscount=src;
+  if(OTA_KEYS.indexOf(src)>=0) activeDiscount=src;     // invoice(後日請求書払い)もOTA_KEYSに含む＝当日0円
+  else if(src==='free') activeFree=true;               // 0円（無料）＝全品0円
   else if(src==='pass_day'||src==='pass_night') activeDiscount=src;
-  // 後日請求書払い：手入力予約のメモに「請求書(払い)」と書かれていれば当日0円（OTAと同じ後日振込扱い）
+  // 後日請求書払い：手入力予約のメモに「請求書(払い)」と書かれていれば当日0円（予約サイト欄=invoice未選択の保険）
   else if(/請求書/.test(memo+' '+(o.note||''))) activeDiscount='invoice';
   else if(/年間パス/.test(memo)) activeDiscount=/夜/.test(memo)?'pass_night':(/昼/.test(memo)?'pass_day':(isStay?'pass_night':'pass_day'));
   // 宿泊者割引：宿泊(OTA含む)に紐づく空中ウォーク115分/1DAYは1人500円引き（村内・パスが無い時のみ）
