@@ -1166,8 +1166,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 598;
-const APP_BUILD_DATE = '2026/10/18 10:49';
+const APP_VERSION = 599;
+const APP_BUILD_DATE = '2026/10/18 11:13';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -3296,7 +3296,10 @@ function applyYoyakuDiscountContext(o,isStay){
   var src=o.source||'', memo=o.memo||'';
   // 村民：保存フラグ o.mura だけでなく、名前・備考の「村民/村内」文字でも判定（yoyakuの表示と揃える）
   var _muraTxt=/村民|村内/.test((o.name||'')+' '+memo+' '+(o.note||''));
-  if(!isStay && (o.mura || _muraTxt)) activeMura=true;
+  // 一部村民（人数の一部だけ村民）はloadReservationToCartで行を分割して処理するため、ここでは全体村民にしない
+  var _nzAll=parseInt(o.ninzu,10)||0, _mN=(o.muraN==null?null:parseInt(o.muraN,10));
+  var _partialMura=!!(o.mura && _mN!=null && _mN>0 && _mN<_nzAll);
+  if(!isStay && (o.mura || _muraTxt) && !_partialMura) activeMura=true;
   if(OTA_KEYS.indexOf(src)>=0) activeDiscount=src;     // invoice(後日請求書払い)もOTA_KEYSに含む＝当日0円
   else if(src==='free') activeFree=true;               // 0円（無料）＝全品0円
   else if(src==='pass_day'||src==='pass_night') activeDiscount=src;
@@ -3510,7 +3513,16 @@ function loadReservationToCart(type,id){
     var map=YOYAKU_DAY_MAP[o.facility]||{};
     var iid=map[o.course];
     var it=iid?items.find(function(x){return x.id===iid;}):null;
-    if(it){ var cat=cats.find(function(c){return c.id===it.cat;}); addToCart(it,cat); var line=cart[cart.length-1]; if(line) line.qty=Math.max(1,parseInt(o.ninzu)||1); }
+    if(it){ var cat=cats.find(function(c){return c.id===it.cat;}); addToCart(it,cat); var line=cart[cart.length-1];
+      var _N=Math.max(1,parseInt(o.ninzu)||1);
+      var _mN=(o.muraN==null?null:parseInt(o.muraN,10));
+      if(line && o.mura && _mN!=null && _mN>0 && _mN<_N){
+        // 一部村民：村民_mN人(半額・muraOn)＋残り定価 に分割（activeMuraは立てていない＝lineは定価のまま）
+        line.qty=_N-_mN;
+        var _ml=Object.assign({},line,{name:line.name+'（村内）',muraOn:true,qty:_mN,discounted:true});
+        cart.push(_ml);
+      } else if(line){ line.qty=_N; }
+    }
     else warn.push('施設'+o.facility+'/コース'+o.course);
   } else {
     var sit=items.find(function(x){return x.id==='i_'+o.facility;});
@@ -3568,7 +3580,16 @@ function copyReservationToCart(type,id){
     var map=YOYAKU_DAY_MAP[o.facility]||{};
     var iid=map[o.course];
     var it=iid?items.find(function(x){return x.id===iid;}):null;
-    if(it){ var cat=cats.find(function(c){return c.id===it.cat;}); addToCart(it,cat); var line=cart[cart.length-1]; if(line) line.qty=Math.max(1,parseInt(o.ninzu)||1); }
+    if(it){ var cat=cats.find(function(c){return c.id===it.cat;}); addToCart(it,cat); var line=cart[cart.length-1];
+      var _N=Math.max(1,parseInt(o.ninzu)||1);
+      var _mN=(o.muraN==null?null:parseInt(o.muraN,10));
+      if(line && o.mura && _mN!=null && _mN>0 && _mN<_N){
+        // 一部村民：村民_mN人(半額・muraOn)＋残り定価 に分割（activeMuraは立てていない＝lineは定価のまま）
+        line.qty=_N-_mN;
+        var _ml=Object.assign({},line,{name:line.name+'（村内）',muraOn:true,qty:_mN,discounted:true});
+        cart.push(_ml);
+      } else if(line){ line.qty=_N; }
+    }
     else warn.push('施設'+o.facility+'/コース'+o.course);
   } else {
     var sit=items.find(function(x){return x.id==='i_'+o.facility;});
