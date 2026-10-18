@@ -1166,8 +1166,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 599;
-const APP_BUILD_DATE = '2026/10/18 11:13';
+const APP_VERSION = 600;
+const APP_BUILD_DATE = '2026/10/18 11:25';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2438,6 +2438,7 @@ function addToCart(item,cat){
   if(ex)ex.qty++;
   else cart.push({id:item.id,name:item.name,origPrice:item.price,price,qty:1,discounted:price<item.price,paidLabel:paidBadge||'',free_mura:item.free_mura||false,cat:item.cat||'',catColor:cat?cat.bg:'#fff',muraOn:activeMura&&(item.cat==='cat_walk'||item.cat==='cat_tree_day'||item.id==='i_bbq'||!!item.free_mura),groupOn:newGroupOn,freeOn:newFreeOn,passKey:newPassKey,otaKey:newOtaKey});
   if(STAY_CAT_IDS.includes(item.cat)) recalcCartPrices();
+  syncActiveHold(); // 予約の保留に追加分を即反映（事前変更の保持）
   renderPOS();
   renderCart();showToast('✓ '+item.name);
 }
@@ -2907,9 +2908,16 @@ function cleanupPriceless(){
   host.appendChild(pl);
 }
 
-function chgQty(idx,d){cart[idx].qty=Math.max(1,cart[idx].qty+d);renderCart();}
-function toggleMuraOff(idx){cart[idx].muraOff=!cart[idx].muraOff;recalcCartPrices();renderCart();}
-function removeCart(idx){cart.splice(idx,1);recalcCartPrices();renderPOS();renderCart();}
+// 保留中の予約を編集したら即その保留へ反映（予約者が来る前の事前変更を保持）。POSローカルのみ＝yoyakuへは戻さない。
+function syncActiveHold(){
+  if(activeHoldIdx<0 || !holds[activeHoldIdx]) return;
+  var p=holds[activeHoldIdx];
+  holds[activeHoldIdx]={title:p.title,cart:cart.map(function(c){return Object.assign({},c);}),attrs:Object.assign({},selectedAttrs),discount:activeDiscount,resId:p.resId,resTag:p.resTag,resInfo:p.resInfo};
+  sv(KEYS.holds,holds);
+}
+function chgQty(idx,d){cart[idx].qty=Math.max(1,cart[idx].qty+d);syncActiveHold();renderCart();}
+function toggleMuraOff(idx){cart[idx].muraOff=!cart[idx].muraOff;recalcCartPrices();syncActiveHold();renderCart();}
+function removeCart(idx){cart.splice(idx,1);recalcCartPrices();syncActiveHold();renderPOS();renderCart();}
 // 編集中の保留をリストから除去して詰める（決済/クリア時）。-1なら何もしない
 function removeActiveHold(){
   if(activeHoldIdx>=0 && activeHoldIdx<holds.length){ holds.splice(activeHoldIdx,1); sv(KEYS.holds,holds); saveSnapshotToIDB(); }
