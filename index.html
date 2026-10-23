@@ -1166,8 +1166,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 603;
-const APP_BUILD_DATE = '2026/10/23 11:13';
+const APP_VERSION = 604;
+const APP_BUILD_DATE = '2026/10/23 11:30';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2649,7 +2649,8 @@ function updateResBanner(){
     if(h3) h3.style.display='none'; // 予約中は「🛒 カート」ラベルは省略（スペース確保）
     rb.innerHTML='<div style="flex:1;min-width:0;">'
       +'<span style="white-space:nowrap;"><span style="font-weight:700;">予約：</span>'+(i.head?esc(i.head)+'　':'')+esc(i.name)+'様</span>'
-      +(i.detail?'<div style="color:#555;margin-top:1px;">'+esc(i.detail)+'</div>':'')
+      +(i.detail?'<div style="color:#555;margin-top:1px;">'+esc(i.detail)+(i.uq?'<span style="display:inline-block;white-space:nowrap;vertical-align:1px;margin-left:10px;font-weight:700;color:#c0392b;background:#fdecec;border:1px solid #e3b4b4;border-radius:4px;padding:0 6px;font-size:10px;">⚠ '+esc(i.uq)+'</span>':'')+'</div>':'')
+      +(i.detail2?'<div style="color:#555;margin-top:1px;">'+esc(i.detail2)+'</div>':'')
       +'</div>'
       +'<button onclick="clearCart()" title="予約者のカートをクリア" style="flex:0 0 auto;width:26px;height:26px;border:1px solid #c0392b;background:#fff;color:#c0392b;border-radius:7px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;line-height:1;padding:0;">×</button>';
   }else{ rb.style.display='none'; rb.innerHTML=''; if(h3) h3.style.display=''; }
@@ -3096,7 +3097,10 @@ function buildResInfo(o,type,dateStr){
     var facName=sit?sit.name:(o.facGroup||'棟未選択');
     detail='宿泊 '+facName+'　'+(o.nights||1)+'泊 '+(o.ninzu||'')+'名'+((o.petCount||0)>0?'　ペット'+o.petCount:'');
   }
-  return {name:(o.name||'（無名）'),head:head,detail:detail};
+  // 3行目：レンタル明細（カートだけで予約内容が分かるように）。数量未確定(1or2等)は⚠バッジ。
+  var detail2=(o.rental&&o.rental.length)?('レンタル: '+o.rental.map(function(r){return r.name+'×'+(r.qty||1);}).join('、')):'';
+  var uq=posUncertainQtyLabel(o.memo);
+  return {name:(o.name||'（無名）'),head:head,detail:detail,detail2:detail2,uq:uq};
 }
 let _paidArmKey='';          // 「レジ未計上→会計済みに」2回タップ確定用にアーム中のresKey
 let manualPaidRes = ld('pos_manual_paid_res') || {}; // レジに入れず会計してしまった予約を手動で会計済み扱い {resId:true}
