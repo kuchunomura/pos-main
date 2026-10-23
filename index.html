@@ -1166,8 +1166,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 602;
-const APP_BUILD_DATE = '2026/10/23 11:01';
+const APP_VERSION = 603;
+const APP_BUILD_DATE = '2026/10/23 11:13';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -3301,8 +3301,8 @@ function posUncertainQtyLabel(memo){
   var s=posStripFormEn(String(memo||'').replace(/✓/g,''));
   if(!s)return '';
   var m=s.match(/([ぁ-んァ-ヶ一-龠ーｱ-ﾝA-Za-z]{1,12})\s*[0-9０-９]\s*(?:or|か|又は|または)\s*[0-9０-９]/i);
-  if(m) return m[1]+' 数量要確認';
-  if(/[0-9０-９]\s*(?:or|か|又は|または)\s*[0-9０-９]/i.test(s)) return '数量要確認';
+  if(m) return m[1]+' 数量 要確認';
+  if(/[0-9０-９]\s*(?:or|か|又は|または)\s*[0-9０-９]/i.test(s)) return '数量 要確認';
   if(/見てから|当日決め|現地で決め|どちらか|いずれか|未定|決めかね|迷(?:い|っ|う)/.test(s)) return '要確認';
   return '';
 }
@@ -3420,8 +3420,8 @@ function renderYoyakuPicker(data){
     }
     var tag=o.source?('【'+(SRC_LABELS[o.source]||o.source)+'】'):((/年間パス/.test(o.memo||'')?'【年間パス】':'')+(o.mura?'【村内】':''));
     var _uqL=posUncertainQtyLabel(o.memo);
-    var _uqBadge=_uqL?'<span style="font-size:10px;font-weight:700;color:#c0392b;background:#fdecec;border:1px solid #e3b4b4;border-radius:4px;padding:0 5px;margin-left:6px">⚠ '+esc(_uqL)+'</span>':'';
-    var rentalLine=(o.rental&&o.rental.length)?'<div style="font-size:11px;color:#111;margin-top:2px">レンタル: '+esc(o.rental.map(function(r){return r.name+'×'+(r.qty||1);}).join('、'))+_uqBadge+'</div>':(_uqL?'<div style="font-size:11px;margin-top:2px">'+_uqBadge+'</div>':'');
+    var _uqBadge=_uqL?'<span style="display:inline-block;white-space:nowrap;vertical-align:1px;font-size:10px;font-weight:700;color:#c0392b;background:#fdecec;border:1px solid #e3b4b4;border-radius:4px;padding:0 6px;margin-left:12px">⚠ '+esc(_uqL)+'</span>':'';
+    var rentalLine=(o.rental&&o.rental.length)?'<div style="font-size:11px;color:#111;margin-top:2px">レンタル: '+esc(o.rental.map(function(r){return r.name+'×'+(r.qty||1);}).join('、'))+'</div>':'';
     var memoHtml='';
     if(o.memo){
       var _pm=posStripFormEn(o.memo); var full=posMemoBlocks(o.memo,o.rental);
@@ -3471,7 +3471,7 @@ function renderYoyakuPicker(data){
           '<div style="flex:1;font-size:14px;font-weight:700;color:#111">'+esc(o.name||'（無名）')+paidBadge+heldBadge+' <span style="font-size:11px;color:#999;font-weight:400">'+tag+'</span></div>'+
           copyBtn+
         '</div>'+
-        '<div style="font-size:12px;color:#111;font-weight:700">'+esc(label)+'　'+esc(sub)+'</div>'+
+        '<div style="font-size:12px;color:#111;font-weight:700">'+esc(label)+'　'+esc(sub)+_uqBadge+'</div>'+
         sgdNote+
         rentalLine+
         linkedHtml+
