@@ -19,7 +19,7 @@
 }
 body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);height:100dvh;overflow:hidden;font-size:14px;touch-action:manipulation;}
 .tabbar{display:flex;background:var(--accent);height:44px;align-items:stretch;position:relative;}
-#tabbar-version{position:absolute;right:58px;bottom:2px;font-size:10px;font-weight:600;color:rgba(255,255,255,0.6);pointer-events:none;line-height:1;white-space:nowrap;}
+#tabbar-version{position:absolute;right:58px;bottom:3px;font-size:12px;font-weight:700;color:rgba(255,255,255,0.95);pointer-events:none;line-height:1;white-space:nowrap;}
 #reload-btn{position:absolute;right:3px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;font-size:18px;cursor:pointer;border-radius:5px;padding:2px 6px;line-height:1.3;z-index:10;}
 #reload-btn:active{background:rgba(255,255,255,0.35);}
 .tabbar button{flex:1;border:none;background:none;color:rgba(255,255,255,0.7);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;border-bottom:3px solid transparent;padding:0 2px;}
@@ -112,8 +112,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);
 .pay-card-btn{flex:1;padding:8px 6px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
 .pay-other-btn{flex:1;padding:8px 6px;background:var(--accent2);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
 .cart-bottom-btns{display:flex;gap:6px;}
-.hold-btn{flex:1;padding:7px;border:1px solid var(--accent3);border-radius:8px;background:#fff;color:var(--accent2);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;}
-.clear-btn{flex:1;padding:7px;border:1px solid #c0392b;border-radius:8px;background:#fff;color:#c0392b;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;}
+.hold-btn{flex:1;padding:11px 7px;border:1px solid var(--accent3);border-radius:8px;background:#fff;color:var(--accent2);font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit;}
+.clear-btn{flex:1;padding:11px 7px;border:1px solid #c0392b;border-radius:8px;background:#fff;color:#c0392b;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit;}
 /* カート下部ボタン（大きく表示/現金/カード/電子/予約/保留/クリア）を立体的に */
 .pay-cash-btn,.pay-card-btn,.pay-other-btn,.hold-btn,.clear-btn,#checkout-btn{box-shadow:0 3px 0 rgba(0,0,0,.20),0 5px 7px rgba(0,0,0,.14)!important;transition:transform .05s ease,box-shadow .05s ease;}
 .pay-cash-btn:active,.pay-card-btn:active,.pay-other-btn:active,.hold-btn:active,.clear-btn:active,#checkout-btn:active{transform:translateY(3px);box-shadow:0 0 0 rgba(0,0,0,.2),0 1px 2px rgba(0,0,0,.2)!important;}
@@ -1166,8 +1166,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 605;
-const APP_BUILD_DATE = '2026/10/23 11:40';
+const APP_VERSION = 606;
+const APP_BUILD_DATE = '2026/10/24 16:51';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
