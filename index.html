@@ -1166,8 +1166,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 609;
-const APP_BUILD_DATE = '2026/10/24 17:04';
+const APP_VERSION = 610;
+const APP_BUILD_DATE = '2026/10/24 17:08';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -3908,6 +3908,7 @@ function confirmPayment(){
   // 別ポップアップを出さず、同じ決済モーダル内で完了表示に切替
   document.getElementById('pay-confirm-view').style.display='none';
   document.getElementById('pay-inline-done').style.display='block';
+  popConfetti(); // 決済完了のクラッカー
   startInlineDoneTimer();
 }
 
