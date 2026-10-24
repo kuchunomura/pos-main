@@ -1166,8 +1166,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 606;
-const APP_BUILD_DATE = '2026/10/24 16:51';
+const APP_VERSION = 607;
+const APP_BUILD_DATE = '2026/10/24 16:58';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1792,6 +1792,14 @@ function getOrderedItems(catId){
 }
 
 // ===== カテゴリーフィルタータブ =====
+// カテゴリー見出しの単色アイコン（currentColor＝見出しの文字色を継承＝程よく目立たない単色）。IDで引くのでlocalStorage移行不要・集計の名前に影響なし
+function catIconSvg(catId){
+  var s='display:inline-block;vertical-align:-2px;margin-right:4px';
+  if(catId==='cat_walk') return '<svg width="16" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="'+s+'"><path d="M2 6c6 5 14 5 20 0"/><path d="M2 6v13M22 6v13M6 8.5v8M10 9.5v7M14 9.5v7M18 8.5v8"/></svg>'; // 吊り橋＝空中ウォーク
+  if(catId==='cat_tree_day') return '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="'+s+'"><path d="M12 2l6 8h-3.3L19 16H5l4.3-6H6z"/><rect x="11" y="15" width="2" height="6"/></svg>'; // 木＝ツリーハウス昼
+  if(catId==='cat_stay_tree') return '<svg width="16" height="12" viewBox="0 0 24 24" fill="currentColor" style="'+s+'"><path d="M4 10V7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3h1a1 1 0 0 1 1 1v7h-2v-2H3v2H1v-7a1 1 0 0 1 1-1h2zm2 0h12V7H6v3z"/></svg>'; // ベッド＝宿泊：ツリーハウス
+  return '';
+}
 function renderCatFilterTabs(){
   const c=document.getElementById('cat-filter-tabs');c.innerHTML='';
   const _oc=getOrderedCats();
@@ -1901,7 +1909,7 @@ function renderPOS(){
       header.className='cat-header';
       const catTimeInfo=getCatTimeInfo(cat.id);
       const catTimeSlots=getCatTimeSlots(cat.id);
-      header.innerHTML='<span class="cat-drag-handle">⠿⠿</span><span class="cat-header-title" style="color:'+cat.text+'">'+cat.name+'</span>'+
+      header.innerHTML='<span class="cat-drag-handle">⠿⠿</span><span class="cat-header-title" style="color:'+cat.text+'">'+catIconSvg(cat.id)+cat.name+'</span>'+
         (catTimeInfo?'<span style="font-size:13px;color:#555;margin-left:3em;font-weight:500;">'+catTimeInfo+'</span>':'')+
         catTimeSlots;
       header.style.borderBottomColor=cat.border;
@@ -1937,7 +1945,7 @@ function renderPOS(){
           const fHdr=document.createElement('div');fHdr.className='cat-header';
           const fTI=getCatTimeInfo(fId);
           const fTS=getCatTimeSlots(fId);
-          fHdr.innerHTML='<span class="cat-header-title" style="color:'+fCat.text+'">'+fCat.name+'</span>'+(fTI?'<span style="font-size:11px;color:#555;margin-left:3em;font-weight:500;">'+fTI+'</span>':'')+fTS;
+          fHdr.innerHTML='<span class="cat-header-title" style="color:'+fCat.text+'">'+catIconSvg(fCat.id)+fCat.name+'</span>'+(fTI?'<span style="font-size:11px;color:#555;margin-left:3em;font-weight:500;">'+fTI+'</span>':'')+fTS;
           fHdr.style.borderBottomColor=fCat.border;
           const fGrid=document.createElement('div');fGrid.className='cat-items';
           fItems.forEach(function(item){fGrid.appendChild(makeItemBtn(item,fCat,fGrid));});
@@ -1962,7 +1970,7 @@ function renderPOS(){
       header.className='cat-header';
       const cti=getCatTimeInfo(cat.id);
       const cts=getCatTimeSlots(cat.id);
-      header.innerHTML='<span class="cat-header-title" style="color:'+cat.text+'">'+cat.name+'</span>'+(cti?'<span style="font-size:11px;color:#555;margin-left:3em;font-weight:500;">'+cti+'</span>':'')+cts;
+      header.innerHTML='<span class="cat-header-title" style="color:'+cat.text+'">'+catIconSvg(cat.id)+cat.name+'</span>'+(cti?'<span style="font-size:11px;color:#555;margin-left:3em;font-weight:500;">'+cti+'</span>':'')+cts;
       header.style.borderBottomColor=cat.border;
       const grid=document.createElement('div');grid.className='cat-items';
       catItems.forEach(item=>{ grid.appendChild(makeItemBtn(item,cat,grid)); });
@@ -1985,7 +1993,7 @@ function renderPOS(){
           const fHdr=document.createElement('div');fHdr.className='cat-header';
           const fTI=getCatTimeInfo(fId);
           const fTS=getCatTimeSlots(fId);
-          fHdr.innerHTML='<span class="cat-header-title" style="color:'+fCat.text+'">'+fCat.name+'</span>'+(fTI?'<span style="font-size:11px;color:#555;margin-left:3em;font-weight:500;">'+fTI+'</span>':'')+fTS;
+          fHdr.innerHTML='<span class="cat-header-title" style="color:'+fCat.text+'">'+catIconSvg(fCat.id)+fCat.name+'</span>'+(fTI?'<span style="font-size:11px;color:#555;margin-left:3em;font-weight:500;">'+fTI+'</span>':'')+fTS;
           fHdr.style.borderBottomColor=fCat.border;
           const fGrid=document.createElement('div');fGrid.className='cat-items';
           fItems.forEach(function(item){fGrid.appendChild(makeItemBtn(item,fCat,fGrid));});
