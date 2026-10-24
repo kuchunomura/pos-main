@@ -1166,8 +1166,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 610;
-const APP_BUILD_DATE = '2026/10/24 17:08';
+const APP_VERSION = 611;
+const APP_BUILD_DATE = '2026/10/24 17:13';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -3909,6 +3909,7 @@ function confirmPayment(){
   document.getElementById('pay-confirm-view').style.display='none';
   document.getElementById('pay-inline-done').style.display='block';
   popConfetti(); // 決済完了のクラッカー
+  if(Math.random()<0.35) setTimeout(popKusudama,500); // ランダムで「くす玉」バージョンも（クラッカーの後に）
   startInlineDoneTimer();
 }
 
@@ -4120,6 +4121,25 @@ function popConfetti(){
   }
   document.body.appendChild(wrap);
   setTimeout(function(){ if(wrap.parentNode) wrap.parentNode.removeChild(wrap); },1600);
+}
+// 上から下りてくる「くす玉」が割れて横断幕＋紙テープ（既存CSS .cele-layer/.kusudama/.cele-banner を使用）
+function popKusudama(){
+  var layer=document.createElement('div'); layer.className='cele-layer';
+  var str=document.createElement('div'); str.className='kusu-string'; layer.appendChild(str);
+  var dama=document.createElement('div'); dama.className='kusudama';
+  var sw=document.createElement('div'); sw.className='kusu-streamwrap';
+  var colors=['#e74c3c','#f1c40f','#2ecc71','#3498db','#9b59b6','#e67e22','#1abc9c','#ff6b9d'];
+  for(var i=0;i<16;i++){ var t=document.createElement('span'); t.className='kusu-streamer';
+    t.style.left=(6+Math.random()*116)+'px'; t.style.background=colors[i%colors.length];
+    t.style.setProperty('--sway',((Math.random()*2-1)*90)+'px'); t.style.animationDelay=(0.05+Math.random()*0.2)+'s';
+    sw.appendChild(t); }
+  dama.appendChild(sw);
+  var l=document.createElement('div'); l.className='kusu-half l';
+  var r=document.createElement('div'); r.className='kusu-half r';
+  dama.appendChild(l); dama.appendChild(r); layer.appendChild(dama);
+  var banner=document.createElement('div'); banner.className='cele-banner'; banner.textContent='🎉 おめでとう 🎉'; layer.appendChild(banner);
+  document.body.appendChild(layer);
+  setTimeout(function(){ if(layer.parentNode) layer.parentNode.removeChild(layer); },3400);
 }
 // レジが合った瞬間の演出：クラッカー2回。（くす玉＋横断幕は一旦停止・CSSは残置＝復活しやすいように）
 function popCelebration(){
