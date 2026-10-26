@@ -21,6 +21,7 @@ function getTargetSS() {
 // 対応表は ScriptProperties 'MONTH_SS_MAP'（{"2026-10":"SSのID",...}）。
 // main/test の GAS はプロパティが別だが、同じフォルダで名前「M月POS main」を探すので同じSSに収束する。
 // ※DriveApp（フォルダ取得・名前検索・移動）を使うため、初回の再デプロイ時に権限の承認が出る。
+var GASVER = '2026-10-26-auto-month'; // デプロイ確認用：?d={"type":"get_current_ss"} の応答に出る
 var MONTH_SS_SUFFIX = '月POS main';
 function nowYm_() { return Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM'); }
 function ymOf_(year, month) { return year + '-' + (month < 10 ? '0' : '') + month; }
@@ -240,7 +241,7 @@ function handleRequest(data) {
     return sw;
   }
   else if (type === 'get_current_ss') {
-    return { ss_id: getSSId(), is_default: (getSSId() === SS_ID), manual_ss_id: (PropertiesService.getScriptProperties().getProperty('MANUAL_SS_ID') || '') };
+    return { ss_id: getSSId(), is_default: (getSSId() === SS_ID), manual_ss_id: (PropertiesService.getScriptProperties().getProperty('MANUAL_SS_ID') || ''), gasver: GASVER, month_map: monthSsMap_() }; // gasver＝デプロイ確認用の目印
   }
   else if (type === 'create_invoice') {
     var sheetName = createInvoiceSheet(data);
