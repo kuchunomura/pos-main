@@ -1166,8 +1166,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 612;
-const APP_BUILD_DATE = '2026/10/24 17:16';
+const APP_VERSION = 613;
+const APP_BUILD_DATE = '2026/10/26 13:34';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1361,7 +1361,7 @@ const DEFAULT_ITEMS = [
   {id:'i_p04', name:'紙パック飲料',         price:200,  cat:'cat_picnic',   stock:0, free_mura:false},
   {id:'i_p05', name:'ミックスナッツ',        price:300,  cat:'cat_picnic',   stock:0, free_mura:false},
   {id:'i_p06', name:'レーズン',             price:300,  cat:'cat_picnic',   stock:0, free_mura:false},
-  {id:'i_p07', name:'ビスコッティ',         price:400,  cat:'cat_picnic',   stock:0, free_mura:false},
+  {id:'i_p07', name:'ビスコッティ',         price:500,  cat:'cat_picnic',   stock:0, free_mura:false},
   {id:'i_r01', name:'ドリップコーヒー',     price:400,  cat:'cat_uketsuke', stock:0, free_mura:false},
   {id:'i_r02', name:'ルイボスティー',       price:400,  cat:'cat_uketsuke', stock:0, free_mura:false},
   {id:'i_r03', name:'アールグレイ',         price:400,  cat:'cat_uketsuke', stock:0, free_mura:false},
@@ -7314,6 +7314,8 @@ restoreFromIDB(true).then(()=>{
   items.forEach(function(it){if(it.id==='i_1777680532193'&&/500円/.test(it.name||'')){it.name='55分延長';needSave=true;}});
   // 【v601】ポスカード→ポストカード・¥200→¥300（既存端末のitemsも更新。手動で価格変更済みの端末は触らない）
   items.forEach(function(it){if(it.id==='i_g01'){if(it.name==='ポスカード'){it.name='ポストカード';needSave=true;} if(it.price===200){it.price=300;needSave=true;}}});
+  // 【v613】ビスコッティ ¥400→¥500（既存端末のitemsも更新。手動で価格変更済みの端末は触らない）
+  items.forEach(function(it){if(it.id==='i_p07'&&it.price===400){it.price=500;needSave=true;}});
   if(needSave) sv(KEYS.items,items);
   // 新商品「ひのき耳つき板」（大中小バリアント）を未所持なら追加
   if(!items.some(function(i){return i.id==='i_hinoki_mimi';})){
