@@ -13,6 +13,73 @@ function getTargetSS() {
   return SpreadsheetApp.openById(getSSId());
 }
 
+// ==================== 月替わりの自動切替（2026/10/26） ====================
+// 売上の日付(M/D)から「何月分か」を判断し、その月のSS（「M月POS main」）へ書き込む。
+// 無ければ今のSSと同じフォルダに自動作成し、同期先(CURRENT_SS_ID)もそこへ切り替える
+// ＝月初の「📂 月初シート切替」が不要（スタッフは何もしなくてよい）。
+// 前月分の再送・修正・削除・前月の月別集計は前月のSSへ向く（手動切替だと切替後は新月SSに入ってしまっていた）。
+// 対応表は ScriptProperties 'MONTH_SS_MAP'（{"2026-10":"SSのID",...}）。
+// main/test の GAS はプロパティが別だが、同じフォルダで名前「M月POS main」を探すので同じSSに収束する。
+// ※DriveApp（フォルダ取得・名前検索・移動）を使うため、初回の再デプロイ時に権限の承認が出る。
+var MONTH_SS_SUFFIX = '月POS main';
+function nowYm_() { return Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM'); }
+function ymOf_(year, month) { return year + '-' + (month < 10 ? '0' : '') + month; }
+// 月だけ分かる時の年の推定：今から±6か月以内の年とみなす（12月に1月分、1月に12月分が来ても正しい）
+function ymFromMonth_(mo) {
+  var now = new Date();
+  var y = Number(Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy'));
+  var cm = Number(Utilities.formatDate(now, 'Asia/Tokyo', 'M'));
+  if (mo - cm > 6) y -= 1; else if (cm - mo > 6) y += 1;
+  return ymOf_(y, mo);
+}
+function ymFromRows_(rows) { return ymFromMonth_(parseInt(String(mmddFromRows(rows)).split('/')[0], 10)); }
+function monthSsMap_() { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('MONTH_SS_MAP') || '{}') || {}; } catch (e) { return {}; } }
+function saveMonthSsMap_(m) { PropertiesService.getScriptProperties().setProperty('MONTH_SS_MAP', JSON.stringify(m)); }
+function monthOfSsName_(name) { var m = String(name || '').match(/^(\d{1,2})月POS/); return m ? parseInt(m[1], 10) : 0; }
+function setMonthSs_(ym, id) { var map = monthSsMap_(); map[ym] = id; saveMonthSsMap_(map); }
+// ym（'2026-11'）のSSを返す。create=true なら、今のSSより新しい月で見つからない時に作成して同期先も切り替える。
+// 見つからず作らない場合は今のSS（従来どおり）。
+function ssForMonth_(ym, create) {
+  var map = monthSsMap_();
+  if (map[ym]) { try { return SpreadsheetApp.openById(map[ym]); } catch (e) { delete map[ym]; saveMonthSsMap_(map); } }
+  var cur = getTargetSS();
+  var curMo = monthOfSsName_(cur.getName());
+  var curYm = curMo ? ymFromMonth_(curMo) : nowYm_(); // 名前に月が無いSSは「今月のSS」とみなす（勝手に新規作成しない）
+  if (curYm === ym) { setMonthSs_(ym, cur.getId()); return cur; }
+  var mo = parseInt(ym.split('-')[1], 10), want = mo + MONTH_SS_SUFFIX;
+  var folder = null;
+  try { var ps = DriveApp.getFileById(cur.getId()).getParents(); if (ps.hasNext()) folder = ps.next(); } catch (e) {}
+  // 同じフォルダの「M月POS main」を探す（去年の同名を拾わないよう、作成日がその月の45日前以降のものだけ）
+  var since = new Date(Number(ym.split('-')[0]), mo - 1, 1); since.setDate(since.getDate() - 45);
+  try {
+    var it = folder ? folder.getFilesByName(want) : DriveApp.getFilesByName(want);
+    while (it.hasNext()) {
+      var f = it.next();
+      if (f.isTrashed() || f.getMimeType() !== MimeType.GOOGLE_SHEETS || f.getDateCreated() < since) continue;
+      setMonthSs_(ym, f.getId());
+      if (ym > curYm) PropertiesService.getScriptProperties().setProperty('CURRENT_SS_ID', f.getId());
+      return SpreadsheetApp.openById(f.getId());
+    }
+  } catch (e) {}
+  if (!create || ym <= curYm) return cur; // 古い月で見つからない／作らない指定＝従来どおり今のSS
+  var ss = SpreadsheetApp.create(want);
+  if (folder) { try { DriveApp.getFileById(ss.getId()).moveTo(folder); } catch (e) {} }
+  setMonthSs_(ym, ss.getId());
+  PropertiesService.getScriptProperties().setProperty('CURRENT_SS_ID', ss.getId());
+  Logger.log('月替わり自動作成: ' + want + ' ' + ss.getUrl());
+  return ss;
+}
+// 削除の探索先：今のSS＋今月・前月のSS（月をまたいで前月の売上を消しても残らない）
+function ssListForDelete_() {
+  var out = [], seen = {};
+  function add(ss) { if (ss && !seen[ss.getId()]) { seen[ss.getId()] = 1; out.push(ss); } }
+  add(getTargetSS());
+  var map = monthSsMap_(), now = nowYm_();
+  var y = Number(now.split('-')[0]), m = Number(now.split('-')[1]) - 1; if (m < 1) { m = 12; y -= 1; }
+  [now, ymOf_(y, m)].forEach(function (k) { if (map[k]) { try { add(SpreadsheetApp.openById(map[k])); } catch (e) {} } });
+  return out;
+}
+
 // 列構成 A(1)〜P(16):
 // A:日時, B:売上合計, C:商品名, D:カテゴリ, E:数量, F:単価, G:小計,
 // H:人数, I:割引, J:支払方法, K:年齢層, L:国籍, M:天気, N:メモ, O:売上ID, P:端末名
@@ -101,7 +168,8 @@ function writeSyncStatus(ss, msg) {
 function getCarryOverTotal(dateStr) {
   var total = 0;
   try {
-    var ss = getTargetSS();
+    var _cm = parseInt(String(dateStr).split('/')[0], 10);
+    var ss = _cm ? ssForMonth_(ymFromMonth_(_cm), false) : getTargetSS(); // その日付の月のSS（月初に前月末の繰越も引ける）
     var sheet = ss.getSheetByName(dateStr + '売上');
     if (sheet) {
       var lastRow = sheet.getLastRow();
@@ -142,7 +210,8 @@ function handleRequest(data) {
       var bRows = bSales[i];
       if (!bRows || !bRows.length) continue;
       var bId = String(bRows[0][14]);
-      if (bId) { for (var j = 0; j < sheets.length; j++) deleteRowsFromSheet(sheets[j], bId); }
+      var bSheets = ssForMonth_(ymFromRows_(bRows), true).getSheets(); // その売上の月のSS
+      if (bId) { for (var j = 0; j < bSheets.length; j++) deleteRowsFromSheet(bSheets[j], bId); }
     }
     writeSyncStatus(ss, '🔄 ' + dateLabel + ' 書込中...');
     for (var i = 0; i < bSales.length; i++) { if (bSales[i] && bSales[i].length) addRows(bSales[i]); }
@@ -161,6 +230,7 @@ function handleRequest(data) {
     var sw = { switched: false };
     if (data.ss_id) {
       PropertiesService.getScriptProperties().setProperty('CURRENT_SS_ID', data.ss_id);
+      try { var _swMo = monthOfSsName_(SpreadsheetApp.openById(data.ss_id).getName()); setMonthSs_(_swMo ? ymFromMonth_(_swMo) : nowYm_(), data.ss_id); } catch (e) {}
       sw.switched = true; sw.ss_id = data.ss_id;
     }
     if (data.manual_ss_id) {
@@ -201,7 +271,7 @@ function addRowsWithCheck(rows) {
   if (!rows || !rows.length) return;
   var saleId = String(rows[0][14] || '');
   if (!saleId || saleId === 'undefined') { addRows(rows); return; }
-  var ss = getTargetSS();
+  var ss = ssForMonth_(ymFromRows_(rows), true);
   var sheet = findDailySheet(ss, mmddFromRows(rows));
   if (sheet) {
     var lastRow = sheet.getLastRow();
@@ -418,7 +488,7 @@ function setupCashInputRow(sheet) {
 
 function addRows(rows) {
   if (!rows || !rows.length) return;
-  var ss = getTargetSS();
+  var ss = ssForMonth_(ymFromRows_(rows), true); // その売上の月のSS（無ければ自動作成＝月替わり自動切替）
   var mmdd = mmddFromRows(rows);
   var want = dailySheetName(mmdd);
   var sheet = findDailySheet(ss, mmdd);
@@ -449,7 +519,7 @@ function replaceRows(saleId, rows) {
   var lock = LockService.getScriptLock();
   try { lock.waitLock(15000); } catch(e) {}
   try {
-    var ss = getTargetSS();
+    var ss = (rows && rows.length) ? ssForMonth_(ymFromRows_(rows), true) : getTargetSS();
     if (rows && rows.length) {
       var sheet = findDailySheet(ss, mmddFromRows(rows));
       if (sheet) deleteRowsFromSheet(sheet, saleId);
@@ -465,10 +535,10 @@ function replaceRows(saleId, rows) {
 
 function deleteRows(saleId) {
   if (!saleId) return;
-  var ss = getTargetSS();
-  var sheets = ss.getSheets();
-  for (var i = 0; i < sheets.length; i++) {
-    deleteRowsFromSheet(sheets[i], saleId);
+  var list = ssListForDelete_();
+  for (var s = 0; s < list.length; s++) {
+    var sheets = list[s].getSheets();
+    for (var i = 0; i < sheets.length; i++) deleteRowsFromSheet(sheets[i], saleId);
   }
 }
 
@@ -1033,7 +1103,7 @@ function fillBlankTxIds(data, co, sheetName){
 // ssOverride を渡すとそのSSを対象にする（メニュー実行時は「今開いているSS」を渡す）
 // 省略時は CURRENT_SS_ID（アプリ・自動タイマーからの実行用）
 function createMonthlySummary(year, month, ssOverride) {
-  var ss = ssOverride || getTargetSS();
+  var ss = ssOverride || ssForMonth_(ymOf_(year, month), false); // その月のSS（11月に10月分を集計しても10月SSを見る）
   var sheets = ss.getSheets();
 
   var monthSheets=[];
