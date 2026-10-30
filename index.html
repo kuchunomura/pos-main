@@ -1166,8 +1166,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 614;
-const APP_BUILD_DATE = '2026/10/26 16:26';
+const APP_VERSION = 615;
+const APP_BUILD_DATE = '2026/10/30 09:29';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1349,6 +1349,7 @@ const DEFAULT_ITEMS = [
   {id:'i_u10', name:'スウェーデントーチ',   price:1000, cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_u11', name:'着火剤セット',         price:300,  cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_u12', name:'ドリンク2杯目',        price:200,  cat:'cat_unmanned', stock:0, free_mura:false},
+  {id:'i_u13', name:'アルミプレート',       price:500,  cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_kinbako', name:'料金箱回収',          price:0,    cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_s01', name:'マッチ',               price:100,  cat:'cat_shoumouhin',stock:0, free_mura:false},
   {id:'i_s03', name:'ライター',             price:400,  cat:'cat_shoumouhin',stock:0, free_mura:false},
@@ -1479,6 +1480,28 @@ let items = ld(KEYS.items) || DEFAULT_ITEMS;
   sv(KEYS.items,items);
   var _io=ld(KEYS.itemOrder);
   if(_io){ var _io2=_io.filter(function(id){return !del[id];}); if(_io2.length!==_io.length) sv(KEYS.itemOrder,_io2); }
+  localStorage.setItem(FLAG,'1');
+})();
+// 商品追加マイグレーション（2026/10/30）：アルミプレート¥500を無人販売に追加。グッズのアルミプレート(i_g15)も無ければ戻す。
+(function(){
+  var FLAG='pos_items_20261030';
+  if(localStorage.getItem(FLAG)) return;
+  var _io=ld(KEYS.itemOrder);
+  function addTo(it,afterId){
+    if(items.find(function(x){return x.id===it.id;})) return;
+    var _i=-1; for(var k=items.length-1;k>=0;k--){ if(items[k].cat===it.cat){_i=k;break;} }
+    var _a=afterId?items.findIndex(function(x){return x.id===afterId;}):-1; if(_a>=0) _i=_a;
+    if(_i>=0) items.splice(_i+1,0,it); else items.push(it);
+    if(_io && _io.indexOf(it.id)<0){
+      var _o=afterId?_io.indexOf(afterId):-1;
+      if(_o<0){ for(var k2=_io.length-1;k2>=0;k2--){ var _x=items.find(function(x){return x.id===_io[k2];}); if(_x&&_x.cat===it.cat){_o=k2;break;} } }
+      if(_o>=0) _io.splice(_o+1,0,it.id); else _io.push(it.id);
+    }
+  }
+  addTo({id:'i_g15',name:'アルミプレート',price:500,cat:'cat_goods',stock:0,free_mura:false},'i_g13');
+  addTo({id:'i_u13',name:'アルミプレート',price:500,cat:'cat_unmanned',stock:0,free_mura:false},'i_u12');
+  sv(KEYS.items,items);
+  if(_io) sv(KEYS.itemOrder,_io);
   localStorage.setItem(FLAG,'1');
 })();
 let sales = ld(KEYS.sales) || [];
