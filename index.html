@@ -299,6 +299,7 @@ details.settings-section[open] > summary{margin-bottom:10px;}
         </div>
         <button onclick="openCheckoutSummary()" id="checkout-btn"
           style="display:none;width:100%;box-sizing:border-box;margin:0 0 8px;padding:7px 14px;background:#fff;border:2px solid var(--accent2);color:var(--accent2);border-radius:10px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;">大きく表示</button>
+        <button id="nopay-btn" onclick="openPayment('nopay')" style="display:none;width:100%;box-sizing:border-box;margin:0 0 8px;padding:12px 10px;background:#1a7a3a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 4px 0 #0f5226;">✅ 支払済み（予約サイト等）で決済</button>
         <div class="pay-btns" id="pay-btns-normal">
           <button class="pay-cash-btn" onclick="openPayment('cash')">💴 現金</button>
           <button class="pay-card-btn" style="flex:1;padding:16px 6px;" onclick="openPayment('card')">💳 カード</button>
@@ -1166,8 +1167,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 615;
-const APP_BUILD_DATE = '2026/10/30 09:29';
+const APP_VERSION = 616;
+const APP_BUILD_DATE = '2026/10/31 10:48';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2686,6 +2687,16 @@ function updateResBanner(){
   }else{ rb.style.display='none'; rb.innerHTML=''; if(h3) h3.style.display=''; }
 }
 
+// カートが「その場で支払いの無い商品」だけか（楽天・じゃらん等のOTA支払済／後日請求書払い／SOU／年間パス支払済／奈良県職員券）。
+// 1つでも対象外の商品があれば false＝専用の決済ボタンを出さない（現金・カード等のボタンはいつでも使える）。
+function isNoPayCart(){
+  if(!cart.length) return false;
+  if(cart.reduce(function(s,i){return s+i.price*i.qty;},0)!==0) return false;
+  return cart.every(function(i){
+    if(i.id===NARA_ITEM_ID || i.naraOn) return true;
+    return i.price===0 && !!(i.otaKey || i.passKey || i.paidLabel);
+  });
+}
 function renderCart(){
   const c=document.getElementById('cart-list');c.innerHTML='';
   updateResBanner();
@@ -2695,6 +2706,7 @@ function renderCart(){
     document.getElementById('total-amount').textContent='¥0';
     document.getElementById('orig-amount-row').style.display='none';
     var cb=document.getElementById('checkout-btn');if(cb)cb.style.display='none';
+    var npb=document.getElementById('nopay-btn');if(npb)npb.style.display='none';
     return;
   }
   const hasDiscount=cart.some(i=>i.discounted);
@@ -2758,6 +2770,7 @@ function renderCart(){
   else origRow.style.display='none';
   var cb=document.getElementById('checkout-btn');
   if(cb) cb.style.display=invoiceMode?'none':'';
+  var npb=document.getElementById('nopay-btn');if(npb)npb.style.display=(!invoiceMode&&isNoPayCart())?'':'none';
   renderHoldTabs();
 }
 
@@ -3770,7 +3783,8 @@ function openPayment(method){
   const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
   // ポイント適用後に商品を減らすと合計がマイナスになりうる
   if(total<0){showToast('⚠ ポイントが合計を超えています。🎫ポイント決済で金額を直してください','#c00');return;}
-  const labels={cash:'現金で決済',card:'カードで決済',other:'電子決済'};
+  if(method==='nopay' && !isNoPayCart()){showToast('⚠ その場で支払いが必要な商品が入っています。現金・カード等で決済してください','#c00');return;}
+  const labels={cash:'現金で決済',card:'カードで決済',other:'電子決済',nopay:'支払済み（予約サイト等）で決済'};
   document.getElementById('payment-modal-title').textContent=labels[method]||method;
   var cb=document.getElementById('payment-confirm-btn');
   if(cb) cb.textContent=method==='cash'?'決済完了':'決済完了へ';
@@ -4274,7 +4288,7 @@ function renderStatsCards(filtered){
   if(!filtered.length){statsEl.innerHTML='';return;}
   const payMap={},payCount={},itemMap={},discMap={}; let pointTotal=0; var walkPeople=0;
   filtered.forEach(r=>{
-    const k={cash:'現金',card:'カード',other:'電子決済'}[r.method]||r.method;
+    const k={cash:'現金',card:'カード',other:'電子決済',nopay:'支払なし'}[r.method]||r.method;
     payMap[k]=(payMap[k]||0)+r.total; payCount[k]=(payCount[k]||0)+(r.refund?0:1); // 金額＋件数（レジ締め用・返品は件数に数えない）
     var _naraRef=sumNaraInfo(r); // この売上の奈良県職員券の枚数(n)とマイナス金額(amt)＝1DAY内訳の振り分けに使う
     r.items.forEach(i=>{
@@ -4354,7 +4368,7 @@ function renderStatsCards(filtered){
   var _cash=payMap['現金']||0,_card=payMap['カード']||0,_elec=payMap['電子決済']||0,_ce=_card+_elec;
   var _cashN=payCount['現金']||0,_cardN=payCount['カード']||0,_elecN=payCount['電子決済']||0;
   // 現金返金があった日は「現金 ¥3,500（現金売上¥6,000 −返金¥2,500）」と内訳を併記＝レジ締めの現金売上と数字がつながるように。
-  var _cashRefundForPay=0; filtered.forEach(function(r){ if(r.refund&&r.total<0){ var _mk2={cash:'現金',card:'カード',other:'電子決済'}[r.method]||r.method; if(_mk2==='現金') _cashRefundForPay+=(-r.total); } });
+  var _cashRefundForPay=0; filtered.forEach(function(r){ if(r.refund&&r.total<0){ var _mk2={cash:'現金',card:'カード',other:'電子決済',nopay:'支払なし'}[r.method]||r.method; if(_mk2==='現金') _cashRefundForPay+=(-r.total); } });
   var _cashGrossForPay=_cash+_cashRefundForPay;
   var payRow=function(k,amt,cnt,big){var cn=(cnt!=null&&cnt!=='')?'<span style="font-weight:400;color:#111;font-size:12px;margin-left:8px">'+cnt+'件</span>':'';return '<div style="display:grid;grid-template-columns:150px auto;column-gap:8px;align-items:baseline;font-size:14px;padding:4px 0;border-bottom:1px solid #f5f5f5;"><span style="color:#111;font-weight:600">'+k+'</span><span style="font-weight:700;color:#111">'+amt+cn+'</span></div>';};
   var payHtml='';
@@ -4384,7 +4398,7 @@ function renderStatsCards(filtered){
   _cashHasRefund=filtered.some(function(r){return r.refund;}); // この期間に返金取引があるか（返金注意書きの出し分け）
   _cashMatchedFired=false; // 再描画のたびにクラッカーを再アーム（次に一致したら1回だけ発火）
   var _cashRefundTotal=0; // 現金で返した返金の合計（現金返金のみ・注意書き用）
-  filtered.forEach(function(r){ if(r.refund && r.total<0){ var _mk={cash:'現金',card:'カード',other:'電子決済'}[r.method]||r.method; if(_mk==='現金') _cashRefundTotal+=(-r.total); } });
+  filtered.forEach(function(r){ if(r.refund && r.total<0){ var _mk={cash:'現金',card:'カード',other:'電子決済',nopay:'支払なし'}[r.method]||r.method; if(_mk==='現金') _cashRefundTotal+=(-r.total); } });
   _cashExpectedVal=_cashFloat+_cash; // 正しい現金額＝レジ準備金＋現金の出入り（＝ドロワーにあるべき全額）
   var _shortfall=Math.max(0,_cashFloat-_cashExpectedVal); // 10万に足りない分＝金庫から補填（現金返金が現金売上を上回った日）
   var _bankable=Math.max(0,_cashExpectedVal-_cashFloat);  // 10万を超えた分＝茶封筒へ入れる現金売上
@@ -4480,7 +4494,7 @@ function renderSales(){
     var WALK_CAT='cat_walk';
     var walkPeople=0; // 空中ウォーク全体の人数（共通ヘルパー sumIsPeopleItem/sumPeopleOf/sumDiscBucket/sumTally を使用）
     filtered.forEach(r=>{
-      const pm={cash:'現金',card:'カード',other:'電子決済'}[r.method]||r.method||'不明';
+      const pm={cash:'現金',card:'カード',other:'電子決済',nopay:'支払なし'}[r.method]||r.method||'不明';
       payMapS[pm]=(payMapS[pm]||0)+r.total; payCountS[pm]=(payCountS[pm]||0)+(r.refund?0:1); // 金額＋件数（返品は件数に数えない）
       var _naraRefS=sumNaraInfo(r); // この売上の奈良県職員券の枚数(n)とマイナス金額(amt)
       r.items.forEach(i=>{
@@ -4591,7 +4605,7 @@ function renderSales(){
     if(r.nextDay) tr.style.background='#fffbf0';
     const itemStr=r.items.map(function(i){var t=i.name+(i.qty>1?'×'+i.qty:'');return (SUMMARY_FAC_CATS.indexOf(i.cat||'')!==-1)?'<span style="font-size:14px;font-weight:700;">'+t+'</span>':t;}).join('、'); // 施設系(空中ウォーク/宿泊等)は大きく表示
     const courseEnds=saleCourseEnds(r);
-    const methodLabel={cash:'現金',card:'カード',other:'電子'}[r.method]||r.method;
+    const methodLabel={cash:'現金',card:'カード',other:'電子',nopay:'支払なし'}[r.method]||r.method;
     const discLabel=saleDiscLabel(r,'宿泊者','');
     const attrParts=[];
     if(r.attrs){Object.keys(r.attrs).forEach(function(k){const v=r.attrs[k];if(Array.isArray(v)&&v.length)attrParts.push(v.join('・'));else if(v)attrParts.push(v);});}
@@ -4620,7 +4634,7 @@ let currentDetailSaleId = null;
 function openSaleDetail(id){
   const r = sales.find(s=>s.id===id); if(!r) return;
   currentDetailSaleId = id;
-  const methodLabel={cash:'現金',card:'クレジットカード',other:'電子決済'}[r.method]||r.method;
+  const methodLabel={cash:'現金',card:'クレジットカード',other:'電子決済',nopay:'支払なし'}[r.method]||r.method;
   const discLabel=saleDiscLabel(r,'宿泊者割引','なし');
   const itemRows=r.items.map(i=>
     '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px;">'+
@@ -4667,7 +4681,7 @@ function deleteSaleFromDetail(){
   if(!currentDetailSaleId) return;
   const r = sales.find(s=>s.id===currentDetailSaleId);
   if(!r) return;
-  const methodLabel={cash:'現金',card:'カード',other:'電子'}[r.method]||r.method;
+  const methodLabel={cash:'現金',card:'カード',other:'電子',nopay:'支払なし'}[r.method]||r.method;
   const itemStr = r.items.slice(0,3).map(i=>i.name+(i.qty>1?'×'+i.qty:'')).join('、')+(r.items.length>3?'…':'');
   if(!confirm('この売上を削除しますか？\n\n' + dtToDisplay(r.datetime) + '\n' + itemStr + '\n¥' + r.total.toLocaleString() + '（' + methodLabel + '）\n\n※この操作は取り消せません')) return;
   const deletedId=currentDetailSaleId;
@@ -4832,7 +4846,7 @@ function saleToRows(sale){
   var FACILITY_CATS=['cat_walk','cat_tree_day','cat_bbq','cat_stay_tree','cat_stay_dome','cat_stay_tent','cat_stay_hm'];
   var discountItems2=ld(KEYS.discounts)||discountItems;
   function labelFor(key){ return key?(((discountItems2.find(function(d){return d.key===key;}))||{}).label||key):''; }
-  var method={cash:'現金',card:'クレジットカード',other:'電子決済'}[sale.method]||sale.method||'';
+  var method={cash:'現金',card:'クレジットカード',other:'電子決済',nopay:'支払なし'}[sale.method]||sale.method||'';
   var attrs=sale.attrs||{};
   var ages=Array.isArray(attrs.age)?attrs.age:(attrs.age?[attrs.age]:[]);
   var nats=Array.isArray(attrs.nationality)?attrs.nationality:(attrs.nationality?[attrs.nationality]:[]);
@@ -5043,7 +5057,7 @@ function rowsToSales(rows){
     if(!groups[id]){groups[id]=[];order.push(id);}
     groups[id].push(r);
   }
-  var mRev={'現金':'cash','クレジットカード':'card','電子決済':'other'};
+  var mRev={'現金':'cash','クレジットカード':'card','電子決済':'other','支払なし':'nopay'};
   var result=[];
   for(var j=0;j<order.length;j++){
     var id=order[j],rList=groups[id],first=rList[0];
@@ -6380,7 +6394,7 @@ currentDetailSaleId=null;
 function openSaleDetail(saleId){
   currentDetailSaleId=saleId;
   const r=sales.find(s=>s.id===saleId);if(!r)return;
-  const mLabel={cash:'現金',card:'クレジットカード',other:'電子決済'}[r.method]||r.method||'';
+  const mLabel={cash:'現金',card:'クレジットカード',other:'電子決済',nopay:'支払なし'}[r.method]||r.method||'';
   const discountItems2=ld(KEYS.discounts)||discountItems;
   const discLabel=saleDiscLabel(r,'宿泊者','なし');
   const iRows=(r.items||[]).map(i=>'<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid #f5f5f5;"><span>'+i.name+(i.qty>1?' ×'+i.qty:'')+'</span><span style="font-weight:600;">¥'+(i.price*i.qty).toLocaleString()+'</span></div>').join('');
@@ -6447,7 +6461,7 @@ function saveSaleChanges(){
 function deleteSaleFromDetail(){
   if(!currentDetailSaleId)return;
   const r=sales.find(s=>s.id===currentDetailSaleId);if(!r)return;
-  const ml={cash:'現金',card:'カード',other:'電子'}[r.method]||r.method;
+  const ml={cash:'現金',card:'カード',other:'電子',nopay:'支払なし'}[r.method]||r.method;
   const is=r.items.slice(0,3).map(i=>i.name+(i.qty>1?'×'+i.qty:'')).join('、')+(r.items.length>3?'…':'');
   if(!confirm('この売上を削除しますか？\n\n'+dtToDisplay(r.datetime)+'\n'+is+'\n¥'+r.total.toLocaleString()+'（'+ml+'）\n\n※取り消せません'))return;
   const wasNextDay=!!r.nextDay;
@@ -6530,7 +6544,7 @@ function confirmRefund(){
   if(!picks.length){ showToast('返品する商品と数量を選んでください','#c00'); return; }
   var orig=sales.find(function(s){return s.id===_refundState.saleId;}); if(!orig) return;
   var total=picks.reduce(function(s,l){return s+l.price*l.qty;},0);
-  var mLabel={cash:'現金',card:'カード',other:'電子決済'}[_refundState.method]||_refundState.method;
+  var mLabel={cash:'現金',card:'カード',other:'電子決済',nopay:'支払なし'}[_refundState.method]||_refundState.method;
   if(!confirm('返金内容を確認してください。\n\n'+picks.map(function(l){return '・'+l.name+' ×'+l.qty;}).join('\n')+'\n\n返金合計 −¥'+total.toLocaleString()+'（'+mLabel+'で返金）\n\n元の売上はそのまま残り、これは別の返品取引として記録されます。')) return;
   var items=picks.map(function(l){ var it=Object.assign({},l.item); it.qty=-l.qty; it._refIdx=l.idx; delete it._resId; delete it._resTag; delete it._souTag; return it; });
   var rec={
@@ -6617,7 +6631,7 @@ function setManualRefundMethod(m){
 function confirmManualRefund(){
   var total=manualRefundAmount();
   if(total<=0){ showToast(_manualRefund.mode==='cart'?'返金する商品を選んでください':'返金する金額を入力してください','#c00'); return; }
-  var mLabel={cash:'現金',card:'カード',other:'電子決済'}[_manualRefund.method]||_manualRefund.method;
+  var mLabel={cash:'現金',card:'カード',other:'電子決済',nopay:'支払なし'}[_manualRefund.method]||_manualRefund.method;
   var items;
   if(_manualRefund.mode==='cart'){
     var _sel=_manualRefund.sel||[];
