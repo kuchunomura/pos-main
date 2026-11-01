@@ -1169,8 +1169,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 618;
-const APP_BUILD_DATE = '2026/11/01 10:07';
+const APP_VERSION = 619;
+const APP_BUILD_DATE = '2026/11/01 15:25';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -4128,7 +4128,7 @@ function sumPeopleOf(i){ var m=(i.name||'').match(/[（(](\d+)人[）)]/); retur
 // 物販（人数で数えない商品）の金額の右に「（単価×数量）」を出す。単価が混在する時は「（800円×2＋600円×1）」と単価別に並べる（高い順）。施設系(isPpl)は割引区分の内訳があるので出さない。
 function sumPriceBreak(isPpl,e){ if(isPpl||!e||!e.byPrice) return ''; var ps=Object.keys(e.byPrice).map(Number).sort(function(a,b){return b-a;}); if(!ps.length) return ''; return '<span style="font-size:11px;color:var(--text2);white-space:nowrap;padding-left:6px;">（'+ps.map(function(p){return p.toLocaleString()+'円×'+e.byPrice[p];}).join('＋')+'）</span>'; }
 var SUM_OTA_SHORT={rakuten:'楽天',other1:'楽天体験',jalan:'じゃらん',other2:'アソビュー',sou:'SOU',other3:'外部③',invoice:'後日請求書払い'};
-function sumDiscBucket(i,r){ if(i.otaKey)return SUM_OTA_SHORT[i.otaKey]||'OTA'; if(i.passKey)return '年パス'; if(i.groupOn)return '団体'; if(i.muraOn)return '村民半額'; if(i.freeOn)return '無料'; if(r&&r.discount==='stay_guest')return '宿泊者'; return '通常料金'; }
+function sumDiscBucket(i,r){ if(i.otaKey)return SUM_OTA_SHORT[i.otaKey]||'OTA'; if(i.passKey)return '年パス'; if(i.groupOn)return '団体'; if(i.muraOn)return '村民半額'; if(i.freeOn)return '無料'; if(STAY_GUEST_DISC_IDS.indexOf(i.id)!==-1&&i.origPrice>0&&i.price===i.origPrice-STAY_GUEST_DISC)return '宿泊者'; if(r&&r.discount==='stay_guest')return '宿泊者'; return '通常料金'; }
 var SUM_DB_ORDER=['通常料金','宿泊者','村民半額','団体','年パス','無料','奈良県職員券','楽天','楽天体験','じゃらん','アソビュー','SOU','外部③','OTA'];
 // 奈良県職員券の人数(n)と券のマイナス金額(amt=負値)＝その売上内の「奈良県職員券」マイナス行を集計。過去データもこの方式で正しく数える（naraOnフラグに依存しない）。
 function sumNaraInfo(r){ var n=0,amt=0; ((r&&r.items)||[]).forEach(function(i){ if(i.id===NARA_ITEM_ID||i.name==='奈良県職員券'){ n+=Math.abs(parseInt(i.qty)||0); amt+=(i.price*i.qty)||0; } }); return {n:n,amt:amt}; }
