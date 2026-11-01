@@ -407,7 +407,7 @@ details.settings-section[open] > summary{margin-bottom:10px;}
       <div style="font-size:11px;color:var(--text2);margin-bottom:10px;line-height:1.7;">自動切替がうまくいかない時だけ、記録先にしたいスプレッドシートのURLを貼り付けてください（IDのみでも可）</div>
       <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:4px;">📊 同期先スプレッドシート（売上が入るシート）</div>
       <div id="switch-ss-current" style="background:#f5f5f5;border-radius:6px;padding:6px 10px;font-size:10px;color:#555;word-break:break-all;margin-bottom:6px;"></div>
-      <input type="text" id="switch-ss-input" placeholder="新しく作成したスプレッドシートのURL"
+      <input type="text" id="switch-ss-input" placeholder="記録先にするスプレッドシートのURL（自動で切り替わるので通常は空欄）"
         style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:inherit;box-sizing:border-box;margin-bottom:12px;">
       <div style="font-size:11px;color:#2a6a9a;background:#eef4fb;border-radius:6px;padding:6px 9px;margin-bottom:10px;line-height:1.6;">🔁 上のSSに切り替えると、<b>testアプリも自動で同じSSに同期</b>されます（予備レジ用）。</div>
       <div id="switch-peer-gas-wrap" style="display:none;margin-bottom:12px;">
@@ -416,6 +416,7 @@ details.settings-section[open] > summary{margin-bottom:10px;}
           style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:inherit;box-sizing:border-box;">
       </div>
       <div style="font-size:12px;font-weight:700;color:#7a5500;margin-bottom:4px;">📋 手動集計シート（リンク先URL）</div>
+<div style="font-size:10px;color:#7a5500;margin-bottom:4px;line-height:1.5;">手動集計は毎月コピーで新しいファイルになるので、コピーしたらここに新しいURLを貼る（「🔗 手動集計シート リンク」の行き先が変わります）</div>
       <div id="switch-manual-current" style="background:#f5f5f5;border-radius:6px;padding:6px 10px;font-size:10px;color:#555;word-break:break-all;margin-bottom:6px;"></div>
       <input type="text" id="switch-manual-input" placeholder="URLまたはIDを貼り付け（変更しない場合は空欄）"
         style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:inherit;box-sizing:border-box;margin-bottom:12px;">
@@ -1168,8 +1169,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 617;
-const APP_BUILD_DATE = '2026/11/01 09:27';
+const APP_VERSION = 618;
+const APP_BUILD_DATE = '2026/11/01 10:07';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
