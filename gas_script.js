@@ -16,7 +16,7 @@ function getTargetSS() {
 // ==================== 月替わりの自動切替（2026/10/26） ====================
 // 売上の日付(M/D)から「何月分か」を判断し、その月のSS（「M月POS main」）へ書き込む。
 // 無ければ今のSSと同じフォルダに自動作成し、同期先(CURRENT_SS_ID)もそこへ切り替える
-// ＝月初の「📂 月初シート切替」が不要（スタッフは何もしなくてよい）。
+// ＝月初の手動シート切替が不要（スタッフは何もしなくてよい。アプリの「📂 シート切替（非常用）」は非常時のみ）。
 // 前月分の再送・修正・削除・前月の月別集計は前月のSSへ向く（手動切替だと切替後は新月SSに入ってしまっていた）。
 // 対応表は ScriptProperties 'MONTH_SS_MAP'（{"2026-10":"SSのID",...}）。
 // main/test の GAS はプロパティが別だが、同じフォルダで名前「M月POS main」を探すので同じSSに収束する。
@@ -851,9 +851,9 @@ function switchSpreadsheetFromDialog(newSsId) {
   PropertiesService.getScriptProperties().setProperty('CURRENT_SS_ID', newSsId);
 }
 
-// 【月初準備】来月分の空スプレッドシートを作成して URL/ID を実行ログに出す（GASエディタで手動実行）。
-// 作るだけで同期先は切り替えない（今月のSSのまま）。月初になったら アプリの「📂 月初シート切替」で
-// この URL を貼れば同期先が来月SSに切り替わる（CURRENT_SS_ID が設定される）。
+// 【非常用】来月分の空スプレッドシートを作成して URL/ID を実行ログに出す（GASエディタで手動実行）。
+// ※2026/10/26から月替わりは ssForMonth_ が自動で作成・切替するので通常は不要。
+// 自動がうまくいかない時に、作ったURLをアプリの「📂 シート切替（非常用）」で貼れば同期先が切り替わる。
 // 日別シートは最初の売上が入った時に自動作成される（事前の準備は不要）。
 function createNextMonthSS() {
   var now = new Date();
@@ -866,7 +866,7 @@ function createMonthSS_(year, month) {
   var name = month + '月POS main'; // 既存の「7月POS main」と同じ形式
   var ss = SpreadsheetApp.create(name);
   var info = '✅ 作成しました\n名前: ' + name + '\nURL: ' + ss.getUrl() + '\nID: ' + ss.getId()
-    + '\n\n※このURLを、月初に アプリの「📂 月初シート切替」で貼れば同期先が切り替わります。';
+    + '\n\n※通常は不要（月替わりは自動）。非常時はこのURLをアプリの「📂 シート切替（非常用）」で貼れば同期先が切り替わります。';
   Logger.log(info);
   return info;
 }

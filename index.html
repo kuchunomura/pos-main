@@ -397,13 +397,14 @@ details.settings-section[open] > summary{margin-bottom:10px;}
         <button onclick="doSync('all')" style="display:block;width:100%;padding:8px 14px;border:none;background:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;">全件</button>
       </div>
     </div>
-    <button class="btn-sm2" onclick="openSwitchSSModal()" style="background:#7a5500;color:#fff;border-color:#7a5500;">📂 月初シート切替</button>
+    <button class="btn-sm2" onclick="openSwitchSSModal()" style="background:#7a5500;color:#fff;border-color:#7a5500;">📂 シート切替（非常用）</button>
   </div>
   <!-- SS切替モーダル -->
   <div class="modal-overlay" id="switch-ss-modal" style="display:none;align-items:center;justify-content:center;">
     <div class="modal" style="max-width:380px;padding:20px;">
-      <h3 style="margin:0 0 12px;">📂 月初シート切り替え</h3>
-      <div style="font-size:11px;color:var(--text2);margin-bottom:10px;line-height:1.7;">新しく作成したスプレッドシートのURLを貼り付けてください（IDのみでも可）</div>
+      <h3 style="margin:0 0 12px;">📂 シート切り替え（非常用）</h3>
+      <div style="font-size:12px;color:#1c5c39;background:#e6f4ea;border-radius:6px;padding:7px 9px;margin-bottom:10px;line-height:1.6;">✅ <b>月初の切り替えは不要です。</b>その月の最初の売上で「○月POS main」が自動で作られ、記録先も自動で切り替わります。</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:10px;line-height:1.7;">自動切替がうまくいかない時だけ、記録先にしたいスプレッドシートのURLを貼り付けてください（IDのみでも可）</div>
       <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:4px;">📊 同期先スプレッドシート（売上が入るシート）</div>
       <div id="switch-ss-current" style="background:#f5f5f5;border-radius:6px;padding:6px 10px;font-size:10px;color:#555;word-break:break-all;margin-bottom:6px;"></div>
       <input type="text" id="switch-ss-input" placeholder="新しく作成したスプレッドシートのURL"
@@ -1167,8 +1168,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 616;
-const APP_BUILD_DATE = '2026/10/31 10:48';
+const APP_VERSION = 617;
+const APP_BUILD_DATE = '2026/11/01 09:27';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。

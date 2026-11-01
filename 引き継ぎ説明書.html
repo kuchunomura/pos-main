@@ -149,7 +149,7 @@ mark.ds-hl.ds-cur{background:#ff9800;color:#000}
 
 <table>
 <thead><tr><th>データ</th><th>スプレッドシート</th><th>備考</th></tr></thead>
-<tbody><tr><td>売上（POSレジ）</td><td>売上スプレッドシート</td><td><strong>毎月新しいSSに切り替える</strong>（第10章）。今の同期先はレジの「設定」タブで確認できる</td></tr>
+<tbody><tr><td>売上（POSレジ）</td><td>売上スプレッドシート</td><td><strong>月ごとに別のSS（「○月POS main」）。月替わりはGASが自動で作成・切替</strong>（第10章）。今の同期先はレジの「設定」タブで確認できる</td></tr>
 <tr><td>集計・報告書</td><td>手動集計スプレッドシート</td><td>報告書・月別集計を作る用。<strong>毎月コピーで新規作成</strong>（第10章）</td></tr>
 <tr><td>予約</td><td>予約スプレッドシート</td><td>予約アプリ(yoyaku)の同期先</td></tr></tbody>
 </table>
@@ -374,7 +374,7 @@ git push   … GitHubにアップロードする
 
 <blockquote><p><strong>保存だけでは反映されません。</strong> ウェブアプリ（レジが通信する側）のGASは、必ず<strong>「新しいバージョン」で再デプロイ</strong>して初めて反映される。どの <code>gas_script.js</code> を貼るかは Claude がフルパスで示すので、その通りに。</p></blockquote>
 
-<blockquote><p><strong>GASのURL（住所）は再デプロイしても変わりません。</strong> だからレジ側の設定を変える必要はない（月初のSS切替も、URLは不変＝第10章）。</p></blockquote>
+<blockquote><p><strong>GASのURL（住所）は再デプロイしても変わりません。</strong> だからレジ側の設定を変える必要はない（月ごとのSSの切替もGASの中で自動＝第10章）。</p></blockquote>
 
 <h3 id="初回だけ出る警告安全進めてok">初回だけ出る警告（安全・進めてOK）</h3>
 
@@ -397,21 +397,19 @@ GAS WebアプリURL は、設定タブ →スプレッドシート連携 に入�
 
 <h2 id="10-毎月やること定期メンテナンス">10. 毎月やること（定期メンテナンス）</h2>
 
-<p>毎月はじめに、売上の記録先を「その月のスプレッドシート」に切り替えます。<strong>POS（本番売上）</strong>と<strong>手動集計（報告書用）</strong>の2つがあります。</p>
+<p>売上の記録先は「その月のスプレッドシート」です。<strong>POS（本番売上）は自動</strong>、<strong>手動集計（報告書用）は手作業</strong>です。</p>
 
-<h3 id="a-pos-main-を新しい月のssに切り替える">A. POS main を新しい月のSSに切り替える</h3>
+<h3 id="a-pos-main-のss自動何もしなくてよい">A. POS main のSS（自動・何もしなくてよい）</h3>
 
-<p><strong>その月の最初の売上を打つ前に</strong>行う（前月分が前月SSに残るように）。</p>
+<p>2026/10/26 のGAS修正から、<strong>月替わりは自動</strong>です（月初の作業は不要）。</p>
 
-<ol><li>新しい月の空スプレッドシートを用意する</li></ol>
+<ul><li>レジから売上が届くと、GASが<strong>売上の日付の月</strong>を見て、その月のSS（<strong>「○月POS main」</strong>）に書き込む。</li><li>その月のSSがまだ無ければ、<strong>今のSSと同じフォルダに自動で作成</strong>し、同期先（<code>CURRENT_SS_ID</code>）も切り替える。日別シートは売上受信時に自動で作られる。</li><li>前の月の売上をあとから再送・削除・月別集計した場合は、<strong>前の月のSS</strong>が使われる。</li><li><strong>pos test も同じSSに書き込む</strong>（GASは別だが、同じ名前のSSを探して合流する）。</li><li>月とSSの対応表はGASのスクリプトプロパティ <code>MONTH_SS_MAP</code> に記録される。</li></ul>
 
-<ul><li>Claude に「来月のPOS mainのSSを作って」と頼むとGASの <code>createNextMonthSS()</code> を実行して作れる（空でOK＝売上受信時に日別シートが自動生成される）。会社アカウントで作ること。</li><li>タイトルの慣習は <strong>「○月POS main」</strong>（test系は「○月POS test」）。</li></ul>
+<p>注意：</p>
 
-<ol><li><strong>pos main のレジアプリ</strong>を開く → <strong>「📂 月初シート切替」</strong> を押す</li><li>「📊 同期先シート（GAS）」欄に新SSのURL（IDだけでも可）を貼る → <strong>「切り替える」</strong> → 「同期先 ✅」で完了</li><li>「📋 手動集計シート」欄は空欄でOK</li></ol>
+<ul><li><strong>SSの名前「○月POS main」は変えない</strong>（名前で月を判定している）。去年の同名SSは作成日で区別するので拾わない。</li><li>自動作成にはGoogleドライブの権限が要る。GASを貼り替えて再デプロイした時に権限の承認が出たら、第9章の手順で許可する。</li><li>確認方法：GASのURLの末尾に <code>?d={"type":"get_current_ss"}</code> を付けて開くと、今の同期先と <code>gasver</code>（GASの版）が表示される。</li></ul>
 
-<p>ポイント：</p>
-
-<ul><li><strong>pos test は何もしなくてよい</strong>（同じSSへ受け身で同期する予備レジ）。</li><li><strong>GASのURL・再デプロイは不要</strong>。切り替わるのは書き込み先SSだけ。</li><li>切替は必ず<strong>その月最初の売上の前</strong>に。</li></ul>
+<p><strong>非常用（自動がうまくいかない時だけ）</strong>：レジの売上タブ <strong>「📂 シート切替（非常用）」</strong> → 「同期先シート」欄にSSのURL（IDだけでも可）を貼る → <strong>「切り替える」</strong>。手動で切り替えたSSは、その月の記録先として自動より優先される。空のSSはGASエディタで <code>createNextMonthSS()</code> を実行しても作れる。</p>
 
 <h3 id="b-手動集計ss報告書用の新しい月を作る">B. 手動集計SS（報告書用）の新しい月を作る</h3>
 
