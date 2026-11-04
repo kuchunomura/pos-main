@@ -1169,8 +1169,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 620;
-const APP_BUILD_DATE = '2026/11/01 15:28';
+const APP_VERSION = 621;
+const APP_BUILD_DATE = '2026/11/04 10:53';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1178,12 +1178,12 @@ const APP_BUILD_DATE = '2026/11/01 15:28';
 const DEFAULT_GAS_URL='https://script.google.com/macros/s/AKfycbzMahRK70C95QoSyH5S5pAsNIYT2jEvsW_uHxuXzR2-MSkG55EoR_rqS8ze0IdeXDQE/exec';
 const GAS_URL_TEST='https://script.google.com/macros/s/AKfycbys-bK-HCuRJxFWNXYSO6w72b9qsGbuUjt_4B5GpeitG01GFgBPMXoh8TiagccpUBdBnA/exec';
 const GAS_URL_MAIN='https://script.google.com/macros/s/AKfycbzMahRK70C95QoSyH5S5pAsNIYT2jEvsW_uHxuXzR2-MSkG55EoR_rqS8ze0IdeXDQE/exec';
-const SS_URL_TEST='https://docs.google.com/spreadsheets/d/1_iNytjWzVi6vvd_nSecG_uZJEnzkoL8zynY12UkNrNM/edit?pli=1';
+const SS_URL_TEST='https://docs.google.com/spreadsheets/d/1_iNytjWzVi6vvd_nSecG_uZJEnzkoL8zynY12UkNrNM/edit?authuser=staff.kuchunomura@gmail.com';
 // mainの同期先スプレッドシートID。URLもここから作る（IDを2か所に書かないため）
 const SS_ID_MAIN='1LzF3bDb9-JYJXFwNaqHv5zm5g0vVRKaZBj0sS_9_UI0'; // 7月POS main（2026/07/16 再作成）
 const SS_ID_MAIN_DEAD='1WopPkAIZJSLjc9kr7C5hKvWCPYN7CYmOiXOvko0Q4iI'; // 2026/07/16に消えた旧SS。端末に残る古い値の掃除用
-const SS_URL_MAIN='https://docs.google.com/spreadsheets/d/'+SS_ID_MAIN+'/edit?pli=1';
-const SS_URL_MANUAL='https://docs.google.com/spreadsheets/d/167eC69tlzoFxyhg2AT6BWY3FqwdDnfKxQX1GAIKhkb0/edit?pli=1';
+const SS_URL_MAIN='https://docs.google.com/spreadsheets/d/'+SS_ID_MAIN+'/edit?authuser=staff.kuchunomura@gmail.com';
+const SS_URL_MANUAL='https://docs.google.com/spreadsheets/d/167eC69tlzoFxyhg2AT6BWY3FqwdDnfKxQX1GAIKhkb0/edit?authuser=staff.kuchunomura@gmail.com';
 const KEYS = {items:'pos_items',sales:'pos_sales',gas:'pos_gas',cats:'pos_cats',itemOrder:'pos_item_order',catOrder:'pos_cat_order',sites:'pos_sites',discounts:'pos_discounts',attrs:'pos_attrs',holds:'pos_holds',deviceId:'pos_device_id'};
 // デバイスID自動生成（初回のみ）
 (function(){var d=localStorage.getItem('pos_device_id');if(!d){d=Math.random().toString(36).slice(2,6).toUpperCase();localStorage.setItem('pos_device_id',d);}})();
@@ -5469,11 +5469,11 @@ function extractSSId(str){
 }
 function getManualSSUrl(){
   var stored=localStorage.getItem('pos_manual_ss_id');
-  return 'https://docs.google.com/spreadsheets/d/'+(stored||'167eC69tlzoFxyhg2AT6BWY3FqwdDnfKxQX1GAIKhkb0')+'/edit?pli=1';
+  return 'https://docs.google.com/spreadsheets/d/'+(stored||'167eC69tlzoFxyhg2AT6BWY3FqwdDnfKxQX1GAIKhkb0')+'/edit?authuser=staff.kuchunomura@gmail.com';
 }
 function getCurrentSSUrl(){
   var stored=localStorage.getItem('pos_current_ss_id_main');
-  return 'https://docs.google.com/spreadsheets/d/'+(stored||SS_ID_MAIN)+'/edit?pli=1';
+  return 'https://docs.google.com/spreadsheets/d/'+(stored||SS_ID_MAIN)+'/edit?authuser=staff.kuchunomura@gmail.com';
 }
 // 消えた旧SSのIDが端末に残っていたら新しいIDへ差し替える（2026/07/16のドライブ削除対応）。
 // 「無い時だけ既定を入れる」だけでは、既に古いIDが入っている端末が古いままリンク切れになる。
