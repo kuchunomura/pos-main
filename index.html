@@ -1181,8 +1181,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 628;
-const APP_BUILD_DATE = '2026/11/05 13:05';
+const APP_VERSION = 629;
+const APP_BUILD_DATE = '2026/11/05 13:20';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -4293,7 +4293,7 @@ function updateFunModeBtn(){ var btn=document.getElementById('fun-mode-btn'); if
 function payCelebrate(){
   var fun=getFunMode(); if(fun==='off') return;
   var MAX=(fun==='max');
-  if(MAX && Math.random()<0.50) return;   // MAXでもフル演出が出るのは決済の50%（残り半分は演出なし）
+  if(MAX){ var _r=Math.random(); if(_r>=0.95) return; MAX=(_r<0.35); }   // MAX: 35%フル / 60%通常(中相当) / 5%演出なし
   popConfetti(); setTimeout(popConfetti,300); setTimeout(popConfetti,620);   // 通常クラッカー3連発
   if(MAX||Math.random()<0.40){
     setTimeout(popKusudama,500);
