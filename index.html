@@ -1186,8 +1186,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 625;
-const APP_BUILD_DATE = '2026/11/05 11:27';
+const APP_VERSION = 626;
+const APP_BUILD_DATE = '2026/11/05 12:05';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -4269,7 +4269,7 @@ function popKoban(){
 function getFunMode(){ var m=ld('pos_fun_mode'); return (m==='off'||m==='max')?m:'mid'; }
 function funModeLabel(m){ return m==='off'?'無し':(m==='max'?'MAX':'中'); }
 function cycleFunMode(){ var nx={off:'mid',mid:'max',max:'off'}[getFunMode()]; sv('pos_fun_mode',nx); updateFunModeBtn(); if(nx!=='off') payCelebrate(); }
-function updateFunModeBtn(){ var btn=document.getElementById('fun-mode-btn'); if(!btn) return; var m=getFunMode(); btn.textContent='🎉 楽しい：'+funModeLabel(m); var on=(m!=='off'); btn.style.background=m==='max'?'#ffd34d':(on?'#cfe8b0':'#e4e4e4'); btn.style.color=on?'#5a4600':'#999'; btn.style.borderColor=m==='max'?'#e0b000':(on?'#9fc472':'#ccc'); }
+function updateFunModeBtn(){ var btn=document.getElementById('fun-mode-btn'); if(!btn) return; var m=getFunMode(); btn.textContent=(m==='max'?'🎊':'🎉'); btn.title='楽しいモード：'+funModeLabel(m); var on=(m!=='off'); btn.style.background=m==='max'?'#ffd34d':(on?'#cfe8b0':'#e4e4e4'); btn.style.opacity=on?'1':'0.4'; btn.style.filter=on?'none':'grayscale(1)'; btn.style.borderColor=m==='max'?'#e0b000':(on?'#9fc472':'#ccc'); }
 // 決済完了の演出一式（楽しいモードに従う）
 function payCelebrate(){
   var fun=getFunMode(); if(fun==='off') return;
@@ -4282,7 +4282,7 @@ function payCelebrate(){
       if(MAX||Math.random()<0.50){ setTimeout(popSakura,800); setTimeout(popConfetti,1500); setTimeout(popConfetti,1900); }
     }
   } else if(Math.random()<0.50){ setTimeout(popSakura,400); }
-  var kobP=MAX?1:((Date.now()<_kobanBoostUntil)?0.70:0.20);
+  var kobP=MAX?1:((Date.now()<_kobanBoostUntil)?0.80:0.20);
   if(Math.random()<kobP){ setTimeout(popKoban,350); }
 }
 // レジが合った瞬間の演出：クラッカー2回。（くす玉＋横断幕は一旦停止・CSSは残置＝復活しやすいように）
@@ -5771,7 +5771,7 @@ function initVersionInfo(){
     b.style.display='flex'; b.style.alignItems='center'; b.style.justifyContent='space-between'; b.style.paddingRight='14px';
     b.innerHTML='<div><div style="font-size:12px;color:var(--accent);font-weight:700;">POSレジ ver.'+APP_VERSION+'</div>'
       +'<div style="font-size:11px;color:var(--text2);margin-top:2px;">更新: '+APP_BUILD_DATE+' &nbsp;|&nbsp; <span style="color:'+typeColor+';font-weight:600;">'+typeLabel+'</span></div></div>'
-      +'<button id="fun-mode-btn" onclick="cycleFunMode()" style="flex:0 0 auto;margin-left:10px;padding:8px 12px;border:2px solid #9fc472;border-radius:10px;background:#cfe8b0;color:#5a4600;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;"></button>';
+      +'<button id="fun-mode-btn" onclick="cycleFunMode()" style="flex:0 0 auto;margin-left:10px;width:48px;height:44px;padding:0;border:2px solid #9fc472;border-radius:10px;background:#cfe8b0;font-size:24px;line-height:1;font-family:inherit;cursor:pointer;"></button>';
     updateFunModeBtn();
   }
   var tv=document.getElementById('tabbar-version');
