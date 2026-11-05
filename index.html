@@ -1181,8 +1181,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 630;
-const APP_BUILD_DATE = '2026/11/05 13:40';
+const APP_VERSION = 631;
+const APP_BUILD_DATE = '2026/11/05 14:05';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -4191,7 +4191,7 @@ function popKusudama(){
   dama.appendChild(l); dama.appendChild(r); layer.appendChild(dama);
   var banner=document.createElement('div'); banner.className='cele-banner'; banner.textContent='🎉 おめでとう 🎉'; layer.appendChild(banner);
   document.body.appendChild(layer);
-  setTimeout(function(){ if(layer.parentNode) layer.parentNode.removeChild(layer); },3400);
+  setTimeout(function(){ if(layer.parentNode) layer.parentNode.removeChild(layer); },2800);
 }
 // 打ち上げ花火：画面上部で数発の球状バースト（外部依存なし）
 function popFireworks(){
@@ -4216,27 +4216,28 @@ function popFireworks(){
     }
     setTimeout(function(){ for(var j=0;j<made.length;j++){ if(made[j].parentNode) made[j].parentNode.removeChild(made[j]); } },1400);
   }
-  // 小判が積もった後(約4.4秒)も含め、約9秒間ずっと打ち上げ続ける（都度クリーンアップで軽量）
-  var start=Date.now(), END=9000;
+  // 約3秒だけ打ち上げる（画面タップで即消える）。層が消えたらループ停止＝軽量
+  var start=Date.now(), END=1600;
   function loop(){
+    if(!layer.parentNode) return;
     burst(8+Math.random()*84, 12+Math.random()*36);
-    if(Math.random()<0.45) burst(8+Math.random()*84, 12+Math.random()*36);
-    if(Date.now()-start<END) setTimeout(loop, 380+Math.random()*440);
+    if(Math.random()<0.4) burst(8+Math.random()*84, 12+Math.random()*36);
+    if(Date.now()-start<END) setTimeout(loop, 360+Math.random()*380);
   }
   loop();
-  setTimeout(function(){ if(layer.parentNode) layer.parentNode.removeChild(layer); }, END+1800);
+  setTimeout(function(){ if(layer.parentNode) layer.parentNode.removeChild(layer); }, 3000);
 }
 // 桜吹雪：上から花びらがひらひら舞い落ちる（外部依存なし）
 function popSakura(){
   var layer=document.createElement('div'); layer.className='sakura-layer';
   var tints=['#ffb7d5','#ffc9e0','#ff9ec4','#ffd6e7'];
   var H=(window.innerHeight||700)+70;
-  for(var i=0;i<46;i++){
+  for(var i=0;i<38;i++){
     var p=document.createElement('span'); p.className='sakura-petal';
     p.style.left=(Math.random()*100)+'%';
     p.style.background=tints[i%tints.length];
-    p.style.animationDuration=(2.4+Math.random()*1.8)+'s';
-    p.style.animationDelay=(Math.random()*0.8)+'s';
+    p.style.animationDuration=(1.5+Math.random()*1.0)+'s';
+    p.style.animationDelay=(Math.random()*0.35)+'s';
     p.style.setProperty('--sx',((Math.random()*2-1)*120)+'px');
     p.style.setProperty('--sy',H+'px');
     p.style.setProperty('--sr',(360+Math.random()*540)+'deg');
@@ -4244,14 +4245,14 @@ function popSakura(){
     layer.appendChild(p);
   }
   document.body.appendChild(layer);
-  setTimeout(function(){ if(layer.parentNode) layer.parentNode.removeChild(layer); },4800);
+  setTimeout(function(){ if(layer.parentNode) layer.parentNode.removeChild(layer); },2600);
 }
 // 確認用：読み込みから5分間は小判の出現確率を上げる（70%）
 var _kobanBoostUntil=Date.now()+5*60*1000;
 // 小判ザクザク：まず中央に山ができ、そのあと画面を埋め尽くす（タップで解除）
 // 旧タブレットでも固まらないよう、大量のDOMではなくcanvasに小判スプライトを描いて使い回す
 function popKoban(){
-  var layer=document.createElement('div'); layer.className='koban-layer koban-block';
+  var layer=document.createElement('div'); layer.className='koban-layer';
   var W=window.innerWidth||400, H=window.innerHeight||700, cx=W/2;
   var cv=document.createElement('canvas'); cv.width=W; cv.height=H;
   cv.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;';
@@ -4278,44 +4279,46 @@ function popKoban(){
   function addCoin(x,sy,ty,d,du){ coins.push({x:x,sy:sy,ty:ty,d:d,du:du,s:(Math.random()*NROT)|0}); }
   var peakY=H*0.44, baseY=H+10, maxHalf=W*0.44, i,t,y;
   // 第1段：中央に山（下ほど広い三角）
-  for(i=0;i<420;i++){ t=Math.random(); y=peakY+t*(baseY-peakY); addCoin(cx+(Math.random()*2-1)*(maxHalf*t), y-(170+Math.random()*440), y, Math.random()*1.0, 0.55+Math.random()*0.6); }
+  for(i=0;i<420;i++){ t=Math.random(); y=peakY+t*(baseY-peakY); addCoin(cx+(Math.random()*2-1)*(maxHalf*t), y-(170+Math.random()*440), y, Math.random()*0.45, 0.4+Math.random()*0.35); }
   // 第2段：そのあと画面下部を埋め尽くす
   var fillTop=H*0.20;
-  for(i=0;i<1080;i++){ y=fillTop+Math.pow(Math.random(),0.6)*(baseY-fillTop); addCoin(Math.random()*W, y-(170+Math.random()*480), y, 1.4+Math.random()*1.5, 0.55+Math.random()*0.6); }
-  // アニメーション（rAF。約4.4秒で静止して以後は再描画しない）
-  var start=0, END=4.4, raf=0, stopped=false;
-  function frame(now){ if(stopped) return; if(!start) start=now; var tt=(now-start)/1000;
+  for(i=0;i<1080;i++){ y=fillTop+Math.pow(Math.random(),0.6)*(baseY-fillTop); addCoin(Math.random()*W, y-(170+Math.random()*480), y, 0.5+Math.random()*0.6, 0.4+Math.random()*0.3); }
+  // アニメーション（rAF。約1.8秒で静止）。層が消えたら停止＝軽量
+  var start=0, END=2.0, raf=0, stopped=false;
+  function frame(now){ if(stopped) return; if(!layer.parentNode){ stopped=true; return; } if(!start) start=now; var tt=(now-start)/1000;
     ctx.clearRect(0,0,W,H);
     for(var k=0;k<coins.length;k++){ var c=coins[k]; var p=(tt-c.d)/c.du; if(p<=0) continue; if(p>1)p=1; var cy=c.sy+(c.ty-c.sy)*p; ctx.drawImage(sprites[c.s], (c.x-S/2)|0, (cy-S/2)|0); }
     if(tt<END){ raf=requestAnimationFrame(frame); }
   }
   raf=requestAnimationFrame(frame);
-  var hint=document.createElement('div'); hint.className='koban-hint'; hint.textContent='画面をタップで戻る'; layer.appendChild(hint);
-  function dismiss(){ stopped=true; if(raf) cancelAnimationFrame(raf); if(layer.parentNode) layer.parentNode.removeChild(layer); }
-  layer.addEventListener('click',dismiss);
   document.body.appendChild(layer);
-  setTimeout(dismiss,11000);
+  setTimeout(function(){ stopped=true; if(raf) cancelAnimationFrame(raf); if(layer.parentNode) layer.parentNode.removeChild(layer); },2000);
 }
 // 楽しいモード（無し/中/MAX）。中=通常確率、MAX=毎回フル演出、無し=演出なし
 function getFunMode(){ var m=ld('pos_fun_mode'); return (m==='off'||m==='max')?m:'mid'; }
 function funModeLabel(m){ return m==='off'?'無し':(m==='max'?'MAX':'中'); }
 function cycleFunMode(){ var nx={off:'mid',mid:'max',max:'off'}[getFunMode()]; sv('pos_fun_mode',nx); updateFunModeBtn(); }
 function updateFunModeBtn(){ var btn=document.getElementById('fun-mode-btn'); if(!btn) return; var m=getFunMode(); btn.textContent=(m==='max'?'🎊':'🎉'); btn.title='楽しいモード：'+funModeLabel(m); var on=(m!=='off'); btn.style.background=m==='max'?'#ffd34d':(on?'#cfe8b0':'#e4e4e4'); btn.style.opacity=on?'1':'0.4'; btn.style.filter=on?'none':'grayscale(1)'; btn.style.borderColor=m==='max'?'#e0b000':(on?'#9fc472':'#ccc'); }
+// 画面タップでどの演出も即クリアして通常操作に戻す（最前面に透明オーバーレイを置き最初のタップを受ける）
+function celeClear(){ var sel=['.confetti-wrap','.cele-layer','.fw-layer','.sakura-layer','.koban-layer','#cele-dismiss']; for(var s=0;s<sel.length;s++){ var ns=document.querySelectorAll(sel[s]); for(var i=0;i<ns.length;i++){ if(ns[i].parentNode) ns[i].parentNode.removeChild(ns[i]); } } }
+function celeArm(ms){ var ov=document.getElementById('cele-dismiss'); if(!ov){ ov=document.createElement('div'); ov.id='cele-dismiss'; ov.style.cssText='position:fixed;left:0;top:0;width:100%;height:100%;z-index:100000;background:transparent;'; ov.addEventListener('click',celeClear); document.body.appendChild(ov); } clearTimeout(ov._t); ov._t=setTimeout(function(){ if(ov.parentNode) ov.parentNode.removeChild(ov); },ms); }
 // 決済完了の演出一式（楽しいモードに従う）
 function payCelebrate(){
   var fun=getFunMode(); if(fun==='off') return;
   var MAX=(fun==='max');
   if(MAX){ var _r=Math.random(); if(_r>=0.95) return; MAX=(_r<0.35); }   // MAX: 35%フル / 60%通常(中相当) / 5%演出なし
+  var life=1700;   // 画面タップで消せる受付時間（各演出の長さに合わせる）
   popConfetti(); setTimeout(popConfetti,300); setTimeout(popConfetti,620);   // 通常クラッカー3連発
   if(MAX||Math.random()<0.40){
-    setTimeout(popKusudama,500);
+    setTimeout(popKusudama,300); life=Math.max(life,3100);
     if(MAX||Math.random()<0.50){
-      setTimeout(popFireworks,1100);
-      if(MAX||Math.random()<0.50){ setTimeout(popSakura,800); setTimeout(popConfetti,1500); setTimeout(popConfetti,1900); }
+      setTimeout(popFireworks,500); life=Math.max(life,3500);
+      if(MAX||Math.random()<0.50){ setTimeout(popSakura,400); setTimeout(popConfetti,1200); life=Math.max(life,3100); }
     }
-  } else if(Math.random()<0.50){ setTimeout(popSakura,400); }
+  } else if(Math.random()<0.50){ setTimeout(popSakura,300); life=Math.max(life,2900); }
   var kobP=MAX?1:((Date.now()<_kobanBoostUntil)?0.80:0.20);
-  if(Math.random()<kobP){ setTimeout(popKoban,350); }
+  if(Math.random()<kobP){ setTimeout(popKoban,250); life=Math.max(life,2300); }
+  celeArm(life);
 }
 // レジが合った瞬間の演出：クラッカー2回。（くす玉＋横断幕は一旦停止・CSSは残置＝復活しやすいように）
 function popCelebration(){
