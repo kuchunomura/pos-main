@@ -1186,8 +1186,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 624;
-const APP_BUILD_DATE = '2026/11/05 11:17';
+const APP_VERSION = 625;
+const APP_BUILD_DATE = '2026/11/05 11:27';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -3964,26 +3964,7 @@ function confirmPayment(){
   // 別ポップアップを出さず、同じ決済モーダル内で完了表示に切替
   document.getElementById('pay-confirm-view').style.display='none';
   document.getElementById('pay-inline-done').style.display='block';
-  // 決済完了の演出：通常クラッカーは3連発（基本1回＋2回増）
-  popConfetti();
-  setTimeout(popConfetti,300);
-  setTimeout(popConfetti,620);
-  if(Math.random()<0.40){            // くす玉：40%
-    setTimeout(popKusudama,500);
-    if(Math.random()<0.50){          // くす玉のうち半分：打ち上げ花火
-      setTimeout(popFireworks,1100);
-      if(Math.random()<0.50){        // 花火のうち半分：全部盛り（＋桜吹雪＋追加クラッカー）
-        setTimeout(popSakura,800);
-        setTimeout(popConfetti,1500);
-        setTimeout(popConfetti,1900);
-      }
-    }
-  } else if(Math.random()<0.50){     // 残り60%のうち半分：桜吹雪
-    setTimeout(popSakura,400);
-  }
-  // 小判ザクザク：独立20%（確認用に読み込み後5分は70%）。うち5%は画面6割の小判の山→タップで解除
-  var _kobP=(Date.now()<_kobanBoostUntil)?0.70:0.20;
-  if(Math.random()<_kobP){ var _big=(Math.random()<0.05); setTimeout(function(){ popKoban(_big); },350); }
+  payCelebrate(); // 決済完了の演出（楽しいモードに従う）
   startInlineDoneTimer();
 }
 
@@ -4260,29 +4241,49 @@ function popSakura(){
 }
 // 確認用：読み込みから5分間は小判の出現確率を上げる（70%）
 var _kobanBoostUntil=Date.now()+5*60*1000;
-// 小判がザクザク降り積もる。big=trueで画面下6割を小判の山で埋める（タップで解除）
-function popKoban(big){
-  var layer=document.createElement('div'); layer.className='koban-layer'+(big?' koban-block':'');
-  var H=window.innerHeight||700, W=window.innerWidth||400;
-  function addCoin(x,startY,targetY,dMax){
-    var c=document.createElement('div'); c.className='koban'+(targetY!=null?' koban-fall':'');
+// 小判ザクザク：まず中央に山ができ、そのあと画面を埋め尽くす（タップで解除）
+function popKoban(){
+  var layer=document.createElement('div'); layer.className='koban-layer koban-block';
+  var H=window.innerHeight||700, W=window.innerWidth||400, cx=W/2;
+  function addCoin(x,startY,targetY,delay){
+    var c=document.createElement('div'); c.className='koban koban-fall';
     c.style.left=x+'px'; c.style.top=startY+'px';
     c.style.setProperty('--kr',((Math.random()*2-1)*45)+'deg');
-    if(targetY!=null){ c.style.setProperty('--ky',(targetY-startY)+'px'); c.style.animationDuration=(0.7+Math.random()*0.7)+'s'; c.style.animationDelay=(Math.random()*(dMax||0.6))+'s'; }
+    c.style.setProperty('--ky',(targetY-startY)+'px');
+    c.style.animationDuration=(0.55+Math.random()*0.6)+'s';
+    c.style.animationDelay=delay+'s';
     layer.appendChild(c);
   }
-  if(big){
-    var pileTop=H*0.40;            // 下60%を小判の山で埋める
-    for(var i=0;i<1000;i++){ var ry=pileTop+Math.pow(Math.random(),0.7)*(H-pileTop); addCoin(Math.random()*W-18, ry-(120+Math.random()*360), ry, 1.6); }
-    var hint=document.createElement('div'); hint.className='koban-hint'; hint.textContent='画面をタップで戻る'; layer.appendChild(hint);
-    layer.addEventListener('click',function(){ if(layer.parentNode) layer.parentNode.removeChild(layer); });
-    document.body.appendChild(layer);
-    setTimeout(function(){ if(layer.parentNode) layer.parentNode.removeChild(layer); },8000);
-  } else {
-    for(var k=0;k<110;k++){ addCoin(Math.random()*W-18, -30-Math.random()*160, (H*0.72)+Math.random()*(H*0.26), 0.9); }
-    document.body.appendChild(layer);
-    setTimeout(function(){ if(layer.parentNode) layer.parentNode.removeChild(layer); },4200);
-  }
+  // 第1段：中央に小判の山ができる（下ほど広い三角）
+  var peakY=H*0.44, baseY=H+12, maxHalf=W*0.44;
+  for(var i=0;i<520;i++){ var t=Math.random(); var y=peakY+t*(baseY-peakY); var x=cx+(Math.random()*2-1)*(maxHalf*t)-21; addCoin(x, y-(170+Math.random()*440), y, Math.random()*1.1); }
+  // 第2段：そのあと画面下部を埋め尽くす（大量）
+  var fillTop=H*0.20;
+  for(var j=0;j<1200;j++){ var ry=fillTop+Math.pow(Math.random(),0.6)*(baseY-fillTop); addCoin(Math.random()*W-21, ry-(170+Math.random()*480), ry, 1.5+Math.random()*1.5); }
+  var hint=document.createElement('div'); hint.className='koban-hint'; hint.textContent='画面をタップで戻る'; layer.appendChild(hint);
+  layer.addEventListener('click',function(){ if(layer.parentNode) layer.parentNode.removeChild(layer); });
+  document.body.appendChild(layer);
+  setTimeout(function(){ if(layer.parentNode) layer.parentNode.removeChild(layer); },11000);
+}
+// 楽しいモード（無し/中/MAX）。中=通常確率、MAX=毎回フル演出、無し=演出なし
+function getFunMode(){ var m=ld('pos_fun_mode'); return (m==='off'||m==='max')?m:'mid'; }
+function funModeLabel(m){ return m==='off'?'無し':(m==='max'?'MAX':'中'); }
+function cycleFunMode(){ var nx={off:'mid',mid:'max',max:'off'}[getFunMode()]; sv('pos_fun_mode',nx); updateFunModeBtn(); if(nx!=='off') payCelebrate(); }
+function updateFunModeBtn(){ var btn=document.getElementById('fun-mode-btn'); if(!btn) return; var m=getFunMode(); btn.textContent='🎉 楽しい：'+funModeLabel(m); var on=(m!=='off'); btn.style.background=m==='max'?'#ffd34d':(on?'#cfe8b0':'#e4e4e4'); btn.style.color=on?'#5a4600':'#999'; btn.style.borderColor=m==='max'?'#e0b000':(on?'#9fc472':'#ccc'); }
+// 決済完了の演出一式（楽しいモードに従う）
+function payCelebrate(){
+  var fun=getFunMode(); if(fun==='off') return;
+  var MAX=(fun==='max');
+  popConfetti(); setTimeout(popConfetti,300); setTimeout(popConfetti,620);   // 通常クラッカー3連発
+  if(MAX||Math.random()<0.40){
+    setTimeout(popKusudama,500);
+    if(MAX||Math.random()<0.50){
+      setTimeout(popFireworks,1100);
+      if(MAX||Math.random()<0.50){ setTimeout(popSakura,800); setTimeout(popConfetti,1500); setTimeout(popConfetti,1900); }
+    }
+  } else if(Math.random()<0.50){ setTimeout(popSakura,400); }
+  var kobP=MAX?1:((Date.now()<_kobanBoostUntil)?0.70:0.20);
+  if(Math.random()<kobP){ setTimeout(popKoban,350); }
 }
 // レジが合った瞬間の演出：クラッカー2回。（くす玉＋横断幕は一旦停止・CSSは残置＝復活しやすいように）
 function popCelebration(){
@@ -5767,8 +5768,11 @@ function initVersionInfo(){
   if(b){
     var typeColor=APP_VERSION_TYPE==='main'?'var(--accent)':'var(--accent2)';
     var typeLabel=APP_VERSION_TYPE==='main'?'main版':'TEST版';
-    b.innerHTML='<div style="font-size:12px;color:var(--accent);font-weight:700;">POSレジ ver.'+APP_VERSION+'</div>'
-      +'<div style="font-size:11px;color:var(--text2);margin-top:2px;">更新: '+APP_BUILD_DATE+' &nbsp;|&nbsp; <span style="color:'+typeColor+';font-weight:600;">'+typeLabel+'</span></div>';
+    b.style.display='flex'; b.style.alignItems='center'; b.style.justifyContent='space-between'; b.style.paddingRight='14px';
+    b.innerHTML='<div><div style="font-size:12px;color:var(--accent);font-weight:700;">POSレジ ver.'+APP_VERSION+'</div>'
+      +'<div style="font-size:11px;color:var(--text2);margin-top:2px;">更新: '+APP_BUILD_DATE+' &nbsp;|&nbsp; <span style="color:'+typeColor+';font-weight:600;">'+typeLabel+'</span></div></div>'
+      +'<button id="fun-mode-btn" onclick="cycleFunMode()" style="flex:0 0 auto;margin-left:10px;padding:8px 12px;border:2px solid #9fc472;border-radius:10px;background:#cfe8b0;color:#5a4600;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;"></button>';
+    updateFunModeBtn();
   }
   var tv=document.getElementById('tabbar-version');
   if(tv) tv.textContent='ver.'+APP_VERSION+' '+APP_BUILD_DATE+' | '+(APP_VERSION_TYPE==='main'?'main版':'test版');
