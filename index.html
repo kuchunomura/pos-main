@@ -1001,11 +1001,6 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 /* 小判ザクザク（決済演出・外部依存なし） */
 .koban-layer{position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:99996;overflow:hidden;}
 .koban-layer.koban-block{pointer-events:auto;cursor:pointer;}
-.koban{position:absolute;width:42px;height:26px;border-radius:50%;background:linear-gradient(150deg,#fff0ad 0%,#f6cf54 45%,#d99e24 100%);box-shadow:inset 0 0 0 2px #b9801a,inset 0 2px 3px rgba(255,255,255,.55),0 1px 2px rgba(0,0,0,.4);}
-.koban::before{content:'';position:absolute;left:50%;top:50%;width:70%;height:54%;transform:translate(-50%,-50%);border:1px solid rgba(140,88,10,.55);border-radius:50%;}
-.koban::after{content:'両';position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font-size:11px;font-weight:800;color:#8a5712;font-family:serif;line-height:1;}
-.koban-fall{opacity:0;will-change:transform,opacity;animation:kobanFall linear forwards;}
-@keyframes kobanFall{0%{opacity:0;transform:translateY(0) rotate(var(--kr))}8%{opacity:1}100%{opacity:1;transform:translateY(var(--ky)) rotate(var(--kr))}}
 .koban-hint{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);background:rgba(0,0,0,.6);color:#fff;font-size:14px;font-weight:700;padding:7px 18px;border-radius:20px;}
 .pay-tap-finger{position:absolute;right:20px;bottom:-16px;font-size:30px;pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35));z-index:5;display:none;}
 .pay-tap-finger-left{position:absolute;left:20px;bottom:-16px;font-size:30px;pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35));z-index:5;display:none;}
@@ -1186,8 +1181,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 626;
-const APP_BUILD_DATE = '2026/11/05 12:05';
+const APP_VERSION = 627;
+const APP_BUILD_DATE = '2026/11/05 12:40';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -4242,33 +4237,57 @@ function popSakura(){
 // 確認用：読み込みから5分間は小判の出現確率を上げる（70%）
 var _kobanBoostUntil=Date.now()+5*60*1000;
 // 小判ザクザク：まず中央に山ができ、そのあと画面を埋め尽くす（タップで解除）
+// 旧タブレットでも固まらないよう、大量のDOMではなくcanvasに小判スプライトを描いて使い回す
 function popKoban(){
   var layer=document.createElement('div'); layer.className='koban-layer koban-block';
-  var H=window.innerHeight||700, W=window.innerWidth||400, cx=W/2;
-  function addCoin(x,startY,targetY,delay){
-    var c=document.createElement('div'); c.className='koban koban-fall';
-    c.style.left=x+'px'; c.style.top=startY+'px';
-    c.style.setProperty('--kr',((Math.random()*2-1)*45)+'deg');
-    c.style.setProperty('--ky',(targetY-startY)+'px');
-    c.style.animationDuration=(0.55+Math.random()*0.6)+'s';
-    c.style.animationDelay=delay+'s';
-    layer.appendChild(c);
-  }
-  // 第1段：中央に小判の山ができる（下ほど広い三角）
-  var peakY=H*0.44, baseY=H+12, maxHalf=W*0.44;
-  for(var i=0;i<520;i++){ var t=Math.random(); var y=peakY+t*(baseY-peakY); var x=cx+(Math.random()*2-1)*(maxHalf*t)-21; addCoin(x, y-(170+Math.random()*440), y, Math.random()*1.1); }
-  // 第2段：そのあと画面下部を埋め尽くす（大量）
+  var W=window.innerWidth||400, H=window.innerHeight||700, cx=W/2;
+  var cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+  cv.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;';
+  layer.appendChild(cv);
+  var ctx=cv.getContext('2d');
+  var S=54, cw=42, ch=26;
+  // 小判スプライトを1枚だけ描く
+  var base=document.createElement('canvas'); base.width=S; base.height=S;
+  (function(){ var g=base.getContext('2d'); g.translate(S/2,S/2);
+    g.save(); g.scale(1,ch/cw);
+    var grd=g.createLinearGradient(-cw/2,-cw/2,cw/2,cw/2);
+    grd.addColorStop(0,'#fff0ad'); grd.addColorStop(.45,'#f6cf54'); grd.addColorStop(1,'#d99e24');
+    g.beginPath(); g.arc(0,0,cw/2,0,Math.PI*2); g.fillStyle=grd; g.fill();
+    g.lineWidth=2.4; g.strokeStyle='#b9801a'; g.stroke();
+    g.beginPath(); g.arc(0,0,cw*0.32,0,Math.PI*2); g.lineWidth=1.3; g.strokeStyle='rgba(140,88,10,.6)'; g.stroke();
+    g.restore();
+    g.fillStyle='#8a5712'; g.font='bold 12px serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText('両',0,0);
+  })();
+  // 傾き違いのスプライトを12枚事前生成（描画時は回転せずblitするだけ＝軽い）
+  var NROT=12, sprites=[];
+  for(var a=0;a<NROT;a++){ var o=document.createElement('canvas'); o.width=S; o.height=S; var g=o.getContext('2d'); g.translate(S/2,S/2); g.rotate((a/(NROT-1)-0.5)*(Math.PI/2)); g.drawImage(base,-S/2,-S/2); sprites.push(o); }
+  // コイン配置
+  var coins=[];
+  function addCoin(x,sy,ty,d,du){ coins.push({x:x,sy:sy,ty:ty,d:d,du:du,s:(Math.random()*NROT)|0}); }
+  var peakY=H*0.44, baseY=H+10, maxHalf=W*0.44, i,t,y;
+  // 第1段：中央に山（下ほど広い三角）
+  for(i=0;i<420;i++){ t=Math.random(); y=peakY+t*(baseY-peakY); addCoin(cx+(Math.random()*2-1)*(maxHalf*t), y-(170+Math.random()*440), y, Math.random()*1.0, 0.55+Math.random()*0.6); }
+  // 第2段：そのあと画面下部を埋め尽くす
   var fillTop=H*0.20;
-  for(var j=0;j<1200;j++){ var ry=fillTop+Math.pow(Math.random(),0.6)*(baseY-fillTop); addCoin(Math.random()*W-21, ry-(170+Math.random()*480), ry, 1.5+Math.random()*1.5); }
+  for(i=0;i<1080;i++){ y=fillTop+Math.pow(Math.random(),0.6)*(baseY-fillTop); addCoin(Math.random()*W, y-(170+Math.random()*480), y, 1.4+Math.random()*1.5, 0.55+Math.random()*0.6); }
+  // アニメーション（rAF。約4.4秒で静止して以後は再描画しない）
+  var start=0, END=4.4, raf=0, stopped=false;
+  function frame(now){ if(stopped) return; if(!start) start=now; var tt=(now-start)/1000;
+    ctx.clearRect(0,0,W,H);
+    for(var k=0;k<coins.length;k++){ var c=coins[k]; var p=(tt-c.d)/c.du; if(p<=0) continue; if(p>1)p=1; var cy=c.sy+(c.ty-c.sy)*p; ctx.drawImage(sprites[c.s], (c.x-S/2)|0, (cy-S/2)|0); }
+    if(tt<END){ raf=requestAnimationFrame(frame); }
+  }
+  raf=requestAnimationFrame(frame);
   var hint=document.createElement('div'); hint.className='koban-hint'; hint.textContent='画面をタップで戻る'; layer.appendChild(hint);
-  layer.addEventListener('click',function(){ if(layer.parentNode) layer.parentNode.removeChild(layer); });
+  function dismiss(){ stopped=true; if(raf) cancelAnimationFrame(raf); if(layer.parentNode) layer.parentNode.removeChild(layer); }
+  layer.addEventListener('click',dismiss);
   document.body.appendChild(layer);
-  setTimeout(function(){ if(layer.parentNode) layer.parentNode.removeChild(layer); },11000);
+  setTimeout(dismiss,11000);
 }
 // 楽しいモード（無し/中/MAX）。中=通常確率、MAX=毎回フル演出、無し=演出なし
 function getFunMode(){ var m=ld('pos_fun_mode'); return (m==='off'||m==='max')?m:'mid'; }
 function funModeLabel(m){ return m==='off'?'無し':(m==='max'?'MAX':'中'); }
-function cycleFunMode(){ var nx={off:'mid',mid:'max',max:'off'}[getFunMode()]; sv('pos_fun_mode',nx); updateFunModeBtn(); if(nx!=='off') payCelebrate(); }
+function cycleFunMode(){ var nx={off:'mid',mid:'max',max:'off'}[getFunMode()]; sv('pos_fun_mode',nx); updateFunModeBtn(); }
 function updateFunModeBtn(){ var btn=document.getElementById('fun-mode-btn'); if(!btn) return; var m=getFunMode(); btn.textContent=(m==='max'?'🎊':'🎉'); btn.title='楽しいモード：'+funModeLabel(m); var on=(m!=='off'); btn.style.background=m==='max'?'#ffd34d':(on?'#cfe8b0':'#e4e4e4'); btn.style.opacity=on?'1':'0.4'; btn.style.filter=on?'none':'grayscale(1)'; btn.style.borderColor=m==='max'?'#e0b000':(on?'#9fc472':'#ccc'); }
 // 決済完了の演出一式（楽しいモードに従う）
 function payCelebrate(){
