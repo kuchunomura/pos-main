@@ -978,8 +978,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 @keyframes confettiPop{0%{opacity:1;transform:translate(0,0) rotate(0deg);}15%{opacity:1;transform:translate(calc(var(--dx)*.32),-70px) rotate(120deg);}100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(660deg);}}
 /* くす玉が開いて「おめでとう」横断幕が下りる演出（外部依存なし） */
 .cele-layer{position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:99998;overflow:hidden;font-family:inherit;}
-.kusu-string{position:absolute;left:50%;top:0;width:2px;height:74px;background:#b98b00;transform:translateX(-50%);}
-.kusudama{position:absolute;left:50%;top:72px;width:128px;height:128px;transform:translateX(-50%);}
+.kusu-string{position:absolute;left:50%;top:0;width:2px;height:150px;background:#b98b00;transform:translateX(-50%);}
+.kusudama{position:absolute;left:50%;top:148px;width:128px;height:128px;transform:translateX(-50%);}
 .kusu-streamwrap{position:absolute;left:0;top:0;width:128px;height:128px;}
 .kusu-streamer{position:absolute;top:118px;width:7px;height:0;border-radius:4px;opacity:.9;animation:kusuStream 1.5s ease-in forwards;}
 @keyframes kusuStream{0%{height:0;transform:translate(0,0);opacity:0}25%{opacity:1}100%{height:240px;transform:translate(var(--sway),26px);opacity:.85}}
@@ -988,8 +988,16 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 .kusu-half.r{left:64px;border-radius:0 128px 128px 0;transform-origin:0 0;animation:kusuOpenR .75s .05s cubic-bezier(.3,1.25,.5,1) forwards;}
 @keyframes kusuOpenL{0%{transform:rotate(0)}100%{transform:rotate(128deg)}}
 @keyframes kusuOpenR{0%{transform:rotate(0)}100%{transform:rotate(-128deg)}}
-.cele-banner{position:absolute;left:50%;top:104px;transform:translateX(-50%) translateY(-46px) scaleY(0);transform-origin:top center;background:linear-gradient(#fff,#ffe9ef);border:3px solid #d64d6e;border-radius:40px;padding:12px 30px;font-size:26px;font-weight:800;color:#c0143c;white-space:nowrap;box-shadow:0 8px 18px rgba(0,0,0,.25);opacity:0;animation:celeBannerDrop .85s .4s cubic-bezier(.2,1.3,.4,1) forwards;}
+.cele-banner{position:absolute;left:50%;top:180px;transform:translateX(-50%) translateY(-46px) scaleY(0);transform-origin:top center;background:linear-gradient(#fff,#ffe9ef);border:3px solid #d64d6e;border-radius:40px;padding:12px 30px;font-size:26px;font-weight:800;color:#c0143c;white-space:nowrap;box-shadow:0 8px 18px rgba(0,0,0,.25);opacity:0;animation:celeBannerDrop .85s .4s cubic-bezier(.2,1.3,.4,1) forwards;}
 @keyframes celeBannerDrop{0%{transform:translateX(-50%) translateY(-46px) scaleY(0);opacity:0}55%{opacity:1}100%{transform:translateX(-50%) translateY(96px) scaleY(1);opacity:1}}
+/* 打ち上げ花火（決済演出・外部依存なし） */
+.fw-layer{position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:99997;overflow:hidden;}
+.fw-spark{position:absolute;width:7px;height:7px;border-radius:50%;opacity:0;will-change:transform,opacity;box-shadow:0 0 6px currentColor;animation:fwExplode 1.1s ease-out forwards;}
+@keyframes fwExplode{0%{opacity:1;transform:translate(0,0) scale(1)}70%{opacity:1}100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(.35)}}
+/* 桜吹雪（決済演出・外部依存なし） */
+.sakura-layer{position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:99997;overflow:hidden;}
+.sakura-petal{position:absolute;top:-24px;width:14px;height:12px;border-radius:12px 2px 12px 2px;opacity:0;will-change:transform,opacity;animation:sakuraFall linear forwards;}
+@keyframes sakuraFall{0%{opacity:0;transform:translate(0,0) rotate(0)}10%{opacity:.95}100%{opacity:.85;transform:translate(var(--sx),var(--sy)) rotate(var(--sr))}}
 .pay-tap-finger{position:absolute;right:20px;bottom:-16px;font-size:30px;pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35));z-index:5;display:none;}
 .pay-tap-finger-left{position:absolute;left:20px;bottom:-16px;font-size:30px;pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35));z-index:5;display:none;}
 @keyframes payTapBobL{0%,100%{transform:translateY(3px) rotate(8deg)}45%{transform:translateY(-8px) rotate(8deg)}55%{transform:translateY(-8px) rotate(8deg)}}
@@ -1169,8 +1177,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 621;
-const APP_BUILD_DATE = '2026/11/04 10:53';
+const APP_VERSION = 622;
+const APP_BUILD_DATE = '2026/11/05 10:57';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -3947,8 +3955,23 @@ function confirmPayment(){
   // 別ポップアップを出さず、同じ決済モーダル内で完了表示に切替
   document.getElementById('pay-confirm-view').style.display='none';
   document.getElementById('pay-inline-done').style.display='block';
-  popConfetti(); // 決済完了のクラッカー
-  if(Math.random()<0.35) setTimeout(popKusudama,500); // ランダムで「くす玉」バージョンも（クラッカーの後に）
+  // 決済完了の演出：通常クラッカーは3連発（基本1回＋2回増）
+  popConfetti();
+  setTimeout(popConfetti,300);
+  setTimeout(popConfetti,620);
+  if(Math.random()<0.40){            // くす玉：40%
+    setTimeout(popKusudama,500);
+    if(Math.random()<0.50){          // くす玉のうち半分：打ち上げ花火
+      setTimeout(popFireworks,1100);
+      if(Math.random()<0.50){        // 花火のうち半分：全部盛り（＋桜吹雪＋追加クラッカー）
+        setTimeout(popSakura,800);
+        setTimeout(popConfetti,1500);
+        setTimeout(popConfetti,1900);
+      }
+    }
+  } else if(Math.random()<0.50){     // 残り60%のうち半分：桜吹雪
+    setTimeout(popSakura,400);
+  }
   startInlineDoneTimer();
 }
 
@@ -4181,6 +4204,47 @@ function popKusudama(){
   var banner=document.createElement('div'); banner.className='cele-banner'; banner.textContent='🎉 おめでとう 🎉'; layer.appendChild(banner);
   document.body.appendChild(layer);
   setTimeout(function(){ if(layer.parentNode) layer.parentNode.removeChild(layer); },3400);
+}
+// 打ち上げ花火：画面上部で数発の球状バースト（外部依存なし）
+function popFireworks(){
+  var layer=document.createElement('div'); layer.className='fw-layer';
+  var colors=['#ff5252','#ffd740','#69f0ae','#40c4ff','#e040fb','#ffab40','#ffffff'];
+  function burst(cx,cy,delay){
+    var n=26, base=colors[Math.floor(Math.random()*colors.length)];
+    for(var i=0;i<n;i++){
+      var ang=(Math.PI*2*i)/n, dist=60+Math.random()*70;
+      var s=document.createElement('span'); s.className='fw-spark';
+      var col=(Math.random()<0.55?base:colors[Math.floor(Math.random()*colors.length)]);
+      s.style.left=cx+'%'; s.style.top=cy+'%'; s.style.background=col; s.style.color=col;
+      s.style.setProperty('--tx',(Math.cos(ang)*dist)+'px');
+      s.style.setProperty('--ty',(Math.sin(ang)*dist)+'px');
+      s.style.animationDelay=delay+'s';
+      layer.appendChild(s);
+    }
+  }
+  burst(50,32,0); burst(27,24,0.35); burst(72,28,0.6); burst(45,18,0.95);
+  document.body.appendChild(layer);
+  setTimeout(function(){ if(layer.parentNode) layer.parentNode.removeChild(layer); },2200);
+}
+// 桜吹雪：上から花びらがひらひら舞い落ちる（外部依存なし）
+function popSakura(){
+  var layer=document.createElement('div'); layer.className='sakura-layer';
+  var tints=['#ffb7d5','#ffc9e0','#ff9ec4','#ffd6e7'];
+  var H=(window.innerHeight||700)+70;
+  for(var i=0;i<46;i++){
+    var p=document.createElement('span'); p.className='sakura-petal';
+    p.style.left=(Math.random()*100)+'%';
+    p.style.background=tints[i%tints.length];
+    p.style.animationDuration=(2.4+Math.random()*1.8)+'s';
+    p.style.animationDelay=(Math.random()*0.8)+'s';
+    p.style.setProperty('--sx',((Math.random()*2-1)*120)+'px');
+    p.style.setProperty('--sy',H+'px');
+    p.style.setProperty('--sr',(360+Math.random()*540)+'deg');
+    var sz=10+Math.random()*8; p.style.width=sz+'px'; p.style.height=(sz-2)+'px';
+    layer.appendChild(p);
+  }
+  document.body.appendChild(layer);
+  setTimeout(function(){ if(layer.parentNode) layer.parentNode.removeChild(layer); },4800);
 }
 // レジが合った瞬間の演出：クラッカー2回。（くす玉＋横断幕は一旦停止・CSSは残置＝復活しやすいように）
 function popCelebration(){
