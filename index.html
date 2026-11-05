@@ -998,6 +998,13 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 .sakura-layer{position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:99997;overflow:hidden;}
 .sakura-petal{position:absolute;top:-24px;width:14px;height:12px;border-radius:12px 2px 12px 2px;opacity:0;will-change:transform,opacity;animation:sakuraFall linear forwards;}
 @keyframes sakuraFall{0%{opacity:0;transform:translate(0,0) rotate(0)}10%{opacity:.95}100%{opacity:.85;transform:translate(var(--sx),var(--sy)) rotate(var(--sr))}}
+/* 小判ザクザク（決済演出・外部依存なし） */
+.koban-layer{position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:99996;overflow:hidden;}
+.koban-layer.koban-block{pointer-events:auto;cursor:pointer;}
+.koban{position:absolute;width:30px;height:20px;border-radius:50%;background:radial-gradient(circle at 38% 30%,#fff1b8,#f3c642 55%,#c6891b);box-shadow:inset 0 0 0 2px #e3ab2e,0 1px 2px rgba(0,0,0,.35);}
+.koban-fall{opacity:0;will-change:transform,opacity;animation:kobanFall linear forwards;}
+@keyframes kobanFall{0%{opacity:0;transform:translateY(0) rotate(var(--kr))}8%{opacity:1}100%{opacity:1;transform:translateY(var(--ky)) rotate(var(--kr))}}
+.koban-hint{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);background:rgba(0,0,0,.6);color:#fff;font-size:14px;font-weight:700;padding:7px 18px;border-radius:20px;}
 .pay-tap-finger{position:absolute;right:20px;bottom:-16px;font-size:30px;pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35));z-index:5;display:none;}
 .pay-tap-finger-left{position:absolute;left:20px;bottom:-16px;font-size:30px;pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35));z-index:5;display:none;}
 @keyframes payTapBobL{0%,100%{transform:translateY(3px) rotate(8deg)}45%{transform:translateY(-8px) rotate(8deg)}55%{transform:translateY(-8px) rotate(8deg)}}
@@ -1177,8 +1184,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 622;
-const APP_BUILD_DATE = '2026/11/05 10:57';
+const APP_VERSION = 623;
+const APP_BUILD_DATE = '2026/11/05 11:11';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -3972,6 +3979,9 @@ function confirmPayment(){
   } else if(Math.random()<0.50){     // 残り60%のうち半分：桜吹雪
     setTimeout(popSakura,400);
   }
+  // 小判ザクザク：独立20%（確認用に読み込み後5分は70%）。うち5%は画面6割の小判の山→タップで解除
+  var _kobP=(Date.now()<_kobanBoostUntil)?0.70:0.20;
+  if(Math.random()<_kobP){ var _big=(Math.random()<0.05); setTimeout(function(){ popKoban(_big); },350); }
   startInlineDoneTimer();
 }
 
@@ -4245,6 +4255,32 @@ function popSakura(){
   }
   document.body.appendChild(layer);
   setTimeout(function(){ if(layer.parentNode) layer.parentNode.removeChild(layer); },4800);
+}
+// 確認用：読み込みから5分間は小判の出現確率を上げる（70%）
+var _kobanBoostUntil=Date.now()+5*60*1000;
+// 小判がザクザク降り積もる。big=trueで画面下6割を小判の山で埋める（タップで解除）
+function popKoban(big){
+  var layer=document.createElement('div'); layer.className='koban-layer'+(big?' koban-block':'');
+  var H=window.innerHeight||700, W=window.innerWidth||400;
+  function addCoin(x,startY,targetY,dMax){
+    var c=document.createElement('div'); c.className='koban'+(targetY!=null?' koban-fall':'');
+    c.style.left=x+'px'; c.style.top=startY+'px';
+    c.style.setProperty('--kr',((Math.random()*2-1)*45)+'deg');
+    if(targetY!=null){ c.style.setProperty('--ky',(targetY-startY)+'px'); c.style.animationDuration=(0.7+Math.random()*0.7)+'s'; c.style.animationDelay=(Math.random()*(dMax||0.6))+'s'; }
+    layer.appendChild(c);
+  }
+  if(big){
+    var pileTop=H*0.40;            // 下60%を小判の山で埋める
+    for(var i=0;i<300;i++){ var ry=pileTop+Math.random()*(H-pileTop); addCoin(Math.random()*W-15, ry-(120+Math.random()*360), ry, 1.6); }
+    var hint=document.createElement('div'); hint.className='koban-hint'; hint.textContent='画面をタップで戻る'; layer.appendChild(hint);
+    layer.addEventListener('click',function(){ if(layer.parentNode) layer.parentNode.removeChild(layer); });
+    document.body.appendChild(layer);
+    setTimeout(function(){ if(layer.parentNode) layer.parentNode.removeChild(layer); },8000);
+  } else {
+    for(var k=0;k<70;k++){ addCoin(Math.random()*W-15, -30-Math.random()*160, (H*0.72)+Math.random()*(H*0.26), 0.9); }
+    document.body.appendChild(layer);
+    setTimeout(function(){ if(layer.parentNode) layer.parentNode.removeChild(layer); },4200);
+  }
 }
 // レジが合った瞬間の演出：クラッカー2回。（くす玉＋横断幕は一旦停止・CSSは残置＝復活しやすいように）
 function popCelebration(){
