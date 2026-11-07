@@ -1181,8 +1181,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 631;
-const APP_BUILD_DATE = '2026/11/05 14:05';
+const APP_VERSION = 632;
+const APP_BUILD_DATE = '2026/11/07 10:10';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -4299,25 +4299,44 @@ function getFunMode(){ var m=ld('pos_fun_mode'); return (m==='off'||m==='max')?m
 function funModeLabel(m){ return m==='off'?'無し':(m==='max'?'MAX':'中'); }
 function cycleFunMode(){ var nx={off:'mid',mid:'max',max:'off'}[getFunMode()]; sv('pos_fun_mode',nx); updateFunModeBtn(); }
 function updateFunModeBtn(){ var btn=document.getElementById('fun-mode-btn'); if(!btn) return; var m=getFunMode(); btn.textContent=(m==='max'?'🎊':'🎉'); btn.title='楽しいモード：'+funModeLabel(m); var on=(m!=='off'); btn.style.background=m==='max'?'#ffd34d':(on?'#cfe8b0':'#e4e4e4'); btn.style.opacity=on?'1':'0.4'; btn.style.filter=on?'none':'grayscale(1)'; btn.style.borderColor=m==='max'?'#e0b000':(on?'#9fc472':'#ccc'); }
-// 画面タップでどの演出も即クリアして通常操作に戻す（最前面に透明オーバーレイを置き最初のタップを受ける）
-function celeClear(){ var sel=['.confetti-wrap','.cele-layer','.fw-layer','.sakura-layer','.koban-layer','#cele-dismiss']; for(var s=0;s<sel.length;s++){ var ns=document.querySelectorAll(sel[s]); for(var i=0;i<ns.length;i++){ if(ns[i].parentNode) ns[i].parentNode.removeChild(ns[i]); } } }
-function celeArm(ms){ var ov=document.getElementById('cele-dismiss'); if(!ov){ ov=document.createElement('div'); ov.id='cele-dismiss'; ov.style.cssText='position:fixed;left:0;top:0;width:100%;height:100%;z-index:100000;background:transparent;'; ov.addEventListener('click',celeClear); document.body.appendChild(ov); } clearTimeout(ov._t); ov._t=setTimeout(function(){ if(ov.parentNode) ov.parentNode.removeChild(ov); },ms); }
-// 決済完了の演出一式（楽しいモードに従う）
+// 画面タップでどの演出も即クリアして通常操作に戻す（最前面に透明オーバーレイを置き、1タップで全消し）
+var _celeTimers=[];
+function _celeAfter(fn,ms){ var t=setTimeout(fn,ms); _celeTimers.push(t); return t; }   // 予約した演出は追跡し、タップ時にまとめて取消
+function celeClearFx(){   // 予約済み(これから出る)演出も含めて全部止めて消す（オーバーレイ自体は含めない）
+  for(var i=0;i<_celeTimers.length;i++) clearTimeout(_celeTimers[i]); _celeTimers=[];
+  var sel=['.confetti-wrap','.cele-layer','.fw-layer','.sakura-layer','.koban-layer'];
+  for(var s=0;s<sel.length;s++){ var ns=document.querySelectorAll(sel[s]); for(var j=0;j<ns.length;j++){ if(ns[j].parentNode) ns[j].parentNode.removeChild(ns[j]); } }
+}
+function celeClear(){ celeClearFx(); var ov=document.getElementById('cele-dismiss'); if(ov&&ov.parentNode) ov.parentNode.removeChild(ov); }
+function celeArm(ms){
+  var ov=document.getElementById('cele-dismiss');
+  if(!ov){
+    ov=document.createElement('div'); ov.id='cele-dismiss';
+    ov.style.cssText='position:fixed;left:0;top:0;width:100%;height:100%;z-index:100000;background:transparent;';
+    var kill=function(){ if(ov._done) return; ov._done=true; celeClearFx(); setTimeout(function(){ if(ov.parentNode) ov.parentNode.removeChild(ov); },250); }; // タップ瞬間に全消し。250msだけ残してそのタップを吸収（誤操作防止）
+    ov.addEventListener('pointerdown',kill); ov.addEventListener('touchstart',kill); ov.addEventListener('click',kill);
+    document.body.appendChild(ov);
+  }
+  ov._done=false;
+  clearTimeout(ov._t); ov._t=setTimeout(function(){ if(ov.parentNode) ov.parentNode.removeChild(ov); },ms);
+}
+// 決済完了の演出一式（楽しいモードに従う）。中=頻度1/10（10回に1回くらい）。MAXはお祭り。
 function payCelebrate(){
   var fun=getFunMode(); if(fun==='off') return;
   var MAX=(fun==='max');
   if(MAX){ var _r=Math.random(); if(_r>=0.95) return; MAX=(_r<0.35); }   // MAX: 35%フル / 60%通常(中相当) / 5%演出なし
+  else if(Math.random()>=0.10) return;   // 中：頻度を1/10に（10回に1回くらいだけ演出。それ以外は何も出さない）
   var life=1700;   // 画面タップで消せる受付時間（各演出の長さに合わせる）
-  popConfetti(); setTimeout(popConfetti,300); setTimeout(popConfetti,620);   // 通常クラッカー3連発
+  popConfetti(); _celeAfter(popConfetti,300); _celeAfter(popConfetti,620);   // 通常クラッカー3連発
   if(MAX||Math.random()<0.40){
-    setTimeout(popKusudama,300); life=Math.max(life,3100);
+    _celeAfter(popKusudama,300); life=Math.max(life,3100);
     if(MAX||Math.random()<0.50){
-      setTimeout(popFireworks,500); life=Math.max(life,3500);
-      if(MAX||Math.random()<0.50){ setTimeout(popSakura,400); setTimeout(popConfetti,1200); life=Math.max(life,3100); }
+      _celeAfter(popFireworks,500); life=Math.max(life,3500);
+      if(MAX||Math.random()<0.50){ _celeAfter(popSakura,400); _celeAfter(popConfetti,1200); life=Math.max(life,3100); }
     }
-  } else if(Math.random()<0.50){ setTimeout(popSakura,300); life=Math.max(life,2900); }
+  } else if(Math.random()<0.50){ _celeAfter(popSakura,300); life=Math.max(life,2900); }
   var kobP=MAX?1:((Date.now()<_kobanBoostUntil)?0.80:0.20);
-  if(Math.random()<kobP){ setTimeout(popKoban,250); life=Math.max(life,2300); }
+  if(Math.random()<kobP){ _celeAfter(popKoban,250); life=Math.max(life,2300); }
   celeArm(life);
 }
 // レジが合った瞬間の演出：クラッカー2回。（くす玉＋横断幕は一旦停止・CSSは残置＝復活しやすいように）
