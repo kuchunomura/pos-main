@@ -1181,8 +1181,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 632;
-const APP_BUILD_DATE = '2026/11/07 10:10';
+const APP_VERSION = 633;
+const APP_BUILD_DATE = '2026/11/07 10:35';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -4294,11 +4294,10 @@ function popKoban(){
   document.body.appendChild(layer);
   setTimeout(function(){ stopped=true; if(raf) cancelAnimationFrame(raf); if(layer.parentNode) layer.parentNode.removeChild(layer); },2000);
 }
-// 楽しいモード（無し/中/MAX）。中=通常確率、MAX=毎回フル演出、無し=演出なし
-function getFunMode(){ var m=ld('pos_fun_mode'); return (m==='off'||m==='max')?m:'mid'; }
-function funModeLabel(m){ return m==='off'?'無し':(m==='max'?'MAX':'中'); }
-function cycleFunMode(){ var nx={off:'mid',mid:'max',max:'off'}[getFunMode()]; sv('pos_fun_mode',nx); updateFunModeBtn(); }
-function updateFunModeBtn(){ var btn=document.getElementById('fun-mode-btn'); if(!btn) return; var m=getFunMode(); btn.textContent=(m==='max'?'🎊':'🎉'); btn.title='楽しいモード：'+funModeLabel(m); var on=(m!=='off'); btn.style.background=m==='max'?'#ffd34d':(on?'#cfe8b0':'#e4e4e4'); btn.style.opacity=on?'1':'0.4'; btn.style.filter=on?'none':'grayscale(1)'; btn.style.borderColor=m==='max'?'#e0b000':(on?'#9fc472':'#ccc'); }
+// 楽しいモード（オン/オフの2択）。オン＝決済時にたまに演出、オフ＝演出なし
+function getFunMode(){ return ld('pos_fun_mode')==='off'?'off':'on'; }   // 既定オン。旧mid/maxもオン扱い
+function cycleFunMode(){ sv('pos_fun_mode', getFunMode()==='off'?'on':'off'); updateFunModeBtn(); }
+function updateFunModeBtn(){ var btn=document.getElementById('fun-mode-btn'); if(!btn) return; var on=(getFunMode()!=='off'); btn.textContent='🎉'; btn.title='楽しいモード：'+(on?'オン':'オフ'); btn.style.background=on?'#cfe8b0':'#e4e4e4'; btn.style.opacity=on?'1':'0.4'; btn.style.filter=on?'none':'grayscale(1)'; btn.style.borderColor=on?'#9fc472':'#ccc'; }
 // 画面タップでどの演出も即クリアして通常操作に戻す（最前面に透明オーバーレイを置き、1タップで全消し）
 var _celeTimers=[];
 function _celeAfter(fn,ms){ var t=setTimeout(fn,ms); _celeTimers.push(t); return t; }   // 予約した演出は追跡し、タップ時にまとめて取消
@@ -4320,12 +4319,11 @@ function celeArm(ms){
   ov._done=false;
   clearTimeout(ov._t); ov._t=setTimeout(function(){ if(ov.parentNode) ov.parentNode.removeChild(ov); },ms);
 }
-// 決済完了の演出一式（楽しいモードに従う）。中=頻度1/10（10回に1回くらい）。MAXはお祭り。
+// 決済完了の演出一式（楽しいモードに従う）。オン=頻度1/5、そのうち10%がフル(全部盛り)。
 function payCelebrate(){
-  var fun=getFunMode(); if(fun==='off') return;
-  var MAX=(fun==='max');
-  if(MAX){ var _r=Math.random(); if(_r>=0.95) return; MAX=(_r<0.35); }   // MAX: 35%フル / 60%通常(中相当) / 5%演出なし
-  else if(Math.random()>=0.10) return;   // 中：頻度を1/10に（10回に1回くらいだけ演出。それ以外は何も出さない）
+  if(getFunMode()==='off') return;
+  if(Math.random()>=0.20) return;   // オン：頻度1/5（10回に2回くらいだけ演出。それ以外は何も出さない）
+  var MAX=(Math.random()<0.10);     // 演出のうち10%はフル(全部盛り)、残り90%は通常
   var life=1700;   // 画面タップで消せる受付時間（各演出の長さに合わせる）
   popConfetti(); _celeAfter(popConfetti,300); _celeAfter(popConfetti,620);   // 通常クラッカー3連発
   if(MAX||Math.random()<0.40){
