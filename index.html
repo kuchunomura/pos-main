@@ -1181,8 +1181,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 634;
-const APP_BUILD_DATE = '2026/11/20 11:40';
+const APP_VERSION = 635;
+const APP_BUILD_DATE = '2026/11/20 15:30';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -2635,6 +2635,18 @@ function addSouFreeRental(item, cat){
   renderPOS(); renderCart(); showToast('✓ '+item.name+'（SOUレンタル無料）');
 }
 function souRentalFreeOff(){ souRentalFree=false; renderCart(); renderPOS(); showToast('SOUレンタル無料モードをOFFにしました'); }
+// 予約の備考に「レンタル無料」等（スタッフ記入）→予約から会計を起こす時、その予約のレンタルを0円で入れる。
+// 判定は予約アプリ(yoyaku)の RENTAL_FREE_RE と同じ。お客様の質問文（「レンタル無料ですか？」等）は除外。
+var RENTAL_FREE_RE=/(?:レンタル(?:料金?|代|品)?(?:は|も|を|が)?(?:全部|全て|すべて)?\s*(?:無料|サービス|0円|０円|タダ)|(?:無料|サービス)で?レンタル)(?![^。\n]{0,8}(?:ですか|でしょうか|[？?]|可能|でき))/;
+function isRentalFreeRes(o){ return !!o && RENTAL_FREE_RE.test(String(o.memo||'')+' '+String(o.note||'')); }
+function isSouRes(o){ return !!o && o.source==='sou'; } // 予約サイト欄でSOUを選んだ予約だけ（備考の「SOU」の文字では判定しない＝SOU日帰り客が追加した宿泊などを誤ってSOU扱いしない）
+// 0円レンタル行：SOU予約＝SOUレンタル無料と同じ形（otaKey='sou'・支払済）、それ以外＝「無料」(freeOn)
+function pushFreeRentalLine(item,cat,qty,isSou){
+  var label=(typeof paidDisplaySettings!=='undefined'&&paidDisplaySettings.label)?paidDisplaySettings.label:'支払済';
+  var ex=cart.find(function(c){ return c.id===item.id && c.price===0 && (isSou?c.otaKey==='sou':(!!c.freeOn&&!c.otaKey)); });
+  if(ex){ ex.qty+=qty; return; }
+  cart.push({id:item.id,name:item.name,origPrice:item.price,price:0,qty:qty,discounted:true,paidLabel:isSou?label:'',free_mura:item.free_mura||false,cat:item.cat||'',catColor:cat?cat.bg:'#fff',muraOn:false,groupOn:'',freeOn:!isSou,passKey:'',otaKey:isSou?'sou':''});
+}
 // 奈良県職員券・SOU・イベントの共通色（空中ウォーク #f0f6ff/#a0c0e8 より目立たない青系）
 const SPECIAL_TILE_BG='#eef4fb', SPECIAL_TILE_BORDER='#a9c3e2', SPECIAL_TILE_TEXT='#3f5c82';
 // SOUトリガータイル（空中ウォークのグリッド末尾に。編集中は出さない）
@@ -3612,10 +3624,12 @@ function loadReservationToCart(type,id){
     var pc=parseInt(o.petCount)||0;
     if(pc>0){ var pit=items.find(function(x){return x.id==='i_pet_01';}); if(pit){ var pcat=cats.find(function(c){return c.id===pit.cat;}); addToCart(pit,pcat); var pl=cart[cart.length-1]; if(pl) pl.qty=pc*(parseInt(o.nights)||1); } }
   }
+  var _rFree=isRentalFreeRes(o), _rSou=_rFree&&isSouRes(o); // 備考「レンタル無料」→0円で入れる
   (o.rental||[]).forEach(function(rn){
     var rit=findPosItemByName(rn.name);
     if(!rit){ warn.push('レンタル「'+rn.name+'」'); return; }
     var rcat=cats.find(function(c){return c.id===rit.cat;});
+    if(_rFree){ pushFreeRentalLine(rit,rcat,Math.max(1,parseInt(rn.qty)||1),_rSou); return; }
     addToCart(rit,rcat); var rl=cart[cart.length-1]; if(rl) rl.qty=Math.max(1,parseInt(rn.qty)||1);
   });
   var _naraApplied=applyNaraFromMemo(o,0); // 備考が奈良県券なら満額＋券マイナス行を計上
@@ -3679,10 +3693,12 @@ function copyReservationToCart(type,id){
     var pc=parseInt(o.petCount)||0;
     if(pc>0){ var pit=items.find(function(x){return x.id==='i_pet_01';}); if(pit){ var pcat=cats.find(function(c){return c.id===pit.cat;}); addToCart(pit,pcat); var pl=cart[cart.length-1]; if(pl) pl.qty=pc*(parseInt(o.nights)||1); } }
   }
+  var _rFree=isRentalFreeRes(o), _rSou=_rFree&&isSouRes(o); // 備考「レンタル無料」→0円で入れる
   (o.rental||[]).forEach(function(rn){
     var rit=findPosItemByName(rn.name);
     if(!rit){ warn.push('レンタル「'+rn.name+'」'); return; }
     var rcat=cats.find(function(c){return c.id===rit.cat;});
+    if(_rFree){ pushFreeRentalLine(rit,rcat,Math.max(1,parseInt(rn.qty)||1),_rSou); return; }
     addToCart(rit,rcat); var rl=cart[cart.length-1]; if(rl) rl.qty=Math.max(1,parseInt(rn.qty)||1);
   });
   var _naraApplied=applyNaraFromMemo(o,startLen); // 備考が奈良県券なら満額＋券マイナス行を計上
