@@ -1181,8 +1181,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 633;
-const APP_BUILD_DATE = '2026/11/07 10:35';
+const APP_VERSION = 634;
+const APP_BUILD_DATE = '2026/11/20 11:40';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -5823,7 +5823,10 @@ function initVersionInfo(){
     b.style.display='flex'; b.style.alignItems='center'; b.style.justifyContent='space-between'; b.style.paddingRight='14px';
     b.innerHTML='<div><div style="font-size:12px;color:var(--accent);font-weight:700;">POSレジ ver.'+APP_VERSION+'</div>'
       +'<div style="font-size:11px;color:var(--text2);margin-top:2px;">更新: '+APP_BUILD_DATE+' &nbsp;|&nbsp; <span style="color:'+typeColor+';font-weight:600;">'+typeLabel+'</span></div></div>'
-      +'<button id="fun-mode-btn" onclick="cycleFunMode()" style="flex:0 0 auto;margin-left:10px;width:48px;height:44px;padding:0;border:2px solid #9fc472;border-radius:10px;background:#cfe8b0;font-size:24px;line-height:1;font-family:inherit;cursor:pointer;"></button>';
+      +'<div style="display:flex;align-items:center;gap:10px;flex:0 0 auto;margin-left:10px;">'
+      +'<a href="manual.html" target="_blank" rel="noopener" title="取扱説明書を開く" style="font-size:12px;color:#1f5f23;background:#eaf4ea;border:1px solid #9cc79e;border-radius:12px;padding:4px 11px;text-decoration:none;font-weight:700;white-space:nowrap;">📖 説明書</a>'
+      +'<button id="fun-mode-btn" onclick="cycleFunMode()" style="flex:0 0 auto;width:48px;height:44px;padding:0;border:2px solid #9fc472;border-radius:10px;background:#cfe8b0;font-size:24px;line-height:1;font-family:inherit;cursor:pointer;"></button>'
+      +'</div>';
     updateFunModeBtn();
   }
   var tv=document.getElementById('tabbar-version');
