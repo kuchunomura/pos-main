@@ -1181,8 +1181,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 637;
-const APP_BUILD_DATE = '2026/11/21 09:30';
+const APP_VERSION = 638;
+const APP_BUILD_DATE = '2026/11/25 10:00';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1312,7 +1312,6 @@ const DEFAULT_ITEMS = [
   {id:'i_b02', name:'スキレット＋鍋',      price:500, cat:'cat_rental',stock:6, free_mura:false},
   {id:'i_b03', name:'ローテーブル',        price:800, cat:'cat_rental',stock:4, free_mura:false},
   {id:'i_b04', name:'ベンチ',              price:500, cat:'cat_rental',stock:5, free_mura:false},
-  {id:'i_b05', name:'木炭 2kg',            price:500, cat:'cat_rental',stock:5, free_mura:false},
   {id:'i_b06', name:'ガスコンロ＋ガス',    price:1000, cat:'cat_rental',stock:3, free_mura:false},
   {id:'i_b06b',name:'バーナー',            price:700,cat:'cat_rental',stock:1, free_mura:false},
   {id:'i_b06c',name:'マッチ 1箱',          price:200, cat:'cat_rental',stock:5, free_mura:false},
@@ -1478,6 +1477,17 @@ let items = ld(KEYS.items) || DEFAULT_ITEMS;
   if(localStorage.getItem(FLAG)) return;
   if(!items.find(function(x){return x.id==='i_azuma_ita_s';})) items.push({id:'i_azuma_ita_s',name:'東さんまな板（小）',price:1000,cat:'cat_goods',stock:0,free_mura:false});
   var del={i_b_toy:1,i_chakka_g:1,i_chakka_u:1}; // 玩具使い放題・着火セット(グッズ/無人販売)を削除
+  items=items.filter(function(x){return !del[x.id];});
+  sv(KEYS.items,items);
+  var _io=ld(KEYS.itemOrder);
+  if(_io){ var _io2=_io.filter(function(id){return !del[id];}); if(_io2.length!==_io.length) sv(KEYS.itemOrder,_io2); }
+  localStorage.setItem(FLAG,'1');
+})();
+// 商品削除マイグレーション（2026/11/25）：備品レンタルの「木炭 2kg」(i_b05)を削除。
+(function(){
+  var FLAG='pos_items_20261125';
+  if(localStorage.getItem(FLAG)) return;
+  var del={i_b05:1};
   items=items.filter(function(x){return !del[x.id];});
   sv(KEYS.items,items);
   var _io=ld(KEYS.itemOrder);
