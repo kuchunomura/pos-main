@@ -1181,8 +1181,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 638;
-const APP_BUILD_DATE = '2026/11/25 10:00';
+const APP_VERSION = 639;
+const APP_BUILD_DATE = '2026/11/26 10:30';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -5470,6 +5470,37 @@ async function retrySyncSale(id){
     '理由: '+(_lastSyncError||'原因不明'));
 }
 
+// 「要再送」(syncStatus='fail')の売上を自動で送り直す（電波復帰時・画面復帰時・2分ごと・起動時）。
+// replace_rows＝GASが同じ売上IDの行を消してから書く＝何回送っても1件分（二重計上なし）。
+// 修正(replace)が失敗していた売上も、最新の内容で正しく上書きされる。
+var _autoRetryRunning=false;
+async function autoRetryFailedSales(){
+  if(_autoRetryRunning) return;
+  if(typeof navigator!=='undefined' && navigator.onLine===false) return;
+  const url=ld(KEYS.gas)||DEFAULT_GAS_URL; if(!url) return;
+  var ids=sales.filter(function(x){return x&&x.syncStatus==='fail';}).map(function(x){return x.id;});
+  if(!ids.length) return;
+  _autoRetryRunning=true; var okN=0;
+  try{
+    for(var i=0;i<ids.length&&i<30;i++){
+      var s=sales.find(function(x){return x.id===ids[i];});
+      if(!s||s.syncStatus!=='fail') continue;
+      var ok=false;
+      try{
+        var qs='?d='+encodeURIComponent(JSON.stringify({type:'replace_rows',sale_id:s.id,rows:saleToRows(s)}));
+        var res=await fetch(url+qs,{method:'GET',redirect:'follow'});
+        if(res.ok){ var json=await res.json(); ok=(json&&json.status==='ok'); }
+      }catch(e){ ok=false; }
+      if(!ok) break; // まだ繋がらない＝残りは次の機会に
+      var s2=sales.find(function(x){return x.id===ids[i];});
+      if(s2&&s2.syncStatus==='fail'){ s2.syncStatus='ok'; okN++; }
+    }
+  }finally{
+    _autoRetryRunning=false;
+    if(okN){ sv(KEYS.sales,sales); try{saveSnapshotToIDB();}catch(e){} renderSales(); showToast('✓ 要再送だった売上 '+okN+'件を自動で送信しました'); }
+  }
+}
+
 function toggleTopBtns(){
   var g=document.getElementById('top-btns-group');
   var t=document.getElementById('top-btns-toggle');
@@ -5842,6 +5873,11 @@ document.addEventListener('visibilitychange',function(){ if(!document.hidden) ch
 // 消し残しの削除を起動時＋5分ごとに自動で片付ける（削除がシートに届かなかった分の自己修復）
 setTimeout(function(){ flushPendingDeletes(); }, 4000);
 setInterval(function(){ flushPendingDeletes(); }, 5*60*1000);
+// 「要再送」の自動送り直し：電波が戻った時・画面に戻った時・起動時・2分ごと
+window.addEventListener('online',function(){ setTimeout(autoRetryFailedSales, 3000); });
+document.addEventListener('visibilitychange',function(){ if(!document.hidden) setTimeout(autoRetryFailedSales, 1500); });
+setTimeout(function(){ autoRetryFailedSales(); }, 8000);
+setInterval(function(){ autoRetryFailedSales(); }, 2*60*1000);
 
 function initVersionInfo(){
   var b=document.getElementById('pos-version-info');
