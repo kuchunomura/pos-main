@@ -1181,8 +1181,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 639;
-const APP_BUILD_DATE = '2026/11/26 10:30';
+const APP_VERSION = 640;
+const APP_BUILD_DATE = '2026/11/27 10:00';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -3302,12 +3302,12 @@ const POS_RENTAL_ALIAS={
   b02:/スキレット|フライパン|鉄板|鍋|なべ|ナベ|\bskillet\b|\bfrying\s*pan\b|\bfrypan\b|\bpan\b|\bpot\b/i,
   b03:/ローテーブル|テーブル|机|つくえ|卓|\blow\s*table\b|\btable\b|\bdesk\b/i,
   b04:/ベンチ|椅子|いす|イス|チェア|\bbench\b|\bchair\b|\bstool\b/i,
-  b05:/木炭|炭|\bcharcoal\b(?!\s*(?:starter|chimney))/i,
   b06:/ガスコンロ|コンロ|\bgas\s*stove\b|\bgas\s*cooker\b|\bstove\b/i,
   b06b:/バーナー|トーチ|\bburner\b|\btorch\b/i,
-  b06c:/マッチ|ライター|チャッカマン|着火|\bmatch(?:es)?\b|\blighter\b/i,
+  b06c:/マッチ|ライター|チャッカマン|\bmatch(?:es)?\b|\blighter\b/i,
   b06d:/ランタン|ランプ|\blantern\b|\blamp\b/i,
   b07:/薪割|まき割|薪わり|まきわり|マキワリ|\b(?:axe|hatchet)\b|\blog\s*splitter\b|\bwood\s*split/i,
+  b_chakka:/着火剤|着火材|ファイヤーライター|\bfire\s*lighters?\b|\bfirelighters?\b|\bfire\s*starter\s*cubes?\b/i,
   b08:/コーヒー|珈琲|\bcoffee\b/i,
   b13:/電源.{0,3}大|大.{0,3}電源|ポータブル電源(?!.{0,3}小)|ポタ電(?!.{0,3}小)|\b(?:large|big)\s*(?:portable\s*)?power\s*(?:station|bank|supply)\b|\b(?:portable\s*)?power\s*(?:station|bank|supply)\b(?!.{0,8}(?:small|mini))/i,
   b14:/電源.{0,3}小|小.{0,3}電源|ポータブル電源.{0,3}小|ポタ電.{0,3}小|\b(?:small|mini)\s*(?:portable\s*)?power\s*(?:station|bank|supply)\b|\b(?:portable\s*)?power\s*(?:station|bank|supply)\b.{0,8}(?:small|mini)/i,
