@@ -1181,8 +1181,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 641;
-const APP_BUILD_DATE = '2026/11/27 14:00';
+const APP_VERSION = 642;
+const APP_BUILD_DATE = '2026/11/27 14:30';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1384,6 +1384,7 @@ const DEFAULT_ITEMS = [
   {id:'i_r05', name:'アイスクリーム',       price:400,  cat:'cat_uketsuke', stock:0, free_mura:false},
   {id:'i_1777686977430', name:'氷',             price:400,  cat:'cat_uketsuke', stock:0, free_mura:false},
   {id:'i_1777687073002', name:'水2ℓ',           price:200,  cat:'cat_uketsuke', stock:0, free_mura:false},
+  {id:'i_1777700361610', name:'くまのサイダー',  price:400,  cat:'cat_uketsuke', stock:0, free_mura:false},
   {id:'i_1777786361036', name:'鮎',              price:500,  cat:'cat_uketsuke', stock:0, free_mura:false},
   {id:'i_b18', name:'BBQ焼き網',           price:200, cat:'cat_rental',stock:5, free_mura:false},
   {id:'i_b19', name:'寝袋（夏用）',        price:1000,cat:'cat_rental',stock:10,free_mura:false},
@@ -1482,16 +1483,20 @@ let items = ld(KEYS.items) || DEFAULT_ITEMS;
   if(_io){ var _io2=_io.filter(function(id){return !del[id];}); if(_io2.length!==_io.length) sv(KEYS.itemOrder,_io2); }
   localStorage.setItem(FLAG,'1');
 })();
-// 商品削除マイグレーション（2026/11/27）：受付飲食の「くまのサイダー」(i_1777700361610)を削除。
-// 端末で手で登録し直した場合に備え、名前が「くまのサイダー」の商品も消す。
+// 商品復活マイグレーション（2026/11/27b）：v641で消した受付飲食の「くまのサイダー」を元に戻す（ユーザー「間違えた。作り直して」）。
+// 同じID(i_1777700361610)で戻す＝過去の売上・集計とそのまま繋がる。位置は元どおり「水2ℓ」の次。v641の削除を走らせていない端末では何もしない。
 (function(){
-  var FLAG='pos_items_20261127';
+  var FLAG='pos_items_20261127b';
   if(localStorage.getItem(FLAG)) return;
-  var del={}; items.forEach(function(x){ if(x&&(x.id==='i_1777700361610'||x.name==='くまのサイダー')) del[x.id]=1; });
-  items=items.filter(function(x){return !del[x.id];});
-  sv(KEYS.items,items);
+  var ID='i_1777700361610';
+  if(!items.find(function(x){return x.id===ID||x.name==='くまのサイダー';})){
+    var it={id:ID,name:'くまのサイダー',price:400,cat:'cat_uketsuke',stock:0,free_mura:false};
+    var wi=items.findIndex(function(x){return x.id==='i_1777687073002';});
+    if(wi>=0) items.splice(wi+1,0,it); else items.push(it);
+    sv(KEYS.items,items);
+  }
   var _io=ld(KEYS.itemOrder);
-  if(_io){ var _io2=_io.filter(function(id){return !del[id];}); if(_io2.length!==_io.length) sv(KEYS.itemOrder,_io2); }
+  if(_io && _io.indexOf(ID)<0){ var wo=_io.indexOf('i_1777687073002'); if(wo>=0) _io.splice(wo+1,0,ID); else _io.push(ID); sv(KEYS.itemOrder,_io); }
   localStorage.setItem(FLAG,'1');
 })();
 // 商品削除マイグレーション（2026/11/25）：備品レンタルの「木炭 2kg」(i_b05)を削除。
