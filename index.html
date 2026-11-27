@@ -1183,8 +1183,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 651;
-const APP_BUILD_DATE = '2026/11/27 17:48';
+const APP_VERSION = 652;
+const APP_BUILD_DATE = '2026/11/27 17:52';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -7667,6 +7667,9 @@ restoreFromIDB(true).then(()=>{
 #receipt-print .rc.sm .rc-stamp{width:17mm;height:20mm;font-size:7pt;}
 #receipt-print .rc.sm .rc-issuer{font-size:7.5pt;line-height:1.4;}
 #receipt-print .rc.sm .rc-issuer .n{font-size:9.5pt;}
+#receipt-print .rc-sc{position:absolute;font-family:sans-serif;font-size:10pt;line-height:1;color:#bbb;background:#fff;padding:0 1mm;}
+#receipt-print .rc-sc.b{bottom:-2.2mm;left:14mm;}
+#receipt-print .rc-sc.r{right:-2.6mm;top:12mm;transform:rotate(90deg);}
 </style>
 <script>
 // ==================== 領収書 ====================
@@ -7727,6 +7730,7 @@ function buildReceiptHtml(r,o){
       h+='<tr><td colspan="3" class="r"><b>合計（税込）</b></td><td class="r"><b>¥'+r.total.toLocaleString()+'</b></td></tr></table>';
     }
   }
+  if(small) h+='<span class="rc-sc b">✂</span><span class="rc-sc r">✂</span>';   // 切る線（右・下）に薄いハサミ
   h+='</div>';
   return h;
 }
