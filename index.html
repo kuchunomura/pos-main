@@ -1183,8 +1183,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 645;
-const APP_BUILD_DATE = '2026/11/27 17:00';
+const APP_VERSION = 646;
+const APP_BUILD_DATE = '2026/11/27 17:07';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -7609,8 +7609,8 @@ restoreFromIDB(true).then(()=>{
     <div class="form-row" style="margin-bottom:10px;">
       <label style="font-size:12px;font-weight:600;">宛名（空欄なら「上様」）</label>
       <div style="display:flex;gap:6px;align-items:center;margin-top:4px;">
-        <input type="text" id="receipt-name" placeholder="例：山田太郎、〇〇株式会社" style="flex:1;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;">
-        <select id="receipt-honor" style="padding:8px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;"><option value="様">様</option><option value="御中">御中</option></select>
+        <input type="text" id="receipt-name" placeholder="例：山田太郎、〇〇株式会社" style="flex:1 1 auto;min-width:0;width:auto;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;">
+        <select id="receipt-honor" style="flex:0 0 80px;width:80px;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;"><option value="様">様</option><option value="御中">御中</option></select>
       </div>
     </div>
     <div class="form-row" style="margin-bottom:10px;">
