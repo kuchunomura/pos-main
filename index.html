@@ -1181,8 +1181,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 640;
-const APP_BUILD_DATE = '2026/11/27 10:00';
+const APP_VERSION = 641;
+const APP_BUILD_DATE = '2026/11/27 14:00';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1384,7 +1384,6 @@ const DEFAULT_ITEMS = [
   {id:'i_r05', name:'アイスクリーム',       price:400,  cat:'cat_uketsuke', stock:0, free_mura:false},
   {id:'i_1777686977430', name:'氷',             price:400,  cat:'cat_uketsuke', stock:0, free_mura:false},
   {id:'i_1777687073002', name:'水2ℓ',           price:200,  cat:'cat_uketsuke', stock:0, free_mura:false},
-  {id:'i_1777700361610', name:'くまのサイダー',  price:400,  cat:'cat_uketsuke', stock:0, free_mura:false},
   {id:'i_1777786361036', name:'鮎',              price:500,  cat:'cat_uketsuke', stock:0, free_mura:false},
   {id:'i_b18', name:'BBQ焼き網',           price:200, cat:'cat_rental',stock:5, free_mura:false},
   {id:'i_b19', name:'寝袋（夏用）',        price:1000,cat:'cat_rental',stock:10,free_mura:false},
@@ -1477,6 +1476,18 @@ let items = ld(KEYS.items) || DEFAULT_ITEMS;
   if(localStorage.getItem(FLAG)) return;
   if(!items.find(function(x){return x.id==='i_azuma_ita_s';})) items.push({id:'i_azuma_ita_s',name:'東さんまな板（小）',price:1000,cat:'cat_goods',stock:0,free_mura:false});
   var del={i_b_toy:1,i_chakka_g:1,i_chakka_u:1}; // 玩具使い放題・着火セット(グッズ/無人販売)を削除
+  items=items.filter(function(x){return !del[x.id];});
+  sv(KEYS.items,items);
+  var _io=ld(KEYS.itemOrder);
+  if(_io){ var _io2=_io.filter(function(id){return !del[id];}); if(_io2.length!==_io.length) sv(KEYS.itemOrder,_io2); }
+  localStorage.setItem(FLAG,'1');
+})();
+// 商品削除マイグレーション（2026/11/27）：受付飲食の「くまのサイダー」(i_1777700361610)を削除。
+// 端末で手で登録し直した場合に備え、名前が「くまのサイダー」の商品も消す。
+(function(){
+  var FLAG='pos_items_20261127';
+  if(localStorage.getItem(FLAG)) return;
+  var del={}; items.forEach(function(x){ if(x&&(x.id==='i_1777700361610'||x.name==='くまのサイダー')) del[x.id]=1; });
   items=items.filter(function(x){return !del[x.id];});
   sv(KEYS.items,items);
   var _io=ld(KEYS.itemOrder);
