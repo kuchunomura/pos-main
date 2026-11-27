@@ -1183,8 +1183,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 653;
-const APP_BUILD_DATE = '2026/11/27 17:55';
+const APP_VERSION = 654;
+const APP_BUILD_DATE = '2026/11/27 17:58';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -7631,7 +7631,7 @@ restoreFromIDB(true).then(()=>{
   </div>
 </div>
 <div id="receipt-print"></div>
-<style>
+<style id="receipt-style">
 #receipt-print{display:none;}
 @media print{
   body.printing-receipt > *:not(#receipt-print){display:none !important;}
@@ -7738,16 +7738,36 @@ function printReceipt(){
          tadashi:document.getElementById('receipt-tadashi').value.trim(),detail:document.getElementById('receipt-detail').checked,
          noDate:document.getElementById('receipt-nodate').checked,size:_receiptSize()};
   try{ localStorage.setItem('pos_receipt_size',o.size); }catch(e){}
-  document.getElementById('receipt-print').innerHTML=buildReceiptHtml(r,o);
+  var body=buildReceiptHtml(r,o);
   r.receiptName=o.name; r.receiptHonor=o.honor; r.receiptTadashi=o.tadashi;
   sv(KEYS.sales,sales);
-  // 用紙の余白：A4=12mm／財布サイズ=0（左上角ピッタリ）
+  var pageCss='@page{size:A4 portrait;margin:'+(o.size==='small'?'0':'12mm')+';}';
+  // ① 領収書だけの新しいタブを開いて、そのタブで印刷（タブレットのブラウザは画面の一部を隠す印刷が効かないため）
+  var w=null; try{ w=window.open('','_blank'); }catch(e){ w=null; }
+  if(w && w.document){
+    var css=(document.getElementById('receipt-style')||{}).textContent||'';
+    css=css.replace('#receipt-print{display:none;}','');
+    var doc='<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>領収書</title>'+
+      '<style>'+css+pageCss+'html,body{margin:0;padding:0;background:#fff;}#receipt-print{padding:'+(o.size==='small'?'0':'12mm')+';}'+
+      '@media print{#receipt-print{padding:0;}.rc-bar{display:none !important;}}'+
+      '.rc-bar{position:fixed;left:0;right:0;bottom:0;display:flex;gap:10px;justify-content:center;padding:12px;background:#f3f3f3;border-top:1px solid #ccc;font-family:sans-serif;}'+
+      '.rc-bar button{font-size:16px;font-weight:700;padding:12px 22px;border-radius:10px;border:1px solid #999;background:#fff;}.rc-bar .p{background:#1a4a30;color:#fff;border-color:#1a4a30;}</style></head><body>'+
+      '<div id="receipt-print">'+body+'</div>'+
+      '<div class="rc-bar"><button class="p" onclick="window.print()">🖨 印刷する</button><button onclick="window.close()">閉じる</button></div>'+
+      '<script>window.onload=function(){setTimeout(function(){window.print();},400);};<\/script></body></html>';
+    w.document.open(); w.document.write(doc); w.document.close();
+    closeReceiptModal();
+    showToast('🧾 領収書を新しいタブで開きました（印刷後は「閉じる」でレジに戻る）');
+    return;
+  }
+  // ② 新しいタブが開けない時は、この画面で領収書以外を隠して印刷（パソコン向け）
+  document.getElementById('receipt-print').innerHTML=body;
   var ps=document.getElementById('receipt-page-style'); if(!ps){ ps=document.createElement('style'); ps.id='receipt-page-style'; document.head.appendChild(ps); }
-  ps.textContent='@media print{@page{size:A4 portrait;margin:'+(o.size==='small'?'0':'12mm')+';}}';
+  ps.textContent='@media print{'+pageCss+'}';
   document.body.classList.add('printing-receipt');
   var done=function(){ document.body.classList.remove('printing-receipt'); var p2=document.getElementById('receipt-page-style'); if(p2) p2.textContent=''; window.removeEventListener('afterprint',done); };
   window.addEventListener('afterprint',done);
-  setTimeout(function(){ window.print(); },50);   // Androidは印刷が非同期なのでafterprintで外す（画面表示には影響しないクラス）
+  setTimeout(function(){ window.print(); },50);
   closeReceiptModal();
   showToast('🧾 印刷画面を開きました（プリンター or PDFで保存を選択）');
 }
