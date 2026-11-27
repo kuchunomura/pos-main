@@ -758,6 +758,7 @@ details.settings-section[open] > summary{margin-bottom:10px;}
     <div class="modal-btns" style="flex-wrap:wrap;gap:6px;">
       <button onclick="document.getElementById('sale-detail-modal').classList.remove('open')">閉じる</button>
       <button onclick="saveSaleChanges()" style="background:#e8f4fd;color:var(--blue);border:1px solid #a0c8e8;">💾 変更して保存</button>
+      <button onclick="openReceiptModal(currentDetailSaleId)" style="background:#e9f5ee;color:#1a4a30;border:1px solid #8fc4a3;font-weight:600;">🧾 領収書</button>
       <button onclick="openRefundModal(currentDetailSaleId)" style="background:#ffe0b8;color:#9a4e00;border:1px solid #d99a5a;font-weight:600;">↩ 返品/返金</button>
       <button id="sale-detail-flag-btn" onclick="toggleSaleFlag()" style="background:#fde8e8;color:var(--red);border:1px solid #f5c0c0;">🔴 印</button>
       <button class="confirm" style="background:var(--red);border-color:var(--red);" onclick="deleteSaleFromDetail()">削除</button>
@@ -1076,6 +1077,7 @@ details.settings-section[open] > summary{margin-bottom:10px;}
       </div>
       <div style="font-size:21px;font-weight:800;color:var(--green);margin-top:4px;">決済完了</div>
       <div id="inline-done-amount" style="font-size:32px;font-weight:800;color:#111;margin:6px 0 16px;"></div>
+      <button onclick="openReceiptFromDone()" style="width:100%;padding:13px;margin-bottom:10px;border:1px solid #8fc4a3;border-radius:12px;background:#e9f5ee;color:#1a4a30;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">🧾 領収書を発行</button>
       <button onclick="inlineNextCustomer()" style="width:100%;padding:15px;border:1px solid #ccc;border-radius:12px;background:#fff;color:#333;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;">閉じる</button>
       <div id="inline-done-countdown" style="margin-top:12px;font-size:13px;font-weight:600;color:#888;"></div>
     </div>
@@ -1181,8 +1183,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 644;
-const APP_BUILD_DATE = '2026/11/27 16:57';
+const APP_VERSION = 645;
+const APP_BUILD_DATE = '2026/11/27 17:00';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -7597,6 +7599,123 @@ restoreFromIDB(true).then(()=>{
   renderCatFilterTabs();renderPOS();renderCart();renderDiscountBar();renderAttrs();renderHoldTabs();renderSettings();renderWeatherDisplay();initVersionInfo();checkAppVersion();
   fetchCarryOverFromGAS();
 });
+</script>
+
+<!-- 領収書モーダル（決済完了画面・売上詳細の上に重ねるので body の最後に置く） -->
+<div class="modal-overlay" id="receipt-modal" style="z-index:300;" onclick="if(event.target===this) closeReceiptModal();">
+  <div class="modal" style="max-width:400px;padding:20px;" onclick="event.stopPropagation()">
+    <h3 style="margin:0 0 12px;">🧾 領収書</h3>
+    <div id="receipt-preview" style="background:#f9f9f9;border-radius:8px;padding:10px;margin-bottom:12px;font-size:13px;"></div>
+    <div class="form-row" style="margin-bottom:10px;">
+      <label style="font-size:12px;font-weight:600;">宛名（空欄なら「上様」）</label>
+      <div style="display:flex;gap:6px;align-items:center;margin-top:4px;">
+        <input type="text" id="receipt-name" placeholder="例：山田太郎、〇〇株式会社" style="flex:1;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;">
+        <select id="receipt-honor" style="padding:8px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;"><option value="様">様</option><option value="御中">御中</option></select>
+      </div>
+    </div>
+    <div class="form-row" style="margin-bottom:10px;">
+      <label style="font-size:12px;font-weight:600;">但し書き</label>
+      <input type="text" id="receipt-tadashi" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;margin-top:4px;">
+    </div>
+    <label style="display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:14px;cursor:pointer;"><input type="checkbox" id="receipt-detail" checked> 明細（商品の内訳）も載せる</label>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-primary2" style="flex:1;background:#1a4a30;color:#fff;" onclick="printReceipt()">🖨 印刷する</button>
+      <button class="btn-sm2" style="flex:1;" onclick="closeReceiptModal()">閉じる</button>
+    </div>
+  </div>
+</div>
+<div id="receipt-print"></div>
+<style>
+#receipt-print{display:none;}
+@media print{
+  @page{size:A4 portrait;margin:14mm;}
+  body.printing-receipt > *:not(#receipt-print){display:none !important;}
+  body.printing-receipt{background:#fff !important;}
+  body.printing-receipt #receipt-print{display:block !important;}
+}
+#receipt-print .rc{font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;color:#000;max-width:170mm;margin:0 auto;font-size:11pt;line-height:1.5;}
+#receipt-print .rc-title{text-align:center;font-size:24pt;font-weight:700;letter-spacing:0.6em;padding-left:0.6em;border-bottom:3px double #000;margin:0 auto 4mm;width:70mm;}
+#receipt-print .rc-meta{text-align:right;font-size:9.5pt;}
+#receipt-print .rc-name{font-size:15pt;border-bottom:1px solid #000;width:110mm;margin:5mm 0 6mm;padding-bottom:1mm;}
+#receipt-print .rc-amt{display:flex;align-items:baseline;justify-content:center;gap:6mm;background:#f2f2f2;border:1px solid #000;padding:3mm 0;margin:0 10mm;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+#receipt-print .rc-amt b{font-size:24pt;letter-spacing:0.05em;}
+#receipt-print .rc-tad{margin:4mm 10mm 0;}
+#receipt-print .rc-row{display:flex;justify-content:space-between;align-items:flex-end;margin-top:6mm;}
+#receipt-print .rc-stamp{width:22mm;height:26mm;border:1px dashed #666;font-size:8pt;color:#666;display:flex;align-items:center;justify-content:center;text-align:center;}
+#receipt-print .rc-issuer{text-align:right;font-size:9.5pt;line-height:1.55;}
+#receipt-print .rc-issuer .n{font-size:12pt;font-weight:700;}
+#receipt-print table{width:100%;border-collapse:collapse;margin-top:7mm;font-size:9.5pt;}
+#receipt-print th,#receipt-print td{border:1px solid #888;padding:1.2mm 2mm;}
+#receipt-print th{background:#eee;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+#receipt-print td.r{text-align:right;white-space:nowrap;}
+#receipt-print td.c{text-align:center;}
+</style>
+<script>
+// ==================== 領収書 ====================
+// 決済完了画面・売上詳細の「🧾 領収書」から。宛名・但し書きを入れて、ブラウザの印刷（プリンター or PDF保存）で出す。
+// 印刷時は body に printing-receipt を付け、#receipt-print 以外を隠す。2回目以降は「再発行」と表示（売上に receiptCount を記録＝端末内のみ・シート/集計には無関係）。
+var RECEIPT_ISSUER=['合同会社フェレリ　代表　ジョラン フェレリ','〒637-1441　奈良県吉野郡十津川村大字小川112','21世紀の森　空中の村','TEL：0746-62-0567'];
+var _receiptSaleId=null;
+function _rcYen(n){ return (n<0?'−¥':'¥')+Math.abs(n).toLocaleString(); }
+function _rcEsc(t){ return String(t==null?'':t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+function openReceiptFromDone(){
+  clearInlineDoneTimer();
+  var cd=document.getElementById('inline-done-countdown'); if(cd) cd.textContent='';
+  openReceiptModal(lastSaleId);
+}
+function openReceiptModal(saleId){
+  var r=sales.find(function(s){return s.id===saleId;});
+  if(!r){ showToast('⚠ 売上が見つかりません','#c00'); return; }
+  if(r.refund || !(r.total>0)){ showToast('⚠ 0円・返金の会計は領収書を出せません','#c00'); return; }
+  _receiptSaleId=saleId;
+  var mLabel={cash:'現金',card:'クレジットカード',other:'電子決済'}[r.method]||'';
+  document.getElementById('receipt-preview').innerHTML='<div style="display:flex;justify-content:space-between;"><span>'+_rcEsc(dtToDisplay(r.datetime))+'　'+mLabel+'</span><b style="font-size:16px;">¥'+r.total.toLocaleString()+'</b></div>'+
+    (r.receiptCount?'<div style="margin-top:4px;color:#c0392b;font-weight:700;font-size:12px;">⚠ この会計は領収書を'+r.receiptCount+'回発行済み＝今回は「再発行」と印字されます</div>':'');
+  document.getElementById('receipt-name').value=r.receiptName||'';
+  document.getElementById('receipt-honor').value=r.receiptHonor||'様';
+  document.getElementById('receipt-tadashi').value=r.receiptTadashi||'ご利用料金として';
+  document.getElementById('receipt-detail').checked=true;
+  document.getElementById('receipt-modal').classList.add('open');
+}
+function closeReceiptModal(){ document.getElementById('receipt-modal').classList.remove('open'); }
+function buildReceiptHtml(r,o){
+  var d=new Date(r.datetime); if(isNaN(d)) d=new Date();
+  var ds=d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日';
+  var mLabel={cash:'現金',card:'クレジットカード',other:'電子決済'}[r.method]||'';
+  var no=String(r.id||'').replace(/^s_/,'');
+  var h='<div class="rc">';
+  h+='<div class="rc-meta">No. '+_rcEsc(no)+'<br>発行日　'+ds+(o.reissue?'<br><b>（再発行）</b>':'')+'</div>';
+  h+='<div class="rc-title">領収書</div>';
+  h+='<div class="rc-name">'+(o.name?_rcEsc(o.name)+'　'+_rcEsc(o.honor):'上様')+'</div>';
+  h+='<div class="rc-amt"><span>金額</span><b>¥'+r.total.toLocaleString()+'-</b><span>（税込）</span></div>';
+  h+='<div class="rc-tad">但し　'+_rcEsc(o.tadashi||'')+'<br>上記正に領収いたしました。'+(mLabel?'　（お支払方法：'+mLabel+'）':'')+'</div>';
+  var stamp=(r.method==='cash'&&r.total>=50000)?'<div class="rc-stamp">収入印紙</div>':'<div></div>';
+  h+='<div class="rc-row">'+stamp+'<div class="rc-issuer"><span class="n">'+_rcEsc(RECEIPT_ISSUER[2])+'</span><br>'+RECEIPT_ISSUER.filter(function(x,i){return i!==2;}).map(_rcEsc).join('<br>')+'</div></div>';
+  if(o.detail){
+    var rows=(r.items||[]).filter(function(i){ return i.price!==0 && i.qty!==0; });
+    if(rows.length){
+      h+='<table><tr><th style="text-align:left;">品名</th><th>数量</th><th>単価</th><th>金額</th></tr>';
+      rows.forEach(function(i){ h+='<tr><td>'+_rcEsc(i.name)+'</td><td class="c">'+i.qty+'</td><td class="r">'+_rcYen(i.price)+'</td><td class="r">'+_rcYen(i.price*i.qty)+'</td></tr>'; });
+      h+='<tr><td colspan="3" class="r"><b>合計（税込）</b></td><td class="r"><b>¥'+r.total.toLocaleString()+'</b></td></tr></table>';
+    }
+  }
+  return h+'</div>';
+}
+function printReceipt(){
+  var r=sales.find(function(s){return s.id===_receiptSaleId;}); if(!r) return;
+  var o={name:document.getElementById('receipt-name').value.trim(),honor:document.getElementById('receipt-honor').value,
+         tadashi:document.getElementById('receipt-tadashi').value.trim(),detail:document.getElementById('receipt-detail').checked,
+         reissue:(r.receiptCount||0)>0};
+  document.getElementById('receipt-print').innerHTML=buildReceiptHtml(r,o);
+  r.receiptCount=(r.receiptCount||0)+1; r.receiptName=o.name; r.receiptHonor=o.honor; r.receiptTadashi=o.tadashi;
+  sv(KEYS.sales,sales);
+  document.body.classList.add('printing-receipt');
+  var done=function(){ document.body.classList.remove('printing-receipt'); window.removeEventListener('afterprint',done); };
+  window.addEventListener('afterprint',done);
+  setTimeout(function(){ window.print(); },50);   // Androidは印刷が非同期なのでafterprintで外す（画面表示には影響しないクラス）
+  closeReceiptModal();
+  showToast('🧾 印刷画面を開きました（プリンター or PDFで保存を選択）');
+}
 </script>
 </body>
 </html>
