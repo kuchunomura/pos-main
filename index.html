@@ -1183,8 +1183,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 649;
-const APP_BUILD_DATE = '2026/11/27 17:45';
+const APP_VERSION = 650;
+const APP_BUILD_DATE = '2026/11/27 17:47';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -7717,7 +7717,7 @@ function buildReceiptHtml(r,o){
   h+='<div class="rc-title">領収書</div>';
   h+='<div class="rc-name">'+(o.name?_rcEsc(o.name)+'　'+_rcEsc(o.honor):'上様')+'</div>';
   h+='<div class="rc-amt"><span>金額</span><b>¥'+r.total.toLocaleString()+'-</b><span>（税込）</span></div>';
-  h+='<div class="rc-tad">但し　'+_rcEsc(o.tadashi||'')+'<br>上記正に領収いたしました。'+(mLabel?'　（お支払方法：'+mLabel+'）':'')+'</div>';
+  h+='<div class="rc-tad">但し　'+_rcEsc(o.tadashi||'')+'<br>上記正に領収いたしました。</div>';
   var stamp=(r.method==='cash'&&r.total>=50000)?'<div class="rc-stamp">収入印紙</div>':'<div></div>';
   h+='<div class="rc-row">'+stamp+'<div class="rc-issuer"><span class="n">'+_rcEsc(RECEIPT_ISSUER[2])+'</span><br>'+RECEIPT_ISSUER.filter(function(x,i){return i!==2;}).map(_rcEsc).join('<br>')+'</div></div>';
   if(o.detail && !small){
