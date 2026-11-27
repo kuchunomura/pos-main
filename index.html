@@ -1183,8 +1183,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 650;
-const APP_BUILD_DATE = '2026/11/27 17:47';
+const APP_VERSION = 651;
+const APP_BUILD_DATE = '2026/11/27 17:48';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -7710,10 +7710,9 @@ function buildReceiptHtml(r,o){
   var d=new Date(r.datetime); if(isNaN(d)) d=new Date();
   var ds=o.noDate?'　　　　年　　　月　　　日':d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日';
   var mLabel={cash:'現金',card:'クレジットカード',other:'電子決済'}[r.method]||'';
-  var no=String(r.id||'').replace(/^s_/,'');
   var small=o.size==='small';
   var h='<div class="rc'+(small?' sm':'')+'">';
-  h+='<div class="rc-meta">No. '+_rcEsc(no)+'<br>発行日　'+ds+'</div>';
+  h+='<div class="rc-meta">発行日　'+ds+'</div>';
   h+='<div class="rc-title">領収書</div>';
   h+='<div class="rc-name">'+(o.name?_rcEsc(o.name)+'　'+_rcEsc(o.honor):'上様')+'</div>';
   h+='<div class="rc-amt"><span>金額</span><b>¥'+r.total.toLocaleString()+'-</b><span>（税込）</span></div>';
