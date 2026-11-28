@@ -1183,8 +1183,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 655;
-const APP_BUILD_DATE = '2026/11/27 18:02';
+const APP_VERSION = 656;
+const APP_BUILD_DATE = '2026/11/28 14:27';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -7673,7 +7673,7 @@ restoreFromIDB(true).then(()=>{
 // ==================== 領収書 ====================
 // 決済完了画面・売上詳細の「🧾 領収書」から。宛名・但し書き・用紙（A4／財布サイズ）・日付なしを選び、ブラウザの印刷（プリンター or PDF保存）で出す。
 // 印刷時は body に printing-receipt を付け、#receipt-print 以外を隠す。どちらの用紙もA4に印刷（財布サイズは左上の点線枠を切り取る）。
-var RECEIPT_ISSUER=['合同会社フェレリ　代表　ジョラン フェレリ','〒637-1441　奈良県吉野郡十津川村大字小川112','21世紀の森　空中の村','TEL：0746-62-0567'];
+var RECEIPT_ISSUER=['合同会社フェレリ　代表　ジョラン フェレリ','〒637-1441　奈良県吉野郡十津川村大字小川112','21世紀の森　空中の村','TEL：0746-62-0567','登録番号：T2150003001912'];   // 適格請求書発行事業者の登録番号
 var _receiptSaleId=null;
 function _rcYen(n){ return (n<0?'−¥':'¥')+Math.abs(n).toLocaleString(); }
 function _rcEsc(t){ return String(t==null?'':t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
@@ -7716,8 +7716,8 @@ function buildReceiptHtml(r,o){
   h+='<div class="rc-meta">発行日　'+ds+'</div>';
   h+='<div class="rc-title">領収書</div>';
   h+='<div class="rc-name">'+(o.name?_rcEsc(o.name)+'　'+_rcEsc(o.honor):'上様')+'</div>';
-  h+='<div class="rc-amt"><span>金額</span><b>¥'+r.total.toLocaleString()+'-</b><span>（税込）</span></div>';
-  h+='<div class="rc-tad">但し　'+_rcEsc(o.tadashi||'')+'<br>上記正に領収いたしました。</div>';
+  h+='<div class="rc-amt"><span>金額</span><b>¥'+r.total.toLocaleString()+'-</b><span>（税込10%）</span></div>';
+  h+='<div class="rc-tad">但し　'+_rcEsc(o.tadashi||'')+'<br>上記正に領収いたしました。<br>（10%対象 ¥'+r.total.toLocaleString()+'　うち消費税 ¥'+Math.floor(r.total*10/110).toLocaleString()+'）</div>';   // 税込額×10/110・端数切り捨て
   var stamp=(r.method==='cash'&&r.total>=50000)?'<div class="rc-stamp">収入印紙</div>':'<div></div>';
   h+='<div class="rc-row">'+stamp+'<div class="rc-issuer"><span class="n">'+_rcEsc(RECEIPT_ISSUER[2])+'</span><br>'+RECEIPT_ISSUER.filter(function(x,i){return i!==2;}).map(_rcEsc).join('<br>')+'</div></div>';
   if(o.detail && !small){
@@ -7725,7 +7725,7 @@ function buildReceiptHtml(r,o){
     if(rows.length){
       h+='<table><tr><th style="text-align:left;">品名</th><th>数量</th><th>単価</th><th>金額</th></tr>';
       rows.forEach(function(i){ h+='<tr><td>'+_rcEsc(i.name)+'</td><td class="c">'+i.qty+'</td><td class="r">'+_rcYen(i.price)+'</td><td class="r">'+_rcYen(i.price*i.qty)+'</td></tr>'; });
-      h+='<tr><td colspan="3" class="r"><b>合計（税込）</b></td><td class="r"><b>¥'+r.total.toLocaleString()+'</b></td></tr></table>';
+      h+='<tr><td colspan="3" class="r"><b>合計（税込10%）</b></td><td class="r"><b>¥'+r.total.toLocaleString()+'</b></td></tr></table>';
     }
   }
   if(small) h+='<span class="rc-sc">✂</span>';   // 切る線の外（下の線の左端の下）に薄いハサミを1つ
