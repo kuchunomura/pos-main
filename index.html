@@ -1183,8 +1183,8 @@ details.settings-section[open] > summary{margin-bottom:10px;}
 <script>
 // ===== バージョン（コミット・GAS更新含む手動カウント） =====
 const APP_VERSION_TYPE = 'main';
-const APP_VERSION = 657;
-const APP_BUILD_DATE = '2026/11/28 14:35';
+const APP_VERSION = 658;
+const APP_BUILD_DATE = '2026/11/28 15:00';
 
 // ===== ストレージ =====
 // 2026/07/16 ドライブのストレージ削除で旧GAS（AKfycbwbvsW8...）がスプレッドシートごと消えたため再作成。
@@ -1361,7 +1361,7 @@ const DEFAULT_ITEMS = [
   {id:'i_u06', name:'薪（量り売り）2kg',    price:400,  cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_u07', name:'十津川造林 薪（大）',  price:500,  cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_u08', name:'十津川造林 薪（小）',  price:300,  cat:'cat_unmanned', stock:0, free_mura:false},
-  {id:'i_u09', name:'ヒノキ炭',             price:600,  cat:'cat_unmanned', stock:0, free_mura:false},
+  {id:'i_u09', name:'ヒノキ木炭',           price:600,  cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_u10', name:'スウェーデントーチ',   price:1000, cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_u11', name:'着火剤セット',         price:300,  cat:'cat_unmanned', stock:0, free_mura:false},
   {id:'i_u12', name:'ドリンク2杯目',        price:200,  cat:'cat_unmanned', stock:0, free_mura:false},
@@ -1483,6 +1483,15 @@ let items = ld(KEYS.items) || DEFAULT_ITEMS;
   sv(KEYS.items,items);
   var _io=ld(KEYS.itemOrder);
   if(_io){ var _io2=_io.filter(function(id){return !del[id];}); if(_io2.length!==_io.length) sv(KEYS.itemOrder,_io2); }
+  localStorage.setItem(FLAG,'1');
+})();
+// 商品名変更マイグレーション（2026/11/28）：無人販売「ヒノキ炭」→「ヒノキ木炭」（i_u09・値段は変えない）。
+// 名前が「ヒノキ炭」のままの時だけ直す＝端末で別の名前に手で変えていたら触らない。
+(function(){
+  var FLAG='pos_items_20261128';
+  if(localStorage.getItem(FLAG)) return;
+  var ch=false; items.forEach(function(x){ if(x&&x.name==='ヒノキ炭'&&(x.id==='i_u09'||x.cat==='cat_unmanned')){ x.name='ヒノキ木炭'; ch=true; } });
+  if(ch) sv(KEYS.items,items);
   localStorage.setItem(FLAG,'1');
 })();
 // 商品復活マイグレーション（2026/11/27b）：v641で消した受付飲食の「くまのサイダー」を元に戻す（ユーザー「間違えた。作り直して」）。
